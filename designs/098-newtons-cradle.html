@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Newton's Cradle</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:linear-gradient(#f4f1ec,#d9d3c8);font-family:"Segoe UI",system-ui,sans-serif;color:#333}
+canvas{position:fixed;inset:0;width:100%;height:100%}
+.ov{position:fixed;left:0;right:0;bottom:8vh;text-align:center}
+.ov b{display:block;font-size:clamp(30px,min(9vw,11vh),120px);font-weight:200;letter-spacing:.02em}
+.ov span{font-size:clamp(12px,2.6vmin,26px);opacity:.7}
+</style></head><body>
+<canvas id="c"></canvas><div class="ov"><b id="t"></b><span id="d"></span></div>
+<script>
+// One click per second: left ball swings out on even seconds, right ball on odd seconds.
+const c=document.getElementById('c'),x=c.getContext('2d');let W,H;
+function size(){const p=devicePixelRatio||1;W=innerWidth;H=innerHeight;c.width=W*p;c.height=H*p;x.setTransform(p,0,0,p,0,0)}addEventListener('resize',size);size();
+function draw(){const d=new Date(),f=d.getMilliseconds()/1000,even=d.getSeconds()%2===0,S=Math.min(W*.8,H*.9),cx=W/2,top=H*.08,L=S*.42,R=S*.045,n=5;
+x.clearRect(0,0,W,H);
+// frame
+x.strokeStyle='#888';x.lineWidth=S*.012;x.lineCap='round';const fw=S*.36;x.beginPath();x.moveTo(cx-fw,top+L+R*4);x.lineTo(cx-fw,top);x.lineTo(cx+fw,top);x.lineTo(cx+fw,top+L+R*4);x.stroke();
+x.fillStyle='#555';x.fillRect(cx-fw*1.15,top+L+R*4,fw*2.3,S*.025);
+// swing angle: outer ball rises and falls once per second
+const amp=.55,ang=Math.sin(f*Math.PI)*amp;
+for(let i=0;i<n;i++){const px=cx+(i-(n-1)/2)*R*2;let a=0;if(i===0&&even)a=-ang;if(i===n-1&&!even)a=ang;
+const bx=px+Math.sin(a)*L,by=top+Math.cos(a)*L;x.strokeStyle='rgba(60,60,60,.6)';x.lineWidth=1;x.beginPath();x.moveTo(px-R*.6,top);x.lineTo(bx,by);x.lineTo(px+R*.6,top);x.stroke();
+const g=x.createRadialGradient(bx-R*.35,by-R*.35,R*.1,bx,by,R);g.addColorStop(0,'#fff');g.addColorStop(.3,'#cfd3d8');g.addColorStop(1,'#4b5058');x.fillStyle=g;x.beginPath();x.arc(bx,by,R,0,7);x.fill();
+x.fillStyle='rgba(0,0,0,.08)';x.beginPath();x.ellipse(bx,top+L+R*3.8,R*.9,R*.2,0,0,7);x.fill()}
+const p=n=>String(n).padStart(2,'0');document.getElementById('t').textContent=p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds());
+document.getElementById('d').textContent=d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'});requestAnimationFrame(draw)}
+draw();
+</script></body></html>

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Unix Epoch</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#0d1b2a;color:#e0e6ed;font-family:"Cascadia Mono",Consolas,monospace}
+.wrap{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3vh;padding:0 4vw;box-sizing:border-box}
+.lbl{font-size:clamp(11px,2vmin,20px);letter-spacing:.4em;color:#6c8aa6}
+.ep{font-size:clamp(30px,min(11vw,18vh),200px);font-weight:600;color:#fff;font-variant-numeric:tabular-nums}
+.ep small{font-size:.35em;color:#5ec2ff}
+.grid{display:grid;grid-template-columns:repeat(2,auto);gap:1vh 4vw;font-size:clamp(11px,2.3vmin,22px)}
+.grid span:nth-child(odd){color:#6c8aa6;text-align:right}
+.bar{width:min(70vw,900px);height:.8vh;background:#1b3049;border-radius:1vh;overflow:hidden}
+.bar i{display:block;height:100%;background:#5ec2ff}
+</style></head><body>
+<div class="wrap">
+<div class="lbl">SECONDS SINCE 1970-01-01T00:00:00Z</div>
+<div class="ep" id="e"></div>
+<div class="bar"><i id="b"></i></div>
+<div class="grid">
+<span>local</span><span id="l"></span>
+<span>iso 8601</span><span id="i"></span>
+<span>days since epoch</span><span id="ds"></span>
+<span>next milestone</span><span id="n"></span>
+</div></div>
+<script>
+function tick(){const now=Date.now(),s=Math.floor(now/1000),ms=String(now%1000).padStart(3,'0'),d=new Date(now);
+document.getElementById('e').innerHTML=s+'<small>.'+ms+'</small>';
+document.getElementById('l').textContent=d.toLocaleString(undefined,{weekday:'short',year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+document.getElementById('i').textContent=d.toISOString().replace(/\.\d+Z/,'Z');
+document.getElementById('ds').textContent=(now/864e5).toFixed(5);
+const step=1e7,next=Math.ceil((s+1)/step)*step,left=next-s;
+document.getElementById('n').textContent=`${next} in ${Math.floor(left/86400)}d ${Math.floor(left%86400/3600)}h ${Math.floor(left%3600/60)}m ${left%60}s`;
+document.getElementById('b').style.width=((s%step)/step*100)+'%';requestAnimationFrame(tick)}
+tick();
+</script></body></html>

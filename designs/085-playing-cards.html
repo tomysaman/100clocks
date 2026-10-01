@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Playing Cards</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:radial-gradient(#256d3c,#0e3a1f);font-family:Georgia,serif;color:#f4f0e6}
+.wrap{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4vh}
+.row{display:flex;gap:min(2.5vw,3.5vh);align-items:flex-end;perspective:100vmin}
+.card{position:relative;width:min(17vw,25vh);aspect-ratio:5/7;background:#fffef9;border-radius:1.4vmin;box-shadow:0 1vmin 2.4vmin rgba(0,0,0,.45);color:#111;transition:transform .5s;transform-style:preserve-3d}
+.card.red{color:#c8102e}
+.card .cn{position:absolute;font-size:min(3.4vw,5vh);line-height:.9;text-align:center;font-weight:bold}
+.card .tl{left:6%;top:4%}.card .br{right:6%;bottom:4%;transform:rotate(180deg)}
+.card .mid{position:absolute;inset:18% 14%;display:flex;align-items:center;justify-content:center;font-size:min(9vw,13vh)}
+.card .face{font-size:min(6vw,9vh);flex-direction:column;border:1px solid currentColor;border-radius:1vmin}
+.card .face small{font-size:.35em;letter-spacing:.1em}
+.card.flip{transform:rotateY(90deg)}
+.sep{font-size:min(6vw,9vh);opacity:.6;align-self:center}
+.lab{display:flex;gap:4vw;font-size:clamp(11px,2.2vmin,22px);opacity:.85;text-align:center}
+.date{font-size:clamp(13px,3vmin,30px);font-style:italic}
+</style></head><body>
+<div class="wrap"><div class="row" id="r"></div><div class="lab" id="lab"></div><div class="date" id="d"></div></div>
+<script>
+// Hour → rank (A..Q = 1..12), suit by part of day. Minutes → two cards (tens, units); 0 is the Joker.
+const RANK=['','A','2','3','4','5','6','7','8','9','10','J','Q'],SUITS=['♣','♠','♥','♦'],SN=['night','morning','afternoon','evening'];
+const r=document.getElementById('r');let state=[];
+function card(rank,suit,face){const red=suit==='♥'||suit==='♦';const c=document.createElement('div');c.className='card'+(red?' red':'');
+const mid=rank==='★'?`<div class="mid face" style="color:#5b2a86">🃏<small>JOKER</small></div>`:face?`<div class="mid face">${suit}<small>${{J:'JACK',Q:'QUEEN'}[rank]}</small></div>`:`<div class="mid">${suit}</div>`;
+c.innerHTML=`<div class="cn tl">${rank}<br>${rank==='★'?'':suit}</div>${mid}<div class="cn br">${rank}<br>${rank==='★'?'':suit}</div>`;return c}
+function render(d){const h=d.getHours(),h12=h%12||12,part=Math.floor(h/6),suit=SUITS[part],m=d.getMinutes(),ms=SUITS[(part+2)%4];
+const want=[[RANK[h12],suit,h12>10],[m>=10?String(Math.floor(m/10)).replace('1','A'):'★',ms,false],[m%10?String(m%10).replace('1','A'):'★',ms,false]];
+const key=JSON.stringify(want);if(key===state)return;state=key;
+r.innerHTML='';want.forEach((w,i)=>{if(i===1){const s=document.createElement('div');s.className='sep';s.textContent=':';r.appendChild(s)}const c=card(...w);c.classList.add('flip');r.appendChild(c);setTimeout(()=>c.classList.remove('flip'),80+i*150)});
+document.getElementById('lab').innerHTML=`<span>${h12} o’clock<br>${suit} = ${SN[part]}</span><span>${String(m).padStart(2,'0')} minutes<br>🃏 = 0</span>`}
+function tick(){const d=new Date();render(d);document.getElementById('d').textContent=d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'})+' · '+d.toLocaleTimeString()}
+tick();setInterval(tick,500);
+</script></body></html>

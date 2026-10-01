@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lava Lamp</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#140a1c;font-family:"Trebuchet MS",sans-serif;color:#ffd7f0}
+.wrap{height:100%;display:flex;align-items:center;justify-content:center;gap:6vw}
+.lamp{position:relative;height:92vh;width:calc(92vh*.36);display:flex;flex-direction:column;align-items:center}
+.cap{width:44%;height:9%;background:linear-gradient(90deg,#666,#ddd,#777);clip-path:polygon(20% 0,80% 0,100% 100%,0 100%)}
+.glass{position:relative;width:100%;height:62%;clip-path:polygon(28% 0,72% 0,100% 100%,0 100%);background:linear-gradient(90deg,#3b0d4a,#7a1e6e 50%,#3b0d4a);overflow:hidden}
+canvas{position:absolute;inset:0;width:100%;height:100%;filter:blur(1.5px)}
+.base{width:100%;height:29%;background:linear-gradient(90deg,#555,#ccc 45%,#666);clip-path:polygon(0 0,100% 0,72% 100%,28% 100%);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:4%;box-sizing:border-box;color:#222}
+.base b{font-size:calc(92vh*.36*.16)}
+.base span{font-size:calc(92vh*.36*.055);letter-spacing:.1em}
+.side{max-width:40vw}
+.t{font-size:clamp(30px,min(9vw,13vh),140px);text-shadow:0 0 3vmin #ff4fa8}
+.d{font-size:clamp(13px,3vmin,30px);opacity:.85}
+.glow{position:absolute;left:50%;top:40%;width:200%;height:80%;transform:translate(-50%,-50%);background:radial-gradient(rgba(255,80,170,.25),transparent 60%);pointer-events:none;z-index:-1}
+@media (max-aspect-ratio:1/1){.wrap{flex-direction:column;gap:2vh}.lamp{height:72vh;width:calc(72vh*.36)}.base b{font-size:calc(72vh*.36*.16)}.base span{font-size:calc(72vh*.36*.055)}.side{max-width:90vw;text-align:center}.side .t{display:none}.glow{width:150%}}
+</style></head><body>
+<div class="wrap"><div class="lamp"><div class="glow"></div><div class="cap"></div><div class="glass"><canvas id="c" width="120" height="240"></canvas></div><div class="base"><b id="bt"></b><span id="bd"></span></div></div>
+<div class="side"><div class="t" id="t"></div><div class="d" id="d"></div></div></div>
+<script>
+const c=document.getElementById('c'),x=c.getContext('2d');
+const B=Array.from({length:9},(_,i)=>({x:30+Math.random()*60,y:Math.random()*240,r:10+Math.random()*14,s:.15+Math.random()*.35,ph:Math.random()*6}));
+function draw(t){const bg=x.createLinearGradient(0,0,120,0);bg.addColorStop(0,'#2a0a3a');bg.addColorStop(.5,'#5a1656');bg.addColorStop(1,'#2a0a3a');x.fillStyle=bg;x.fillRect(0,0,120,240);
+// blobs rise and sink slowly; a pool sits at the bottom
+const lg=x.createLinearGradient(0,0,0,240);lg.addColorStop(0,'#ff9a3d');lg.addColorStop(1,'#ff3d7a');x.fillStyle=lg;x.beginPath();x.ellipse(60,246,70,22,0,0,7);x.fill();
+B.forEach(b=>{const y=120+Math.sin(t/1000*b.s+b.ph)*110,xx=b.x+Math.sin(t/1700*b.s+b.ph*2)*12;x.beginPath();x.ellipse(xx,y,b.r,b.r*(1.1+.2*Math.sin(t/800+b.ph)),0,0,7);x.fill()});
+const d=new Date(),p=n=>String(n).padStart(2,'0');document.getElementById('bt').textContent=p(d.getHours())+':'+p(d.getMinutes());
+document.getElementById('bd').textContent=d.toLocaleDateString(undefined,{day:'numeric',month:'short'}).toUpperCase();
+document.getElementById('t').textContent=d.toLocaleTimeString();document.getElementById('d').textContent=d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'});requestAnimationFrame(draw)}
+requestAnimationFrame(draw);
+</script></body></html>

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>24-Hour Dial</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#0b1622;color:#cfe3f2;font-family:"Segoe UI",system-ui,sans-serif}
+.wrap{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2vmin}
+svg{width:min(86vw,76vh);height:min(86vw,76vh)}
+.info{display:flex;flex-wrap:wrap;justify-content:center;gap:1vmin 4vmin;font-size:clamp(13px,2.6vmin,26px);opacity:.85}
+</style></head><body>
+<div class="wrap">
+<svg viewBox="-110 -110 220 220">
+<defs><linearGradient id="dn" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#0d2238"/><stop offset=".5" stop-color="#0d2238"/><stop offset=".5" stop-color="#2d6c9c"/><stop offset="1" stop-color="#7cc0ea"/></linearGradient></defs>
+<circle r="104" fill="#13283c" stroke="#3d6a8e" stroke-width="2"/>
+<circle r="76" fill="url(#dn)" opacity=".55"/>
+<g id="tk"></g><g id="nm" font-size="9" text-anchor="middle" dominant-baseline="central" fill="#cfe3f2"></g>
+<text y="-30" text-anchor="middle" font-size="7" fill="#ffd36e">☀ NOON</text><text y="34" text-anchor="middle" font-size="7" fill="#9fb7d6">☾ MIDNIGHT</text>
+<g id="h"><line y1="10" y2="-66" stroke="#ffd36e" stroke-width="3.5" stroke-linecap="round"/><circle cy="-70" r="5" fill="#ffd36e"/></g>
+<g id="m"><line y1="12" y2="-92" stroke="#cfe3f2" stroke-width="1.4" stroke-linecap="round"/></g>
+<circle r="3" fill="#ffd36e"/>
+</svg>
+<div class="info"><span id="t"></span><span id="d"></span></div></div>
+<script>
+const NS="http://www.w3.org/2000/svg",tk=document.getElementById('tk'),nm=document.getElementById('nm');
+for(let i=0;i<96;i++){const l=document.createElementNS(NS,'line');l.setAttribute('y1',-100);l.setAttribute('y2',i%4?-97:-93);l.setAttribute('stroke','#7fa6c6');l.setAttribute('stroke-width',i%4?.5:1.2);l.setAttribute('transform',`rotate(${i*3.75})`);tk.appendChild(l)}
+// noon at top, midnight at bottom; hour hand turns once per day, minute hand once per hour
+for(let i=0;i<24;i++){const a=(i-12)*Math.PI/12,e=document.createElementNS(NS,'text');e.setAttribute('x',Math.sin(a)*85);e.setAttribute('y',-Math.cos(a)*85);e.textContent=String(i).padStart(2,'0');nm.appendChild(e)}
+function tick(){const d=new Date(),m=d.getMinutes()+d.getSeconds()/60,h=d.getHours()+m/60;
+document.getElementById('h').setAttribute('transform',`rotate(${(h-12)*15})`);document.getElementById('m').setAttribute('transform',`rotate(${m*6})`);
+document.getElementById('t').textContent=d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+document.getElementById('d').textContent=d.toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short',year:'numeric'})}
+tick();setInterval(tick,250);
+</script></body></html>

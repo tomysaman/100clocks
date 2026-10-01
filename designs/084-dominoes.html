@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dominoes</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#7a4a2a;font-family:Georgia,serif;color:#f6ecd9}
+body{background:repeating-linear-gradient(90deg,#7a4a2a 0 12vmin,#6e4226 12vmin 24vmin)}
+.wrap{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4vh}
+.row{display:flex;gap:min(3vw,4vh);align-items:center}
+.dom{display:flex;flex-direction:column;width:min(13vw,17vh);aspect-ratio:1/2;background:linear-gradient(145deg,#fffdf6,#e9e2d0);border-radius:1.2vmin;box-shadow:.4vmin .8vmin 1.6vmin rgba(0,0,0,.45);padding:3%;box-sizing:border-box;transition:transform .6s}
+.dom:nth-child(even){transform:rotate(3deg)}.dom:nth-child(odd){transform:rotate(-2deg)}
+.half{flex:1;display:grid;grid-template:repeat(3,1fr)/repeat(3,1fr);padding:10%}
+.half i{border-radius:50%;width:calc(min(13vw,17vh)*.14);height:calc(min(13vw,17vh)*.14);place-self:center;background:transparent}
+.half i.on{background:radial-gradient(circle at 35% 35%,#555,#000)}
+.mid{height:2px;background:#bbb;margin:0 8%;position:relative}.mid::after{content:"";position:absolute;left:50%;top:50%;width:.8vmin;height:.8vmin;margin:-.4vmin;border-radius:50%;background:#b08a3a}
+.lab{display:flex;gap:min(3vw,4vh);font-size:clamp(10px,1.8vmin,18px);letter-spacing:.2em;opacity:.8}
+.lab span{width:min(13vw,17vh);text-align:center}
+.date{font-size:clamp(13px,3vmin,30px);font-style:italic}
+</style></head><body>
+<div class="wrap"><div class="row" id="r"></div><div class="lab"><span>HOURS</span><span>MINUTES</span><span>SECONDS</span></div><div class="date" id="d"></div></div>
+<script>
+// double-nine domino set: each tile shows the tens (top) and units (bottom)
+const P={0:[],1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8],7:[0,2,3,4,5,6,8],8:[0,1,2,3,5,6,7,8],9:[0,1,2,3,4,5,6,7,8]};
+const r=document.getElementById('r'),doms=[];
+for(let k=0;k<3;k++){const d=document.createElement('div');d.className='dom';d.innerHTML='<div class="half"></div><div class="mid"></div><div class="half"></div>';d.querySelectorAll('.half').forEach(h=>{for(let i=0;i<9;i++)h.appendChild(document.createElement('i'))});r.appendChild(d);doms.push([...d.querySelectorAll('.half')])}
+function set(h,v){[...h.children].forEach((e,i)=>e.classList.toggle('on',P[v].includes(i)))}
+function tick(){const d=new Date(),v=[d.getHours(),d.getMinutes(),d.getSeconds()];doms.forEach((hs,i)=>{set(hs[0],Math.floor(v[i]/10));set(hs[1],v[i]%10)});
+document.getElementById('d').textContent=d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'})+' · '+d.toLocaleTimeString()}
+tick();setInterval(tick,250);
+</script></body></html>

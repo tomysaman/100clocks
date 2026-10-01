@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Classic Analog</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:radial-gradient(circle at 50% 40%,#2b2f3a,#0e1015);font-family:Georgia,serif;color:#e8e2d0}
+.wrap{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2vmin}
+svg{width:min(86vw,78vh);height:min(86vw,78vh)}
+.date{font-size:clamp(14px,3.2vmin,34px);letter-spacing:.15em;text-transform:uppercase;opacity:.85;text-align:center}
+</style></head><body>
+<div class="wrap">
+<svg viewBox="-110 -110 220 220">
+<defs><radialGradient id="f" cx="50%" cy="40%"><stop offset="0" stop-color="#fbf7ea"/><stop offset="1" stop-color="#e0d6bc"/></radialGradient></defs>
+<circle r="106" fill="#8a6b2f"/><circle r="101" fill="#c9a659"/><circle r="97" fill="url(#f)"/>
+<g id="ticks"></g>
+<g id="nums" font-family="Georgia,serif" font-size="14" fill="#2a2418" text-anchor="middle" dominant-baseline="central"></g>
+<rect x="44" y="-7" width="22" height="14" rx="1.5" fill="#fff" stroke="#9a8a63" stroke-width=".8"/>
+<text id="dw" x="55" y="0.5" font-size="9" text-anchor="middle" dominant-baseline="central" fill="#222">1</text>
+<text y="-38" font-size="7" text-anchor="middle" fill="#6b5a35" letter-spacing="2">MERIDIAN</text>
+<g id="h"><path d="M-3.5 12 L-2.2 -50 L0 -56 L2.2 -50 L3.5 12Z" fill="#1d1a14"/></g>
+<g id="m"><path d="M-2.5 14 L-1.4 -78 L0 -84 L1.4 -78 L2.5 14Z" fill="#1d1a14"/></g>
+<g id="s"><line y1="20" y2="-86" stroke="#a3201c" stroke-width="1.1"/><circle r="3.5" fill="#a3201c"/><circle cy="-62" r="2.6" fill="none" stroke="#a3201c" stroke-width="1"/></g>
+<circle r="1.4" fill="#d8c48e"/>
+</svg>
+<div class="date" id="d"></div>
+</div>
+<script>
+const NS="http://www.w3.org/2000/svg",t=document.getElementById('ticks'),n=document.getElementById('nums');
+for(let i=0;i<60;i++){const l=document.createElementNS(NS,'line'),b=i%5==0;l.setAttribute('y1',-93);l.setAttribute('y2',b?-84:-89);l.setAttribute('stroke','#2a2418');l.setAttribute('stroke-width',b?2:.7);l.setAttribute('transform',`rotate(${i*6})`);t.appendChild(l)}
+const R=['XII','I','II','III','IV','V','VI','VII','VIII','IX','X','XI'];
+for(let i=0;i<12;i++){if(i==3)continue;const a=i*Math.PI/6,e=document.createElementNS(NS,'text');e.setAttribute('x',Math.sin(a)*72);e.setAttribute('y',-Math.cos(a)*72);e.textContent=R[i];n.appendChild(e)}
+const H=document.getElementById('h'),M=document.getElementById('m'),S=document.getElementById('s'),DW=document.getElementById('dw'),D=document.getElementById('d');
+function tick(){const d=new Date(),s=d.getSeconds()+d.getMilliseconds()/1000,m=d.getMinutes()+s/60,h=d.getHours()%12+m/60;
+H.setAttribute('transform',`rotate(${h*30})`);M.setAttribute('transform',`rotate(${m*6})`);S.setAttribute('transform',`rotate(${s*6})`);
+DW.textContent=d.getDate();D.textContent=d.toLocaleDateString(undefined,{weekday:'long',year:'numeric',month:'long',day:'numeric'});requestAnimationFrame(tick)}
+tick();
+</script></body></html>

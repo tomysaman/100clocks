@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Grand Complication</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:radial-gradient(#2a2c33,#0b0c0f);font-family:"Palatino Linotype",Palatino,serif}
+.wrap{height:100%;display:flex;align-items:center;justify-content:center}
+svg{width:min(94vw,94vh);height:min(94vw,94vh);filter:drop-shadow(0 2vmin 3vmin rgba(0,0,0,.6))}
+</style></head><body>
+<div class="wrap"><svg viewBox="-110 -110 220 220">
+<defs>
+<radialGradient id="case" cx="40%" cy="35%"><stop offset="0" stop-color="#f4f4f4"/><stop offset=".6" stop-color="#a9adb5"/><stop offset="1" stop-color="#5d6068"/></radialGradient>
+<radialGradient id="dial" cx="50%" cy="40%"><stop offset="0" stop-color="#1f3a5f"/><stop offset="1" stop-color="#0c1a2e"/></radialGradient>
+<radialGradient id="sub" cx="50%" cy="40%"><stop offset="0" stop-color="#e9e4d8"/><stop offset="1" stop-color="#c9c2b0"/></radialGradient>
+<clipPath id="mw"><path d="M-14 -46 A16 16 0 0 1 14 -46 Z"/></clipPath>
+</defs>
+<circle r="108" fill="url(#case)"/><circle r="99" fill="#222"/><circle r="97" fill="url(#dial)"/>
+<g id="tk"></g>
+<!-- sub dials -->
+<g transform="translate(-44 0)" id="sd1"></g><g transform="translate(44 0)" id="sd2"></g><g transform="translate(0 44)" id="sd3"></g>
+<!-- moon phase window -->
+<g transform="translate(0 -40)"><path d="M-17 -6 A17 17 0 0 1 17 -6 L17 0 L-17 0Z" fill="#0b1630" stroke="#c9a85a" stroke-width=".8"/>
+<g clip-path="url(#mw)" transform="translate(0 40)"><g id="moons" transform="translate(0 -46)"><circle cx="-11" r="6.5" fill="#f2e6b8"/><circle cx="11" r="6.5" fill="#f2e6b8"/></g></g>
+<text y="7" text-anchor="middle" font-size="3.4" fill="#c9a85a" letter-spacing=".8">PHASE DE LUNE</text></g>
+<!-- date window -->
+<rect x="64" y="-5.5" width="16" height="11" fill="#fff" stroke="#c9a85a" stroke-width=".7"/><text id="dw" x="72" y="2.6" text-anchor="middle" font-size="7.5" fill="#111"></text>
+<text y="-62" text-anchor="middle" font-size="6" fill="#e8dcb8" letter-spacing="2">GRANDE COMPLICATION</text>
+<text y="74" text-anchor="middle" font-size="3.6" fill="#a9b6c8" letter-spacing="1.5" id="yr"></text>
+<g id="H"><path d="M-3 10 L-2.2 -44 L0 -50 L2.2 -44 L3 10Z" fill="#e8dcb8" stroke="#a8925a" stroke-width=".4"/></g>
+<g id="M"><path d="M-2.2 12 L-1.4 -74 L0 -80 L1.4 -74 L2.2 12Z" fill="#e8dcb8" stroke="#a8925a" stroke-width=".4"/></g>
+<g id="S"><line y1="18" y2="-88" stroke="#c0392b" stroke-width=".7"/><circle r="2.6" fill="#c0392b"/></g>
+<circle r="1" fill="#e8dcb8"/>
+</svg></div>
+<script>
+const NS="http://www.w3.org/2000/svg",$=id=>document.getElementById(id);
+for(let i=0;i<60;i++){const l=document.createElementNS(NS,'line'),b=i%5===0;l.setAttribute('y1',-95);l.setAttribute('y2',b?-86:-92);l.setAttribute('stroke','#e8dcb8');l.setAttribute('stroke-width',b?2:.5);l.setAttribute('transform',`rotate(${i*6})`);$('tk').appendChild(l)}
+// sub dial: labels around, hand returned
+function subdial(g,labels,title){let s=`<circle r="21" fill="url(#sub)" stroke="#c9a85a" stroke-width=".8"/>`;const n=labels.length;
+labels.forEach((t,i)=>{const a=i/n*Math.PI*2;s+=`<line x1="${Math.sin(a)*20}" y1="${-Math.cos(a)*20}" x2="${Math.sin(a)*18}" y2="${-Math.cos(a)*18}" stroke="#333" stroke-width=".5"/><text x="${Math.sin(a)*14.5}" y="${-Math.cos(a)*14.5+1.2}" text-anchor="middle" font-size="${n>12?2.6:3.3}" fill="#222">${t}</text>`});
+s+=`<text y="7" text-anchor="middle" font-size="2.6" fill="#555" letter-spacing=".5">${title}</text><g class="h"><line y1="3" y2="-17" stroke="#0c1a2e" stroke-width="1"/><circle r="1.6" fill="#0c1a2e"/></g>`;g.innerHTML=s;return g.querySelector('.h')}
+const DAY=subdial($('sd1'),['SUN','MON','TUE','WED','THU','FRI','SAT'],'JOUR'),MON=subdial($('sd2'),['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'],'MOIS'),SEC=subdial($('sd3'),['60','10','20','30','40','50'],'SECONDES');
+function tick(){const d=new Date(),ms=d.getMilliseconds(),s=d.getSeconds()+ms/1000,m=d.getMinutes()+s/60,h=d.getHours()%12+m/60;
+$('H').setAttribute('transform',`rotate(${h*30})`);$('M').setAttribute('transform',`rotate(${m*6})`);
+// central chronograph seconds sweeps; small seconds sub-dial ticks
+$('S').setAttribute('transform',`rotate(${s*6})`);SEC.setAttribute('transform',`rotate(${Math.floor(s)*6})`);
+DAY.setAttribute('transform',`rotate(${(d.getDay()+(d.getHours()*60+d.getMinutes())/1440)/7*360})`);
+const dim=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();MON.setAttribute('transform',`rotate(${(d.getMonth()+(d.getDate()-1)/dim)/12*360})`);
+$('dw').textContent=d.getDate();$('yr').textContent=d.toLocaleDateString('en',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).toUpperCase();
+// moon disc: two moons on a wheel; rotate by lunar age so the window shows the current phase
+const age=(((d-Date.UTC(2000,0,6,18,14))/864e5)%29.530588+29.530588)%29.530588;$('moons').setAttribute('transform',`translate(0 -46) translate(${-11+age/29.530588*22*1} 0)`);
+requestAnimationFrame(tick)}
+tick();
+</script></body></html>

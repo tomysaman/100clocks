@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Typewriter</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#3a3230;font-family:"Courier New",Courier,monospace}
+.wrap{height:100%;display:flex;align-items:flex-end;justify-content:center}
+.paper{position:relative;width:min(88vw,900px);height:92vh;background:#fbf8ef;box-shadow:0 0 4vmin rgba(0,0,0,.5);padding:6vh 6%;box-sizing:border-box;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden}
+.paper::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(transparent 0 calc(1.6em - 1px),rgba(120,150,200,.12) calc(1.6em - 1px) 1.6em);font-size:clamp(13px,2.4vmin,24px);pointer-events:none}
+.line{font-size:clamp(13px,2.4vmin,24px);line-height:1.6;color:#2a2a2a;white-space:pre-wrap;opacity:.85}
+.big{font-size:clamp(34px,min(10vw,14vh),150px);line-height:1.1;color:#111;letter-spacing:-.02em;margin:2vh 0;text-shadow:.03em .02em 0 rgba(0,0,0,.15)}
+.cur{display:inline-block;width:.55em;border-bottom:.12em solid #c0392b;animation:b 1s steps(1) infinite}
+@keyframes b{50%{opacity:0}}
+.roller{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:min(96vw,980px);height:6vh;background:linear-gradient(#111,#333 40%,#111);border-radius:1vh 1vh 0 0}
+</style></head><body>
+<div class="wrap"><div class="paper" id="p"><div id="log"></div><div class="big" id="big"></div><div class="line" id="cur"></div></div></div>
+<div class="roller"></div>
+<script>
+const log=document.getElementById('log'),big=document.getElementById('big'),cur=document.getElementById('cur');
+const p=n=>String(n).padStart(2,'0');let lastMin=-1,typing=false;
+async function type(el,text,speed){for(let i=1;i<=text.length;i++){el.innerHTML=text.slice(0,i).replace(/</g,'&lt;')+'<span class="cur"></span>';await new Promise(r=>setTimeout(r,speed+Math.random()*speed))}}
+async function minuteEntry(d){typing=true;
+const prev=big.textContent;if(prev){const l=document.createElement('div');l.className='line';l.textContent=`— at ${prev.replace(/\s+/g,' ')} the minute passed.`;log.appendChild(l);while(log.children.length>4)log.firstChild.remove()}
+await type(big,`${p(d.getHours())}:${p(d.getMinutes())}`,90);big.innerHTML=big.textContent;
+await type(cur,`${d.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}. `,35);typing=false}
+function tick(){const d=new Date();if(d.getMinutes()!==lastMin&&!typing){lastMin=d.getMinutes();minuteEntry(d)}
+else if(!typing){const base=cur.textContent.split('.')[0]+'. ';cur.innerHTML=base+'·'.repeat(Math.floor(d.getSeconds()/5))+' '+p(d.getSeconds())+' s<span class="cur"></span>'}}
+{const n=new Date();for(let k=4;k>0;k--){const t=new Date(n-k*60000),l=document.createElement('div');l.className='line';l.textContent=`— at ${p(t.getHours())}:${p(t.getMinutes())} the minute passed.`;log.appendChild(l)}}
+tick();setInterval(tick,500);
+</script></body></html>

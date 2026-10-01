@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Thermometers</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:linear-gradient(#e9f1f5,#c9d9e2);font-family:"Segoe UI",system-ui,sans-serif;color:#234}
+.wrap{height:100%;display:flex;align-items:center;justify-content:center;gap:6vw}
+.th{display:flex;flex-direction:column;align-items:center;height:86vh}
+.tube{position:relative;flex:1;width:min(5vw,5vh);background:#fff;border-radius:3vh 3vh 0 0;box-shadow:inset 0 0 0 .3vmin #9ab;}
+.fill{position:absolute;left:25%;right:25%;bottom:0;background:var(--c);border-radius:1vh 1vh 0 0;transition:height .5s}
+.bulb{width:min(10vw,10vh);aspect-ratio:1;border-radius:50%;background:var(--c);box-shadow:inset -.6vmin -.6vmin 1.2vmin rgba(0,0,0,.25),0 0 0 .3vmin #9ab;margin-top:-1vh;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:min(3.6vw,3.6vh)}
+.sc{position:absolute;left:115%;top:0;bottom:0;width:4vw}
+.sc i{position:absolute;left:0;height:1px;background:#567;font-style:normal}
+.sc span{position:absolute;left:1.8vw;transform:translateY(-50%);font-size:min(1.4vw,1.6vh);color:#567}
+.lbl{margin-top:1.2vh;font-size:clamp(10px,1.8vmin,18px);letter-spacing:.3em}
+.side{display:flex;flex-direction:column;gap:1vh;max-width:30vw}
+.t{font-size:clamp(28px,min(7vw,10vh),100px);font-weight:300}
+.d{font-size:clamp(12px,2.6vmin,26px);opacity:.75}
+@media (max-aspect-ratio:1/1){.wrap{flex-direction:column-reverse;gap:2vh}.th{height:62vh}.side{max-width:90vw;text-align:center}.ths{gap:12vw!important}}
+</style></head><body>
+<div class="wrap"><div class="ths" id="ths" style="display:flex;gap:6vw"></div><div class="side"><div class="t" id="t"></div><div class="d" id="d"></div></div></div>
+<script>
+const ths=document.getElementById('ths'),T=[['HOURS',24,'#e74c3c',6],['MINUTES',60,'#f39c12',10],['SECONDS',60,'#3498db',10]].map(([n,max,c,step])=>{
+const e=document.createElement('div');e.className='th';e.style.setProperty('--c',c);let sc='';for(let v=0;v<=max;v+=step/2){const y=(1-v/max)*100;sc+=`<i style="top:${y}%;width:${v%step?'.8vw':'1.4vw'}"></i>`+(v%step?'':`<span style="top:${y}%">${v}</span>`)}
+e.innerHTML=`<div class="tube"><div class="fill"></div><div class="sc">${sc}</div></div><div class="bulb"></div><div class="lbl">${n}</div>`;ths.appendChild(e);return {max,f:e.querySelector('.fill'),b:e.querySelector('.bulb')}});
+function tick(){const d=new Date(),s=d.getSeconds()+d.getMilliseconds()/1000,m=d.getMinutes()+s/60,h=d.getHours()+m/60,v=[h,m,s],iv=[d.getHours(),d.getMinutes(),d.getSeconds()];
+T.forEach((t,i)=>{t.f.style.height=Math.max(v[i]/t.max*100,2)+'%';t.b.textContent=iv[i]});
+document.getElementById('t').textContent=d.toLocaleTimeString();document.getElementById('d').textContent=d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
+tick();setInterval(tick,250);
+</script></body></html>

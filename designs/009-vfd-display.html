@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VFD Display</title>
+<style>
+:root{--on:#6ff7e0}
+html,body{margin:0;height:100%;overflow:hidden;background:#121212;font-family:"Arial Narrow",Arial,sans-serif}
+.wrap{height:100%;display:flex;align-items:center;justify-content:center}
+.panel{position:relative;padding:4vmin 5vmin;background:#06100f;border-radius:1.5vmin;box-shadow:inset 0 0 4vmin #000,0 0 0 1vmin #1e1e1e,0 0 0 1.2vmin #333}
+.panel::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:radial-gradient(circle,transparent 45%,rgba(0,0,0,.5) 55%) 0 0/4px 4px;opacity:.6}
+.ind{display:flex;justify-content:space-between;gap:2vmin;font-size:clamp(9px,2.2vmin,22px);letter-spacing:.1em;margin-bottom:2vmin}
+.ind span{color:rgba(111,247,224,.08)}.ind span.on{color:var(--on);text-shadow:0 0 .6vmin var(--on)}
+.row{display:flex;align-items:flex-end;gap:1.6vmin}
+.dg{position:relative;width:min(10vw,17vh);aspect-ratio:1/2}
+.dg.sm{width:min(5vw,8.5vh)}
+.s{position:absolute;background:rgba(111,247,224,.06)}
+.s.on{background:var(--on);box-shadow:0 0 1vmin var(--on)}
+.a,.g,.d{left:13%;width:74%;height:6%;clip-path:polygon(0 50%,10% 0,90% 0,100% 50%,90% 100%,10% 100%)}
+.a{top:0}.g{top:47%}.d{top:94%}
+.b,.c,.e,.f{width:12%;height:45%;clip-path:polygon(50% 0,100% 10%,100% 90%,50% 100%,0 90%,0 10%)}
+.f{left:0;top:3%}.b{left:88%;top:3%}.e{left:0;top:52%}.c{left:88%;top:52%}
+.col{display:flex;flex-direction:column;gap:4vh;align-self:center}
+.col i{width:min(1.2vw,2vh);aspect-ratio:1;border-radius:50%;background:var(--on);box-shadow:0 0 1vmin var(--on)}
+.bottom{display:flex;justify-content:space-between;align-items:flex-end;margin-top:2.5vmin;gap:2vmin}
+.mini{display:flex;gap:.8vmin;align-items:flex-end}
+.mini .dg{width:min(3vw,5vh)}
+.lbl{color:var(--on);font-size:clamp(9px,1.8vmin,18px);opacity:.8;margin:0 .5vmin;letter-spacing:.1em}
+</style></head><body>
+<div class="wrap"><div class="panel">
+<div class="ind" id="wk"></div>
+<div class="row" id="time"></div>
+<div class="bottom"><div class="ind" id="ap" style="margin:0"><span>AM</span><span>PM</span></div><div class="mini" id="date"></div></div>
+</div></div>
+<script>
+const SEG={0:'abcdef',1:'bc',2:'abged',3:'abgcd',4:'fgbc',5:'afgcd',6:'afgedc',7:'abc',8:'abcdefg',9:'abcdfg','-':'g'};
+function dg(cls){const d=document.createElement('div');d.className='dg '+(cls||'');'abcdefg'.split('').forEach(k=>{const s=document.createElement('div');s.className='s '+k;d.appendChild(s)});return d}
+function set(el,ch){[...el.children].forEach(s=>s.classList.toggle('on',(SEG[ch]||'').includes(s.classList[1])))}
+const wk=document.getElementById('wk');['SUN','MON','TUE','WED','THU','FRI','SAT'].forEach(w=>{const s=document.createElement('span');s.textContent=w;wk.appendChild(s)});
+const tm=document.getElementById('time'),T=[dg(),dg(),dg(),dg(),dg('sm'),dg('sm')],col=document.createElement('div');col.className='col';col.innerHTML='<i></i><i></i>';
+tm.append(T[0],T[1],col,T[2],T[3],T[4],T[5]);
+const dt=document.getElementById('date'),Dd=[];const lb=t=>{const s=document.createElement('span');s.className='lbl';s.textContent=t;return s};
+for(let i=0;i<8;i++)Dd.push(dg());dt.append(Dd[0],Dd[1],Dd[2],Dd[3],lb('·'),Dd[4],Dd[5],lb('·'),Dd[6],Dd[7]);
+function tick(){const d=new Date(),p=n=>String(n).padStart(2,'0'),s=p(d.getHours())+p(d.getMinutes())+p(d.getSeconds());
+T.forEach((e,i)=>set(e,s[i]));col.style.opacity=d.getMilliseconds()<500?1:.15;
+const ds=d.getFullYear()+p(d.getMonth()+1)+p(d.getDate());Dd.forEach((e,i)=>set(e,ds[i]));
+[...wk.children].forEach((e,i)=>e.classList.toggle('on',i===d.getDay()));const ap=document.getElementById('ap').children;ap[0].classList.toggle('on',d.getHours()<12);ap[1].classList.toggle('on',d.getHours()>=12)}
+tick();setInterval(tick,100);
+</script></body></html>

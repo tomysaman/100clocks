@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>World Time Ring</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#0d2a4a;color:#e9eef5;font-family:"Segoe UI",system-ui,sans-serif}
+.wrap{height:100%;display:flex;align-items:center;justify-content:center}
+svg{width:min(96vw,96vh);height:min(96vw,96vh)}
+text{font-family:"Segoe UI",system-ui,sans-serif}
+</style></head><body>
+<div class="wrap"><svg viewBox="-110 -110 220 220">
+<defs><linearGradient id="dn" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1b2550"/><stop offset=".5" stop-color="#1b2550"/><stop offset=".5" stop-color="#ffd76a"/><stop offset="1" stop-color="#ffd76a"/></linearGradient></defs>
+<g id="cities" font-size="3.6" fill="#e9eef5"></g>
+<circle r="80" fill="#0a2240" stroke="#5a7ba0" stroke-width=".5"/>
+<g id="hring"><circle r="78" fill="none" stroke="url(#dn)" stroke-width="12" opacity=".85"/><g id="hrs" font-size="5" text-anchor="middle" dominant-baseline="central"></g></g>
+<circle r="66" fill="#f4efe2"/>
+<g id="tk"></g>
+<line id="h" y1="6" y2="-36" stroke="#1a1a1a" stroke-width="3.5" stroke-linecap="round"/><line id="m" y1="8" y2="-54" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/><line id="s" y1="10" y2="-58" stroke="#c0392b" stroke-width=".8"/><circle r="2.4" fill="#c0392b"/>
+<text id="lt" y="24" text-anchor="middle" font-size="6" fill="#333"></text><text id="ld" y="31" text-anchor="middle" font-size="4" fill="#666"></text>
+<text y="-24" text-anchor="middle" font-size="3.6" fill="#888" letter-spacing="1">WORLD TIME</text>
+</svg></div>
+<script>
+// 24 reference cities, one per UTC offset (approximate standard offsets). Ring rotates so each city's local hour lines up next to it.
+const C=['Midway','Honolulu','Anchorage','Los Angeles','Denver','Chicago','New York','Caracas','Rio','S. Georgia','Azores','London','Paris','Cairo','Moscow','Dubai','Karachi','Dhaka','Bangkok','Hong Kong','Tokyo','Sydney','Nouméa','Auckland'];
+const NS="http://www.w3.org/2000/svg",cg=document.getElementById('cities'),hr=document.getElementById('hrs'),tk=document.getElementById('tk');
+C.forEach((n,i)=>{const a=i*15,rad=(a-90)*Math.PI/180,r=86,x=Math.cos(rad)*r,y=Math.sin(rad)*r,t=document.createElementNS(NS,'text'),left=a>180;t.setAttribute('x',x);t.setAttribute('y',y);t.setAttribute('transform',`rotate(${left?a+90:a-90} ${x} ${y})`);t.setAttribute('text-anchor',left?'end':'start');t.setAttribute('dominant-baseline','central');t.textContent=n.toUpperCase();cg.appendChild(t)});
+for(let i=0;i<24;i++){const a=i*15,rad=(a-90)*Math.PI/180,t=document.createElementNS(NS,'text');t.setAttribute('x',Math.cos(rad)*78);t.setAttribute('y',Math.sin(rad)*78);t.setAttribute('fill',i>=6&&i<18?'#3a2a00':'#cfd8ff');t.textContent=i;hr.appendChild(t)}
+for(let i=0;i<60;i++){const l=document.createElementNS(NS,'line');l.setAttribute('y1',-64);l.setAttribute('y2',i%5?-61:-57);l.setAttribute('stroke','#333');l.setAttribute('stroke-width',i%5?.4:1);l.setAttribute('transform',`rotate(${i*6})`);tk.appendChild(l)}
+function tick(){const d=new Date(),utc=d.getUTCHours()+d.getUTCMinutes()/60+d.getUTCSeconds()/3600;
+// city i sits at angle i*15 and has offset (i-11) → its local hour is utc+i-11; hour label k sits at angle k*15 before rotation.
+// rotate ring so label (utc+i-11) lands on angle i*15: rot = i*15 - (utc+i-11)*15 = (11-utc)*15
+const rot=(11-utc)*15;document.getElementById('hring').setAttribute('transform',`rotate(${rot})`);
+[...hr.children].forEach((t,i)=>{const a=i*15;t.setAttribute('transform',`rotate(${-rot} ${t.getAttribute('x')} ${t.getAttribute('y')})`)});
+const s=d.getSeconds(),m=d.getMinutes()+s/60,h=d.getHours()%12+m/60;
+document.getElementById('h').setAttribute('transform',`rotate(${h*30})`);document.getElementById('m').setAttribute('transform',`rotate(${m*6})`);document.getElementById('s').setAttribute('transform',`rotate(${s*6})`);
+document.getElementById('lt').textContent=d.toLocaleTimeString();document.getElementById('ld').textContent=d.toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short',year:'numeric'})}
+tick();setInterval(tick,1000);
+</script></body></html>

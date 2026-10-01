@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LCD Wristwatch</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:linear-gradient(135deg,#d7d2c8,#a8a296);font-family:Arial,Helvetica,sans-serif}
+.wrap{height:100%;display:flex;align-items:center;justify-content:center}
+.strap{position:absolute;left:50%;top:0;bottom:0;width:min(46vw,46vh);transform:translateX(-50%);background:repeating-linear-gradient(#1b1b1b 0 2vh,#222 2vh 2.4vh);z-index:0}
+.watch{position:relative;z-index:1;width:min(84vw,96vh);aspect-ratio:1.25;background:linear-gradient(145deg,#3a3a3a,#141414);border-radius:14% / 18%;box-shadow:0 3vmin 6vmin rgba(0,0,0,.5),inset 0 .5vmin 1vmin rgba(255,255,255,.15);display:flex;flex-direction:column;align-items:center;justify-content:center}
+.brand{color:#ddd;font-weight:bold;letter-spacing:.3em;font-size:min(3vw,3.6vh);margin-bottom:2%}
+.brand small{color:#e0402a;font-weight:normal;letter-spacing:.1em;margin-left:1em}
+.lcd{width:78%;aspect-ratio:2.1;background:#b9c4a6;border-radius:3%;box-shadow:inset 0 .6vmin 1.2vmin rgba(0,0,0,.45);padding:4% 6%;box-sizing:border-box;display:flex;flex-direction:column;justify-content:space-between;transition:background .3s}
+.lcd.lit{background:#8ef0b0;box-shadow:inset 0 .6vmin 1.2vmin rgba(0,0,0,.3),0 0 4vmin rgba(120,255,170,.5)}
+.top,.main{display:flex;align-items:flex-end;justify-content:space-between}
+.main{justify-content:center;gap:2%}
+.dg{position:relative;width:min(7.5vw,9vh);aspect-ratio:1/1.9}
+.dg.s2{width:min(4vw,4.8vh)}
+.dg.s3{width:min(3.2vw,3.8vh)}
+.s{position:absolute;background:rgba(30,40,20,.07);transform:skewX(-5deg)}
+.s.on{background:#1e2614}
+.a,.g,.d{left:12%;width:76%;height:8%;clip-path:polygon(0 50%,12% 0,88% 0,100% 50%,88% 100%,12% 100%)}
+.a{top:0}.g{top:46%}.d{top:92%}
+.b,.c,.e,.f{width:15%;height:44%;clip-path:polygon(50% 0,100% 12%,100% 88%,50% 100%,0 88%,0 12%)}
+.f{left:0;top:3.5%}.b{left:85%;top:3.5%}.e{left:0;top:52.5%}.c{left:85%;top:52.5%}
+.col{display:flex;flex-direction:column;gap:min(2vw,2.4vh);align-self:center}
+.col i{width:min(.9vw,1.1vh);aspect-ratio:1;background:#1e2614}
+.wd{font-weight:bold;font-size:min(3.4vw,4vh);color:#1e2614;letter-spacing:.1em;font-style:italic}
+.pm{font-size:min(1.8vw,2.2vh);font-weight:bold;color:#1e2614;align-self:flex-start}
+.btn{position:absolute;width:3%;height:9%;background:#666;border-radius:.4vmin;cursor:pointer}
+.btn.l{left:-2.2%;bottom:22%}.btn.r{right:-2.2%;top:22%}.btn.r2{right:-2.2%;bottom:22%}
+.lab{position:absolute;color:#bbb;font-size:min(1.4vw,1.7vh);letter-spacing:.15em}
+</style></head><body>
+<div class="strap"></div>
+<div class="wrap"><div class="watch">
+<div class="btn l" id="light" title="Light"></div><div class="btn r" id="mode" title="12/24h"></div><div class="btn r2"></div>
+<span class="lab" style="left:5%;bottom:14%">LIGHT</span><span class="lab" style="right:5%;top:14%">12/24</span>
+<div class="brand">CHRONO<small>ALARM · CHRONOGRAPH</small></div>
+<div class="lcd" id="lcd">
+<div class="top"><span class="wd" id="wd">WE</span><div style="display:flex;gap:2%;align-items:flex-end;flex:1;justify-content:flex-end" id="date"></div></div>
+<div class="main" id="time"></div>
+</div>
+<div class="brand" style="font-size:min(1.8vw,2.2vh);margin:2% 0 0;color:#999">WATER RESIST · LIGHT</div>
+</div></div>
+<script>
+const SEG={0:'abcdef',1:'bc',2:'abged',3:'abgcd',4:'fgbc',5:'afgcd',6:'afgedc',7:'abc',8:'abcdefg',9:'abcdfg','-':'g',' ':''};
+function dg(c){const d=document.createElement('div');d.className='dg '+(c||'');'abcdefg'.split('').forEach(k=>{const s=document.createElement('div');s.className='s '+k;d.appendChild(s)});return d}
+function set(el,ch){[...el.children].forEach(s=>s.classList.toggle('on',(SEG[ch]||'').includes(s.classList[1])))}
+const tm=document.getElementById('time'),pm=document.createElement('span');pm.className='pm';
+const T=[dg(),dg(),dg(),dg(),dg('s2'),dg('s2')],col=document.createElement('div');col.className='col';col.innerHTML='<i></i><i></i>';
+tm.append(pm,T[0],T[1],col,T[2],T[3],T[4],T[5]);
+const dt=document.getElementById('date'),Dd=[dg('s3'),dg('s3'),dg('s3'),dg('s3'),dg('s3')];dt.append(...Dd);
+let h12=false;try{h12=localStorage.getItem('lcd-h12')==='1'}catch(e){}
+document.getElementById('mode').onclick=()=>{h12=!h12;try{localStorage.setItem('lcd-h12',h12?'1':'0')}catch(e){}tick()};
+const lcd=document.getElementById('lcd');let lt;
+document.getElementById('light').onclick=()=>{lcd.classList.add('lit');clearTimeout(lt);lt=setTimeout(()=>lcd.classList.remove('lit'),3000)};
+function tick(){const d=new Date(),p=n=>String(n).padStart(2,'0');let h=d.getHours();pm.textContent=h12?(h<12?'AM':'PM'):'24H';if(h12)h=h%12||12;
+const s=(h12?String(h).padStart(2,' '):p(h))+p(d.getMinutes())+p(d.getSeconds());T.forEach((e,i)=>set(e,s[i]));
+col.style.visibility=d.getMilliseconds()<500?'visible':'hidden';
+const ds=String(d.getMonth()+1).padStart(2,' ')+'-'+p(d.getDate());Dd.forEach((e,i)=>set(e,ds[i]));
+document.getElementById('wd').textContent=['SU','MO','TU','WE','TH','FR','SA'][d.getDay()]}
+tick();setInterval(tick,100);
+</script></body></html>

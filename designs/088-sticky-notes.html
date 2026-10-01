@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sticky Notes</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;font-family:"Segoe Print","Bradley Hand","Comic Sans MS",cursive;color:#2a2a2a}
+body{background:#b98b5e radial-gradient(rgba(0,0,0,.08) 15%,transparent 16%) 0 0/8px 8px,radial-gradient(rgba(255,255,255,.06) 15%,transparent 16%) 4px 4px/8px 8px}
+body{background-color:#b98b5e}
+.board{position:fixed;inset:3vmin;display:grid;grid-template-columns:2fr 1fr;grid-template-rows:1fr 1fr;gap:4vmin;padding:2vmin}
+.n{position:relative;padding:3vmin;box-shadow:.4vmin .8vmin 1.6vmin rgba(0,0,0,.35);display:flex;flex-direction:column;justify-content:center;min-width:0;min-height:0;overflow:hidden}
+.n::before{content:"";position:absolute;top:1vmin;left:50%;width:2.6vmin;height:2.6vmin;margin-left:-1.3vmin;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ff8080,#a00);box-shadow:0 .4vmin .6vmin rgba(0,0,0,.4)}
+.y{background:#fff59d;transform:rotate(-2deg);grid-row:1/3}.p{background:#f8bbd0;transform:rotate(2.5deg)}.g{background:#c5e1a5;transform:rotate(-1.5deg)}
+.big{font-size:min(14vw,26vh);line-height:1;text-align:center}
+.mid{font-size:min(4.4vw,7vh);text-align:center;line-height:1.2}
+.sm{font-size:clamp(11px,2.4vmin,24px);line-height:1.6}
+.sm s{opacity:.6}
+@media (max-aspect-ratio:1/1){.board{grid-template-columns:1fr 1fr;grid-template-rows:1.4fr 1fr}.y{grid-row:auto;grid-column:1/3}.big{font-size:min(26vw,18vh)}}
+</style></head><body>
+<div class="board">
+<div class="n y"><div class="sm">now it's…</div><div class="big" id="t"></div><div class="sm" style="text-align:right" id="s"></div></div>
+<div class="n p"><div class="mid" id="wd"></div><div class="mid" id="d"></div></div>
+<div class="n g"><div class="sm" id="todo"></div></div>
+</div>
+<script>
+function tick(){const d=new Date(),p=n=>String(n).padStart(2,'0'),h=d.getHours();
+document.getElementById('t').textContent=p(h)+':'+p(d.getMinutes());document.getElementById('s').textContent=`…and ${d.getSeconds()} seconds`;
+document.getElementById('wd').textContent=d.toLocaleDateString(undefined,{weekday:'long'});document.getElementById('d').textContent=d.toLocaleDateString(undefined,{day:'numeric',month:'long',year:'numeric'});
+const items=[['wake up',7],['coffee ☕',8],['lunch 🥪',12],['afternoon tea',15],['go home',18],['dinner',19],['sleep 😴',23]];
+document.getElementById('todo').innerHTML='<b>TO DO today</b><br>'+items.map(([t,hh])=>hh<=h?`✔ <s>${t}</s>`:`☐ ${t} (${hh}:00)`).join('<br>')}
+tick();setInterval(tick,1000);
+</script></body></html>

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Particle Digits</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#05060a}
+canvas{position:fixed;inset:0;width:100%;height:100%}
+.date{position:fixed;left:0;right:0;bottom:12vh;text-align:center;color:#8fb3ff;font-family:"Segoe UI",system-ui,sans-serif;font-size:clamp(13px,3vmin,30px);letter-spacing:.3em;opacity:.8}
+.hint{position:fixed;bottom:12px;right:16px;color:#445;font:12px system-ui}
+</style></head><body>
+<canvas id="c"></canvas><div class="date" id="d"></div><div class="hint">move the mouse through the particles</div>
+<script>
+const c=document.getElementById('c'),x=c.getContext('2d'),off=document.createElement('canvas'),ox=off.getContext('2d');
+let W,H,P=[],mouse={x:-1e4,y:-1e4},last='';
+function size(){W=c.width=innerWidth;H=c.height=innerHeight;last=''}addEventListener('resize',size);size();
+addEventListener('pointermove',e=>{mouse.x=e.clientX;mouse.y=e.clientY});addEventListener('pointerleave',()=>{mouse.x=-1e4});
+function targets(str){const port=H>W*1.1,fs=port?Math.min(W/2.4,H/4.5):Math.min(W/4.2,H/2.4);off.width=W;off.height=H;ox.clearRect(0,0,W,H);ox.fillStyle="#fff";ox.font=`bold ${fs}px "Segoe UI",Arial,sans-serif`;ox.textAlign="center";ox.textBaseline="middle";if(port){ox.fillText(str.slice(0,5),W/2,H*.36);ox.fillText(str.slice(6),W/2,H*.36+fs)}else ox.fillText(str,W/2,H*.45);
+const data=ox.getImageData(0,0,W,H).data,step=Math.max(4,Math.round(fs/38)),pts=[];for(let y=0;y<H;y+=step)for(let xx=0;xx<W;xx+=step)if(data[(y*W+xx)*4+3]>128)pts.push([xx,y]);return pts}
+function retarget(str){const pts=targets(str);pts.sort(()=>Math.random()-.5);
+while(P.length<pts.length)P.push({x:Math.random()*W,y:Math.random()*H,vx:0,vy:0,h:200+Math.random()*60});
+P.forEach((p,i)=>{if(i<pts.length){p.tx=pts[i][0];p.ty=pts[i][1];p.free=false}else{p.free=true}});P=P.filter((p,i)=>i<pts.length||Math.random()<.9)}
+function frame(){const d=new Date(),pd=n=>String(n).padStart(2,'0'),str=pd(d.getHours())+':'+pd(d.getMinutes())+':'+pd(d.getSeconds());
+if(str!==last){retarget(str);last=str;document.getElementById('d').textContent=d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'}).toUpperCase()}
+x.fillStyle='rgba(5,6,10,.35)';x.fillRect(0,0,W,H);
+for(const p of P){if(p.free){p.vy+=.15;p.vx*=.99}else{p.vx+=(p.tx-p.x)*.012;p.vy+=(p.ty-p.y)*.012}
+const dx=p.x-mouse.x,dy=p.y-mouse.y,dd=dx*dx+dy*dy;if(dd<9000){const f=60/Math.max(dd,30);p.vx+=dx*f;p.vy+=dy*f}
+p.vx*=.86;p.vy*=.86;p.x+=p.vx;p.y+=p.vy;const sp=Math.min(Math.hypot(p.vx,p.vy)*8,60);
+x.fillStyle=`hsl(${p.h+sp},90%,${60+sp/3}%)`;x.fillRect(p.x,p.y,2.2,2.2)}
+P=P.filter(p=>!(p.free&&p.y>H+20));requestAnimationFrame(frame)}
+frame();
+</script></body></html>

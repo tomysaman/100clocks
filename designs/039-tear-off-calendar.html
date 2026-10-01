@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tear-off Calendar</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#d9cfc1 repeating-linear-gradient(90deg,rgba(0,0,0,.02) 0 2px,transparent 2px 9px);font-family:Georgia,serif}
+.wrap{height:100%;display:flex;align-items:center;justify-content:center}
+.pad{position:relative;height:88vh;width:calc(88vh*.72);max-width:90vw;max-height:calc(90vw/.72);container-type:size}
+.nail{position:absolute;left:50%;top:-1.5cqh;width:3cqh;height:3cqh;margin-left:-1.5cqh;border-radius:50%;background:radial-gradient(circle at 35% 35%,#eee,#777);z-index:3;box-shadow:0 .5cqh 1cqh rgba(0,0,0,.4)}
+.bind{position:absolute;left:0;right:0;top:0;height:9cqh;background:#2b2b2b;border-radius:1cqh 1cqh 0 0;z-index:2;color:#ddd;display:flex;align-items:flex-end;justify-content:center;padding-bottom:1.2cqh;box-sizing:border-box;font-size:3cqh;letter-spacing:.3em}
+.stack{position:absolute;left:1%;right:1%;top:8cqh;bottom:0;background:#f8f5ee;box-shadow:0 .6cqh 0 #ece7dc,0 1.2cqh 0 #e3ddd0,0 1.8cqh 2cqh rgba(0,0,0,.25)}
+.page{position:absolute;inset:0;background:#fffdf7;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:5cqh 4cqh 4cqh;box-sizing:border-box;transform-origin:50% 0}
+.page.sun .num,.page.sun .wd{color:#c62828}
+.page.tear{animation:tear 1.2s ease-in forwards}
+@keyframes tear{30%{transform:rotate(-4deg) translateY(2cqh)}100%{transform:rotate(-25deg) translate(-40%,120%);opacity:0}}
+.mo{font-size:5cqh;letter-spacing:.3em;text-transform:uppercase;color:#555}
+.time{font-family:"Courier New",monospace;font-weight:bold;font-size:16cqh;color:#222;letter-spacing:-.04em;line-height:1}
+.num{font-size:26cqh;line-height:.9;color:#1b1b1b;font-weight:bold}
+.wd{font-size:5cqh;font-style:italic;color:#333}
+.foot{width:100%;display:flex;justify-content:space-between;font-size:2.6cqh;color:#888;border-top:.2cqh solid #ddd;padding-top:1.5cqh}
+.hint{position:fixed;bottom:10px;right:14px;font:12px system-ui;color:#8a7f70}
+</style></head><body>
+<div class="wrap"><div class="pad"><div class="nail"></div><div class="bind" id="yr"></div><div class="stack" id="st"></div></div></div>
+<div class="hint">click the page to tear it off</div>
+<script>
+const st=document.getElementById('st');let cur=null,shownDay=null;
+function doy(d){return Math.floor((new Date(d.getFullYear(),d.getMonth(),d.getDate())-new Date(d.getFullYear(),0,0))/864e5)}
+function mkPage(d){const p=document.createElement('div');p.className='page'+(d.getDay()===0?' sun':'');const y=d.getFullYear(),left=(y%4==0&&(y%100!=0||y%400==0)?366:365)-doy(d);
+p.innerHTML=`<div class="mo">${d.toLocaleDateString(undefined,{month:'long'})}</div><div class="time"></div><div class="num">${d.getDate()}</div><div class="wd">${d.toLocaleDateString(undefined,{weekday:'long'})}</div><div class="foot"><span>Day ${doy(d)}</span><span>${left} days left</span></div>`;return p}
+function turn(d,animate){const n=mkPage(d);st.prepend(n);if(cur&&animate){const old=cur;st.appendChild(old);old.classList.add('tear');setTimeout(()=>old.remove(),1300)}else if(cur)cur.remove();cur=n;shownDay=d.toDateString();document.getElementById('yr').textContent=d.getFullYear()}
+st.onclick=()=>{const old=cur;const n=mkPage(new Date());st.prepend(n);st.appendChild(old);old.classList.add('tear');setTimeout(()=>old.remove(),1300);cur=n;tick()};
+function tick(){const d=new Date();if(d.toDateString()!==shownDay)turn(d,shownDay!==null);
+cur.querySelector('.time').textContent=d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false})}
+tick();setInterval(tick,250);
+</script></body></html>

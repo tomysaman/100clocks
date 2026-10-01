@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Soroban Abacus</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#efe6d6;font-family:"Yu Mincho",Georgia,serif;color:#4a2e14}
+.wrap{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3vh}
+.frame{position:relative;width:min(92vw,140vh);aspect-ratio:2.1;background:#5a2f12;border-radius:1.4vmin;padding:2.4%;box-sizing:border-box;box-shadow:0 2vmin 4vmin rgba(0,0,0,.3)}
+.inner{position:relative;width:100%;height:100%;background:#f6eedd;display:flex;justify-content:space-around}
+.beam{position:absolute;left:0;right:0;top:28%;height:4%;background:#5a2f12;z-index:2}
+.rod{position:relative;flex:1;display:flex;justify-content:center}
+.rod::before{content:"";position:absolute;top:0;bottom:0;width:6%;background:linear-gradient(90deg,#9a8a6e,#e5dcc6,#9a8a6e)}
+.b{position:absolute;left:12%;right:12%;height:13%;border-radius:50%/50%;clip-path:polygon(0 50%,25% 0,75% 0,100% 50%,75% 100%,25% 100%);background:linear-gradient(#c87a3c,#7a3c12 60%,#4a2208);transition:top .35s cubic-bezier(.3,1.4,.6,1);z-index:1}
+.grp .rod:nth-child(2n) .b{background:linear-gradient(#a85a2a,#5a2a0a 60%,#3a1804)}
+.sep{width:1.2%;background:#5a2f12;opacity:.0}
+.lab{position:absolute;bottom:-9%;left:0;right:0;text-align:center;font-size:min(2vw,3vh);color:#f2e3c4;z-index:3}
+.dot{position:absolute;top:29%;width:1.4%;aspect-ratio:1;border-radius:50%;background:#fff;z-index:3;transform:translateX(-50%)}
+.cap{display:flex;gap:5vw;font-size:clamp(13px,3vmin,30px)}
+.cap b{font-weight:normal;font-size:1.6em}
+</style></head><body>
+<div class="wrap"><div class="frame"><div class="inner" id="in"><div class="beam"></div></div></div>
+<div class="cap"><span>時刻 <b id="t"></b></span><span id="d"></span></div></div>
+<script>
+const inn=document.getElementById('in'),rods=[];
+// 6 rods: H H M M S S. Each rod has 1 heaven bead (5) and 4 earth beads (1).
+for(let i=0;i<6;i++){const r=document.createElement('div');r.className='rod';const beads=[];for(let k=0;k<5;k++){const b=document.createElement('div');b.className='b';r.appendChild(b);beads.push(b)}inn.appendChild(r);rods.push(beads)}
+[1/3,2/3].forEach(f=>{const d=document.createElement('div');d.className='dot';d.style.left=(f*100)+'%';inn.appendChild(d)});
+function setRod(beads,v){const five=v>=5,ones=v%5;
+beads[0].style.top=five?'14.5%':'1%';
+for(let k=0;k<4;k++){const up=k<ones;beads[k+1].style.top=up?(32.5+k*13.2)+'%':(47.5+k*13.2)+'%'}}
+function tick(){const d=new Date(),p=n=>String(n).padStart(2,'0'),s=p(d.getHours())+p(d.getMinutes())+p(d.getSeconds());rods.forEach((b,i)=>setRod(b,+s[i]));
+document.getElementById('t').textContent=p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds());
+document.getElementById('d').textContent=d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
+tick();setInterval(tick,250);
+</script></body></html>

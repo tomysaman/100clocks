@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dashboard Tiles</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#1d1d1d;color:#fff;font-family:"Segoe UI",system-ui,sans-serif}
+.g{position:fixed;inset:2vmin;display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(3,1fr);gap:1.2vmin}
+.tl{padding:2vmin;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;min-width:0;min-height:0}
+.tl small{font-size:clamp(10px,1.8vmin,18px);opacity:.8}
+.tl b{font-weight:300;font-size:clamp(18px,min(5vw,8vh),80px);line-height:1}
+.big{grid-column:1/3;grid-row:1/3;background:#0078d7}.big b{font-size:clamp(40px,min(13vw,22vh),220px);font-weight:200}
+.c1{background:#e81123}.c2{background:#00a300}.c3{background:#ff8c00}.c4{background:#5c2d91}.c5{background:#008299}.c6{background:#2d7d9a}.c7{background:#b4009e}.c8{background:#555}
+.wide{grid-column:span 2}
+.bar{height:.8vmin;background:rgba(255,255,255,.3);border-radius:1vmin;overflow:hidden}.bar i{display:block;height:100%;background:#fff}
+@media (max-aspect-ratio:1/1){.g{grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(6,1fr)}.big{grid-column:1/3;grid-row:1/3}.wide{grid-column:span 2}}
+</style></head><body>
+<div class="g">
+<div class="tl big"><small id="wd"></small><b id="t"></b><small id="sec"></small></div>
+<div class="tl c1"><small>Date</small><b id="dt"></b></div>
+<div class="tl c2"><small>Month</small><b id="mo"></b></div>
+<div class="tl c3"><small>Week</small><b id="wk"></b></div>
+<div class="tl c4"><small>Day of year</small><b id="dy"></b></div>
+<div class="tl c5 wide"><small>Day progress</small><b id="dp"></b><div class="bar"><i id="dpb"></i></div></div>
+<div class="tl c6"><small>Moon</small><b id="mn"></b></div>
+<div class="tl c7"><small>Time zone</small><b id="tz" style="font-size:clamp(13px,min(2.4vw,4vh),40px)"></b></div>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+function tick(){const d=new Date(),p=n=>String(n).padStart(2,'0'),y=d.getFullYear();
+$('t').textContent=p(d.getHours())+':'+p(d.getMinutes());$('sec').textContent=p(d.getSeconds())+' seconds';$('wd').textContent=d.toLocaleDateString(undefined,{weekday:'long'});
+$('dt').textContent=d.getDate();$('mo').textContent=d.toLocaleDateString(undefined,{month:'short'})+' '+y;
+const t=new Date(Date.UTC(y,d.getMonth(),d.getDate())),n=t.getUTCDay()||7;t.setUTCDate(t.getUTCDate()+4-n);$('wk').textContent='W'+Math.ceil(((t-Date.UTC(t.getUTCFullYear(),0,1))/864e5+1)/7);
+$('dy').textContent=Math.floor((new Date(y,d.getMonth(),d.getDate())-new Date(y,0,0))/864e5);
+const f=(d.getHours()*3600+d.getMinutes()*60+d.getSeconds())/86400;$('dp').textContent=(f*100).toFixed(1)+'%';$('dpb').style.width=f*100+'%';
+const age=((d-new Date(Date.UTC(2000,0,6,18,14)))/864e5)%29.530588,ph=['🌑','🌒','🌓','🌔','🌕','🌖','🌗','🌘'][Math.floor((age/29.530588)*8+.5)%8];$('mn').textContent=ph+' '+Math.round(age)+'d';
+$('tz').textContent=Intl.DateTimeFormat().resolvedOptions().timeZone}
+tick();setInterval(tick,1000);
+</script></body></html>

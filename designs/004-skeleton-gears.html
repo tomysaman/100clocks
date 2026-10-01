@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Skeleton Gears</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:radial-gradient(#1b1611,#050403);color:#d9b26a;font-family:"Palatino Linotype",Palatino,serif}
+.wrap{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5vmin}
+canvas{width:min(88vw,80vh);height:min(88vw,80vh)}
+.date{font-size:clamp(13px,3vmin,30px);letter-spacing:.2em;font-style:italic;text-align:center}
+</style></head><body>
+<div class="wrap"><canvas id="c"></canvas><div class="date" id="d"></div></div>
+<script>
+const c=document.getElementById('c'),x=c.getContext('2d'),D=document.getElementById('d');
+function size(){const r=c.getBoundingClientRect(),p=devicePixelRatio||1;c.width=r.width*p;c.height=r.height*p}
+addEventListener('resize',size);size();
+function gear(cx,cy,r,teeth,ang,col,spokes){x.save();x.translate(cx,cy);x.rotate(ang);x.fillStyle=col;x.beginPath();
+for(let i=0;i<teeth*2;i++){const a=i*Math.PI/teeth,rr=i%2?r:r*1.1;x.lineTo(Math.cos(a-.08)*rr,Math.sin(a-.08)*rr);x.lineTo(Math.cos(a+.08)*rr,Math.sin(a+.08)*rr)}
+x.closePath();x.arc(0,0,r*.78,0,Math.PI*2,true);x.fill('evenodd');
+for(let i=0;i<spokes;i++){x.save();x.rotate(i*2*Math.PI/spokes);x.fillRect(-r*.06,0,r*.12,r*.8);x.restore()}
+x.beginPath();x.arc(0,0,r*.15,0,7);x.fill();x.fillStyle='#7a1010';x.beginPath();x.arc(0,0,r*.06,0,7);x.fill();x.restore()}
+function hand(a,len,w,col){x.save();x.rotate(a);x.beginPath();x.moveTo(-w,len*.15);x.lineTo(0,-len);x.lineTo(w,len*.15);x.closePath();x.fillStyle=col;x.fill();x.restore()}
+function draw(){const d=new Date(),W=c.width,R=W/2,t=d.getTime()/1000%3600;x.clearRect(0,0,W,W);x.save();x.translate(R,R);
+x.strokeStyle='#b8893c';x.lineWidth=R*.03;x.beginPath();x.arc(0,0,R*.95,0,7);x.stroke();x.lineWidth=R*.006;x.beginPath();x.arc(0,0,R*.86,0,7);x.stroke();
+gear(-R*.32,-R*.25,R*.28,24,t*.4,'rgba(201,160,90,.85)',5);gear(R*.18,-R*.36,R*.18,16,-t*.6,'rgba(184,137,60,.8)',4);
+gear(R*.33,R*.2,R*.26,22,t*.43,'rgba(214,180,110,.75)',6);gear(-R*.2,R*.36,R*.2,18,-t*.53,'rgba(170,120,50,.85)',5);gear(0,0,R*.12,12,t*.9,'#e0c080',3);
+const bal=Math.sin(t*Math.PI*5)*1.2;x.save();x.translate(-R*.5,R*.08);x.rotate(bal);x.strokeStyle='#e8d29a';x.lineWidth=R*.01;x.beginPath();x.arc(0,0,R*.12,0,7);x.stroke();x.beginPath();x.moveTo(-R*.12,0);x.lineTo(R*.12,0);x.stroke();x.restore();
+x.fillStyle='#e6c88a';x.font=`${R*.11}px Palatino, serif`;x.textAlign='center';x.textBaseline='middle';
+['XII','III','VI','IX'].forEach((n,i)=>{const a=i*Math.PI/2;x.fillText(n,Math.sin(a)*R*.74,-Math.cos(a)*R*.74)});
+for(let i=0;i<60;i++){const a=i*Math.PI/30,l=i%5?.02:.05;x.strokeStyle='#d9b26a';x.lineWidth=i%5?R*.005:R*.012;x.beginPath();x.moveTo(Math.sin(a)*R*.9,-Math.cos(a)*R*.9);x.lineTo(Math.sin(a)*R*(.9-l),-Math.cos(a)*R*(.9-l));x.stroke()}
+const s=d.getSeconds()+d.getMilliseconds()/1000,m=d.getMinutes()+s/60,h=d.getHours()%12+m/60;
+x.shadowColor='rgba(0,0,0,.6)';x.shadowBlur=R*.03;hand(h*Math.PI/6,R*.5,R*.035,'#f2dca5');hand(m*Math.PI/30,R*.78,R*.025,'#f2dca5');hand(Math.floor(s*4)/4*Math.PI/30,R*.85,R*.008,'#c0392b');
+x.shadowBlur=0;x.fillStyle='#c0392b';x.beginPath();x.arc(0,0,R*.025,0,7);x.fill();x.restore();
+D.textContent=d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'});requestAnimationFrame(draw)}
+draw();
+</script></body></html>

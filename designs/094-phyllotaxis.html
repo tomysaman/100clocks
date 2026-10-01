@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Phyllotaxis</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#0f1a12;color:#f3e6b5;font-family:"Segoe UI",system-ui,sans-serif}
+canvas{position:fixed;inset:0;width:100%;height:100%}
+.ov{position:fixed;left:3vmin;top:3vmin}
+.ov b{display:block;font-size:clamp(28px,7vmin,72px);font-weight:200}
+.ov span{font-size:clamp(11px,2.2vmin,22px);opacity:.8}
+.k{position:fixed;right:3vmin;bottom:3vmin;text-align:right;font-size:clamp(10px,1.8vmin,18px);opacity:.6;max-width:50vw}
+</style></head><body>
+<canvas id="c"></canvas><div class="ov"><b id="t"></b><span id="d"></span></div>
+<div class="k" id="k"></div>
+<script>
+// One seed per minute of the day, laid out on the golden angle like a sunflower head. The newest seed pulses each second.
+const c=document.getElementById('c'),x=c.getContext('2d');let W,H;
+function size(){const p=devicePixelRatio||1;W=innerWidth;H=innerHeight;c.width=W*p;c.height=H*p;x.setTransform(p,0,0,p,0,0)}addEventListener('resize',size);size();
+const GA=Math.PI*(3-Math.sqrt(5));
+function draw(){const d=new Date(),n=d.getHours()*60+d.getMinutes(),cx=W/2,cy=H/2,R=Math.min(W,H)*.46,k=R/Math.sqrt(1440),dot=k*.42;
+x.fillStyle='#0f1a12';x.fillRect(0,0,W,H);
+for(let i=0;i<1440;i++){const r=k*Math.sqrt(i),a=i*GA,px=cx+Math.cos(a)*r,py=cy+Math.sin(a)*r;
+if(i<n){const h=Math.floor(i/60);x.fillStyle=`hsl(${40-h*1.4},${70+h}%,${45+(i%60)/60*20}%)`}else if(i===n){const pulse=.5+.5*Math.sin(Date.now()/160);x.fillStyle=`rgba(255,240,200,${.5+.5*pulse})`}else x.fillStyle='rgba(243,230,181,.07)';
+x.beginPath();x.arc(px,py,i===n?dot*1.8:dot,0,7);x.fill()}
+const p=v=>String(v).padStart(2,'0');document.getElementById('t').textContent=p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds());
+document.getElementById('d').textContent=d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+document.getElementById('k').textContent=`${n} of 1440 seeds — one for every minute since midnight`;requestAnimationFrame(draw)}
+draw();
+</script></body></html>

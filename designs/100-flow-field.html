@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Flow Field</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#0a0a0f;font-family:"Segoe UI",system-ui,sans-serif;color:#fff}
+canvas{position:fixed;inset:0;width:100%;height:100%}
+.ov{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;mix-blend-mode:difference}
+.t{font-size:clamp(50px,min(20vw,30vh),320px);font-weight:800;letter-spacing:-.05em;line-height:1}
+.d{font-size:clamp(13px,3vmin,30px);letter-spacing:.3em;text-transform:uppercase;margin-top:1vh}
+.k{position:fixed;right:2vmin;bottom:2vmin;font-size:12px;opacity:.5}
+</style></head><body>
+<canvas id="c"></canvas><div class="ov"><div class="t" id="t"></div><div class="d" id="d"></div></div>
+<div class="k" id="k"></div>
+<script>
+// Particles drift through a noise field. The field's seed is the current minute and its hue follows the hour,
+// so every minute paints a different picture.
+const c=document.getElementById('c'),x=c.getContext('2d');let W,H,P=[],seed=-1;
+function size(){W=c.width=innerWidth;H=c.height=innerHeight;x.fillStyle='#0a0a0f';x.fillRect(0,0,W,H)}addEventListener('resize',size);size();
+function hash(a,b,s){const v=Math.sin(a*127.1+b*311.7+s*74.7)*43758.5453;return v-Math.floor(v)}
+function noise(px,py,s){const ix=Math.floor(px),iy=Math.floor(py),fx=px-ix,fy=py-iy,u=fx*fx*(3-2*fx),v=fy*fy*(3-2*fy);
+const a=hash(ix,iy,s),b=hash(ix+1,iy,s),c2=hash(ix,iy+1,s),d=hash(ix+1,iy+1,s);return a+(b-a)*u+(c2-a)*v+(a-b-c2+d)*u*v}
+function reset(s){seed=s;x.fillStyle='rgba(10,10,15,.85)';x.fillRect(0,0,W,H);P=Array.from({length:1600},()=>({x:Math.random()*W,y:Math.random()*H,l:Math.random()*200}))}
+function draw(){const d=new Date(),s=d.getHours()*60+d.getMinutes();if(s!==seed)reset(s);
+const hue=d.getHours()/24*360,sc=1/Math.max(160,Math.min(W,H)/4);
+x.fillStyle='rgba(10,10,15,.02)';x.fillRect(0,0,W,H);x.lineWidth=1;
+for(const p of P){const a=noise(p.x*sc,p.y*sc,seed)*Math.PI*4,nx=p.x+Math.cos(a)*1.6,ny=p.y+Math.sin(a)*1.6;
+x.strokeStyle=`hsla(${hue+noise(p.x*sc*.5,p.y*sc*.5,seed+1)*90},80%,60%,.25)`;x.beginPath();x.moveTo(p.x,p.y);x.lineTo(nx,ny);x.stroke();p.x=nx;p.y=ny;
+if(--p.l<0||nx<0||ny<0||nx>W||ny>H){p.x=Math.random()*W;p.y=Math.random()*H;p.l=100+Math.random()*200}}
+const p=n=>String(n).padStart(2,'0');document.getElementById('t').textContent=p(d.getHours())+':'+p(d.getMinutes());
+document.getElementById('d').textContent=d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+document.getElementById('k').textContent=`field #${s} · ${p(d.getSeconds())}s`;requestAnimationFrame(draw)}
+draw();
+</script></body></html>

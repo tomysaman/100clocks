@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pocket Watch</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:radial-gradient(ellipse at 50% 40%,#5b1e1e,#250a0a);font-family:"Palatino Linotype",Palatino,serif;color:#e9d7a6}
+.wrap{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2vh}
+.watch{position:relative;width:min(42vw,56vh);aspect-ratio:1;perspective:200vmin;cursor:pointer;margin-top:calc(min(42vw,56vh)*.24);transition:transform 1.4s cubic-bezier(.5,0,.2,1)}
+.watch.open{transform:translateX(48%)}
+.crown{position:absolute;left:50%;top:-9%;width:12%;height:10%;margin-left:-6%;background:repeating-linear-gradient(90deg,#c9a54a 0 3px,#8a6a20 3px 5px);border-radius:30% 30% 10% 10%}
+.bow{position:absolute;left:50%;top:-22%;width:26%;height:16%;margin-left:-13%;border:1.4vmin solid #c9a54a;border-bottom:none;border-radius:50% 50% 0 0;box-sizing:border-box}
+.chain{position:absolute;left:50%;top:-22%;width:2px;height:22%;}
+.body{position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff1b8,#d9b04f 35%,#8a6418 80%);box-shadow:0 2vmin 4vmin rgba(0,0,0,.6)}
+.face{position:absolute;inset:7%;border-radius:50%;background:radial-gradient(#fffaf0,#efe3c8);box-shadow:inset 0 0 2vmin rgba(0,0,0,.3)}
+.face svg{width:100%;height:100%}
+.lid{position:absolute;inset:0;border-radius:50%;transform-origin:0% 50%;transition:transform 1.4s cubic-bezier(.5,0,.2,1);transform-style:preserve-3d;z-index:3}
+.lid .out,.lid .in{position:absolute;inset:0;border-radius:50%;backface-visibility:hidden}
+.lid .out{background:radial-gradient(circle at 35% 30%,#fff1b8,#d9b04f 35%,#8a6418 80%);display:flex;align-items:center;justify-content:center}
+.lid .out::after{content:"";width:70%;height:70%;border-radius:50%;background:repeating-conic-gradient(from 0deg,rgba(255,255,255,.18) 0 4deg,rgba(0,0,0,.1) 4deg 8deg);box-shadow:inset 0 0 0 .6vmin rgba(120,80,10,.6)}
+.lid .in{background:radial-gradient(#e6c76a,#9a7420);transform:rotateY(180deg);display:flex;align-items:center;justify-content:center;font-style:italic;color:#5a3d0a;font-size:min(2.2vw,2.8vh);text-align:center}
+.watch.open .lid{transform:rotateY(-160deg)}
+.cap{font-size:clamp(13px,3vmin,30px);font-style:italic;text-align:center}
+.hint{font-size:clamp(10px,1.8vmin,18px);opacity:.6}
+</style></head><body>
+<div class="wrap"><div class="watch" id="w"><div class="bow"></div><div class="crown"></div><div class="body"></div>
+<div class="face"><svg viewBox="-100 -100 200 200"><g id="tk"></g><g id="nm" font-size="17" text-anchor="middle" dominant-baseline="central" fill="#2b2110" font-family="Palatino Linotype,serif"></g>
+<g transform="translate(0 45)"><circle r="20" fill="none" stroke="#7a6a4a" stroke-width=".6"/><g id="sst"></g><line id="ss" y1="3" y2="-17" stroke="#2b2110" stroke-width="1"/></g>
+<path id="H" d="M-3 8 L0 -46 L3 8Z" fill="#1b2a5a"/><path id="M" d="M-2 10 L0 -70 L2 10Z" fill="#1b2a5a"/><circle r="3" fill="#1b2a5a"/></svg></div>
+<div class="lid"><div class="out"></div><div class="in" id="eng"></div></div></div>
+<div class="cap" id="c"></div><div class="hint">click the watch to open or close the lid</div></div>
+<script>
+const NS="http://www.w3.org/2000/svg",w=document.getElementById('w');
+const R=['XII','I','II','III','IV','V','VI','VII','VIII','IX','X','XI'];
+R.forEach((r,i)=>{const a=i*Math.PI/6,t=document.createElementNS(NS,'text');t.setAttribute('x',Math.sin(a)*74);t.setAttribute('y',-Math.cos(a)*74);t.textContent=r;document.getElementById('nm').appendChild(t)});
+for(let i=0;i<60;i++){const l=document.createElementNS(NS,'line');l.setAttribute('y1',-93);l.setAttribute('y2',i%5?-89:-85);l.setAttribute('stroke','#2b2110');l.setAttribute('stroke-width',i%5?.6:1.6);l.setAttribute('transform',`rotate(${i*6})`);document.getElementById('tk').appendChild(l)}
+for(let i=0;i<12;i++){const l=document.createElementNS(NS,'line');l.setAttribute('y1',-20);l.setAttribute('y2',-17);l.setAttribute('stroke','#2b2110');l.setAttribute('stroke-width',.6);l.setAttribute('transform',`rotate(${i*30})`);document.getElementById('sst').appendChild(l)}
+let open=true;try{open=localStorage.getItem('pw-open')!=='0'}catch(e){}w.classList.toggle('open',open);
+w.onclick=()=>{open=!open;w.classList.toggle('open',open);try{localStorage.setItem('pw-open',open?'1':'0')}catch(e){}};
+function tick(){const d=new Date(),s=d.getSeconds()+d.getMilliseconds()/1000,m=d.getMinutes()+s/60,h=d.getHours()%12+m/60;
+document.getElementById('H').setAttribute('transform',`rotate(${h*30})`);document.getElementById('M').setAttribute('transform',`rotate(${m*6})`);
+document.getElementById('ss').setAttribute('transform',`rotate(${Math.floor(s*5)/5*6})`);
+document.getElementById('c').textContent=d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'})+(open?'':' · '+d.toLocaleTimeString());
+document.getElementById('eng').innerHTML=`To keep good time<br>${d.getFullYear()}`;requestAnimationFrame(tick)}
+tick();
+</script></body></html>

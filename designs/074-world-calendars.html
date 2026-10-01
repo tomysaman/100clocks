@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>World Calendars</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#faf6ef;color:#2a2622;font-family:Georgia,"Times New Roman",serif}
+.wrap{height:100%;display:flex;flex-direction:column;justify-content:center;width:min(92vw,1100px);margin:0 auto;gap:2.5vh}
+.t{text-align:center;font-size:clamp(36px,min(12vw,16vh),180px);line-height:1;font-variant-numeric:tabular-nums}
+.sub{text-align:center;font-style:italic;font-size:clamp(12px,2.4vmin,24px);color:#8a7a66}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1.4vh 4vw;border-top:1px solid #d8cdbd;padding-top:2.5vh}
+.r{display:flex;justify-content:space-between;gap:2vw;font-size:clamp(11px,2.2vmin,22px);border-bottom:1px dotted #e0d6c6;padding-bottom:.6vh;min-width:0}
+.r span:first-child{color:#8a7a66;font-variant:small-caps;letter-spacing:.05em;white-space:nowrap}
+.r span:last-child{text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media (max-aspect-ratio:1/1){.grid{grid-template-columns:1fr}}
+</style></head><body>
+<div class="wrap"><div class="t" id="t"></div><div class="sub">one day, many reckonings</div><div class="grid" id="g"></div></div>
+<script>
+const CALS=[['Gregorian','gregory','en-GB'],['Islamic (Hijri)','islamic-umalqura','en-GB'],['Hebrew','hebrew','en-GB'],['Persian (Solar Hijri)','persian','en-GB'],['Chinese','chinese','zh-CN'],['Japanese','japanese','ja-JP'],['Buddhist','buddhist','th-TH'],['Indian National','indian','en-IN'],['Ethiopic','ethiopic','en-GB'],['Coptic','coptic','en-GB'],['ROC (Minguo)','roc','zh-TW'],['ISO week date','iso','']];
+function iso(d){const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())),n=t.getUTCDay()||7;t.setUTCDate(t.getUTCDate()+4-n);const w=Math.ceil(((t-Date.UTC(t.getUTCFullYear(),0,1))/864e5+1)/7);return `${t.getUTCFullYear()}-W${String(w).padStart(2,'0')}-${n}`}
+let lastDay='';
+function tick(){const d=new Date();document.getElementById('t').textContent=d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+if(d.toDateString()===lastDay)return;lastDay=d.toDateString();
+document.getElementById('g').innerHTML=CALS.map(([n,c,loc])=>{let v;try{v=c==='iso'?iso(d):new Intl.DateTimeFormat(loc+'-u-ca-'+c,{weekday:'short',year:'numeric',month:'long',day:'numeric'}).format(d)}catch(e){v='—'}return `<div class="r"><span>${n}</span><span title="${v}">${v}</span></div>`}).join('')}
+tick();setInterval(tick,1000);
+</script></body></html>

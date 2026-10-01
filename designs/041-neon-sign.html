@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Neon Sign</title>
+<style>
+:root{--n:#ff2fb0;--n2:#2fe4ff}
+html,body{margin:0;height:100%;overflow:hidden;font-family:"Brush Script MT","Segoe Script",cursive;
+background:repeating-linear-gradient(0deg,transparent 0 5.6vh,rgba(0,0,0,.55) 5.6vh 6vh),#3b211c;}
+body::before{content:"";position:fixed;inset:0;background:repeating-linear-gradient(90deg,transparent 0 11.6vh,rgba(0,0,0,.45) 11.6vh 12vh);background-size:12vh 12vh;
+-webkit-mask:repeating-linear-gradient(0deg,#000 0 6vh,transparent 6vh 12vh);mask:repeating-linear-gradient(0deg,#000 0 6vh,transparent 6vh 12vh)}
+body::after{content:"";position:fixed;inset:0;background:radial-gradient(ellipse at 50% 45%,rgba(255,47,176,.18),transparent 60%),linear-gradient(rgba(60,30,30,.4),rgba(0,0,0,.6));pointer-events:none}
+.wrap{position:relative;z-index:1;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2vh}
+.t{font-size:clamp(50px,min(20vw,30vh),320px);color:#fff;text-shadow:0 0 .03em #fff,0 0 .08em var(--n),0 0 .2em var(--n),0 0 .4em var(--n),0 0 .8em var(--n);font-family:"Segoe Script","Brush Script MT",cursive;line-height:1.1}
+.d{font-family:"Arial Rounded MT Bold",Arial,sans-serif;font-size:clamp(14px,4vmin,40px);letter-spacing:.3em;color:#fff;text-shadow:0 0 .1em #fff,0 0 .3em var(--n2),0 0 .6em var(--n2),0 0 1em var(--n2);text-transform:uppercase}
+.off{opacity:.35;text-shadow:none!important}
+.ctl{position:fixed;z-index:2;bottom:14px;right:14px;display:flex;gap:8px}
+.ctl button{width:26px;height:26px;border-radius:50%;border:2px solid #333;cursor:pointer}
+</style></head><body>
+<div class="wrap"><div class="t" id="t"></div><div class="d" id="d"></div></div>
+<div class="ctl" id="ctl"></div>
+<script>
+const SETS=[['#ff2fb0','#2fe4ff'],['#ff3b2f','#ffd02f'],['#39ff6a','#ff2fb0'],['#2fe4ff','#b84dff'],['#ffae2f','#ff2f6e']];
+const ctl=document.getElementById('ctl');let si=0;try{si=+localStorage.getItem('neonset')||0}catch(e){}
+function apply(){document.documentElement.style.setProperty('--n',SETS[si][0]);document.documentElement.style.setProperty('--n2',SETS[si][1])}
+SETS.forEach((s,i)=>{const b=document.createElement('button');b.style.background=`linear-gradient(135deg,${s[0]} 50%,${s[1]} 50%)`;b.onclick=()=>{si=i;try{localStorage.setItem('neonset',i)}catch(e){}apply()};ctl.appendChild(b)});apply();
+const t=document.getElementById('t'),d=document.getElementById('d');
+function tick(){const n=new Date(),p=x=>String(x).padStart(2,'0');t.textContent=p(n.getHours())+':'+p(n.getMinutes());
+d.textContent=n.toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short',year:'numeric'})}
+// occasional flicker
+function flicker(){const el=Math.random()<.5?t:d;let k=0;const iv=setInterval(()=>{el.classList.toggle('off');if(++k>5){clearInterval(iv);el.classList.remove('off')}},60);setTimeout(flicker,3000+Math.random()*7000)}
+tick();setInterval(tick,1000);setTimeout(flicker,2500);
+</script></body></html>

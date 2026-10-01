@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vinyl Record</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#d9cbb5;font-family:"Futura","Century Gothic",Arial,sans-serif}
+.wrap{height:100%;display:flex;align-items:center;justify-content:center}
+.deck{position:relative;width:min(94vw,130vh);aspect-ratio:1.35;background:linear-gradient(135deg,#3b2a1e,#24170e);border-radius:2vmin;box-shadow:0 2vmin 5vmin rgba(0,0,0,.5);container-type:size}
+.plat{position:absolute;left:5%;top:7%;height:86%;aspect-ratio:1;border-radius:50%;overflow:hidden;background:#bbb;box-shadow:0 0 0 .8cqh #888,0 1cqh 3cqh rgba(0,0,0,.6)}
+.rec{position:absolute;inset:2%;border-radius:50%;background:repeating-radial-gradient(#111 0 .35cqh,#1c1c1c .35cqh .7cqh);display:flex;align-items:center;justify-content:center}
+.rec::after{content:"";position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 30deg,transparent,rgba(255,255,255,.1) 10%,transparent 20%,transparent 50%,rgba(255,255,255,.1) 60%,transparent 70%)}
+.lab{width:34%;aspect-ratio:1;border-radius:50%;background:#e84a2f;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff3e0;text-align:center;position:relative;z-index:1}
+.lab b{font-size:6cqh;line-height:1}.lab span{font-size:2cqh;letter-spacing:.15em}
+.lab i{position:absolute;width:5%;aspect-ratio:1;border-radius:50%;background:#ccc;top:47.5%;left:47.5%}
+.arm{position:absolute;right:8%;top:8%;width:4%;height:62%;transform-origin:50% 6%;transition:transform 1s}
+.arm .pv{position:absolute;left:-60%;top:0;width:220%;aspect-ratio:1;border-radius:50%;background:radial-gradient(#eee,#777)}
+.arm .bar{position:absolute;left:35%;top:4%;width:30%;height:92%;background:linear-gradient(90deg,#999,#eee,#999);border-radius:1cqh}
+.arm .hd{position:absolute;left:-30%;bottom:0;width:160%;height:10%;background:#222;border-radius:.6cqh}
+.info{position:absolute;right:4%;bottom:6%;color:#e9dccb;text-align:right;font-size:2.6cqh;line-height:1.5}
+.info b{display:block;font-size:6cqh;font-weight:normal}
+</style></head><body>
+<div class="wrap"><div class="deck"><div class="plat"><div class="rec" id="r"><div class="lab"><span id="sd"></span><b id="lt"></b><span>SIDE A · 33⅓</span><i></i></div></div></div>
+<div class="arm" id="arm"><div class="pv"></div><div class="bar"></div><div class="hd"></div></div>
+<div class="info"><b id="t"></b><span id="d"></span><br><span id="tr"></span></div></div></div>
+<script>
+const r=document.getElementById('r'),arm=document.getElementById('arm');
+function tick(){const d=new Date(),ms=d.getTime(),p=n=>String(n).padStart(2,'0');
+r.style.transform=`rotate(${(ms/1000*33.333/60*360)%360}deg)`;
+// tonearm travels from outer groove to the label over the hour
+const f=(d.getMinutes()*60+d.getSeconds())/3600;arm.style.transform=`rotate(${18+f*22}deg)`;
+document.getElementById('lt').textContent=p(d.getHours())+':'+p(d.getMinutes());document.getElementById('sd').textContent=d.toLocaleDateString(undefined,{weekday:'short'}).toUpperCase();
+document.getElementById('t').textContent=d.toLocaleTimeString();document.getElementById('d').textContent=d.toLocaleDateString(undefined,{day:'numeric',month:'long',year:'numeric'});
+document.getElementById('tr').textContent=`Track ${d.getHours()+1} · ${p(d.getMinutes())}:${p(d.getSeconds())} / 60:00`;requestAnimationFrame(tick)}
+tick();
+</script></body></html>

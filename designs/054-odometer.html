@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Odometer</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:radial-gradient(#2a2a2e,#0b0b0d);font-family:"Eurostile","Arial Narrow",Arial,sans-serif;color:#ddd}
+.wrap{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4vh}
+.gauge{padding:2vmin 2.5vmin;background:linear-gradient(#3a3a3e,#1c1c1f);border-radius:2vmin;box-shadow:inset 0 .3vmin .5vmin rgba(255,255,255,.1),0 2vmin 4vmin #000}
+.drums{display:flex;gap:.4vmin;padding:.8vmin;background:#000;border-radius:1vmin;box-shadow:inset 0 0 1.4vmin #000}
+.drum{--h:min(12vw,17vh);position:relative;width:calc(var(--h)*.66);height:var(--h);overflow:hidden;background:#f2f0ea;border-radius:.4vmin}
+.drum.w{background:#c8102e}.drum.w span{color:#fff}
+.drum::after{content:"";position:absolute;inset:0;background:linear-gradient(rgba(0,0,0,.65),transparent 30%,transparent 70%,rgba(0,0,0,.65));pointer-events:none}
+.reel{position:absolute;left:0;right:0;top:0}
+.reel span{display:block;height:var(--h);line-height:var(--h);text-align:center;font-size:calc(var(--h)*.75);color:#111;font-weight:bold}
+.gp{width:1.4vmin}
+.lab{display:flex;justify-content:space-around;font-size:clamp(9px,1.6vmin,16px);letter-spacing:.3em;opacity:.6;margin-top:1vmin}
+.trip{display:flex;gap:4vw;font-size:clamp(12px,2.6vmin,26px);letter-spacing:.1em}
+.trip b{color:#ff9a3c;font-weight:normal}
+</style></head><body>
+<div class="wrap"><div class="gauge"><div class="drums" id="dr"></div><div class="lab"><span>HOURS</span><span>MINUTES</span><span>SECONDS</span></div></div>
+<div class="trip"><span>TRIP <b id="dd"></b></span><span id="wd"></span></div></div>
+<script>
+const dr=document.getElementById('dr'),reels=[],MAX=[2,9,5,9,5,9];
+for(let i=0;i<6;i++){if(i===2||i===4){const g=document.createElement('div');g.className='gp';dr.appendChild(g)}
+const dm=document.createElement('div');dm.className='drum'+(i>=4?' w':'');const r=document.createElement('div');r.className='reel';for(let n=0;n<=MAX[i]+1;n++){const s=document.createElement('span');s.textContent=n>MAX[i]?0:n;r.appendChild(s)}dm.appendChild(r);dr.appendChild(dm);reels.push(r)}
+function tick(){const d=new Date(),p=n=>String(n).padStart(2,'0'),dig=(p(d.getHours())+p(d.getMinutes())+p(d.getSeconds())).split('').map(Number),ms=d.getMilliseconds()/1000;
+// a drum rolls only while every drum to its right is rolling over from its last digit (like a real odometer)
+let carry=true;const ease=t=>t<.7?0:(t-.7)/.3;
+for(let i=5;i>=0;i--){const f=carry?ease(ms):0,lim=i===1&&dig[0]===2?3:MAX[i];let v=dig[i]+f;if(dig[i]===lim&&lim!==MAX[i])v=dig[i];reels[i].style.transform='translateY(calc(var(--h) * '+(-v)+'))';carry=carry&&dig[i]===lim}
+document.getElementById('dd').textContent=d.toLocaleDateString(undefined,{day:'2-digit',month:'2-digit',year:'numeric'});
+document.getElementById('wd').textContent=d.toLocaleDateString(undefined,{weekday:'long'}).toUpperCase();requestAnimationFrame(tick)}
+tick();
+</script></body></html>

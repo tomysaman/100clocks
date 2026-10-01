@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BCD Blocks</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#f3f0ea;color:#333;font-family:"Segoe UI",system-ui,sans-serif}
+.wrap{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3vmin}
+.cols{display:flex;gap:min(2vw,2.5vh);align-items:flex-end}
+.col{display:flex;flex-direction:column;gap:min(1.2vw,1.5vh);align-items:center}
+.col.gap{margin-left:min(3vw,4vh)}
+.b{width:min(9vw,11vh);aspect-ratio:1;border-radius:18%;background:#e2ddd3;transition:background .3s,transform .3s}
+.h .b.on{background:#ef6f53}.m .b.on{background:#3aa8a0}.s .b.on{background:#f2b33d}
+.b.on{transform:scale(1.04)}
+.b.hide{visibility:hidden}
+.n{font-size:min(4vw,5vh);font-weight:600;margin-top:1vh}
+.key{display:flex;flex-direction:column;justify-content:space-between;align-self:stretch;padding-bottom:calc(min(4vw,5vh) + 1vh + 1.2vh);font-size:min(2vw,2.4vh);opacity:.4}
+.key span{height:min(9vw,11vh);display:flex;align-items:center}
+.date{font-size:clamp(13px,2.8vmin,28px);letter-spacing:.15em;opacity:.7}
+</style></head><body>
+<div class="wrap"><div class="cols" id="c"></div><div class="date" id="d"></div></div>
+<script>
+const c=document.getElementById('c'),cols=[];
+const key=document.createElement('div');key.className='key';key.innerHTML='<span>8</span><span>4</span><span>2</span><span>1</span>';c.appendChild(key);
+const max=[2,9,5,9,5,9],grp=['h','h','m','m','s','s'];
+for(let i=0;i<6;i++){const col=document.createElement('div');col.className='col '+grp[i]+(i%2===0&&i?' gap':'');const bs=[];
+[8,4,2,1].forEach(v=>{const b=document.createElement('div');b.className='b'+(v>max[i]&&!(max[i]===9&&v===8)?' hide':'');col.appendChild(b);bs.push([v,b])});
+const n=document.createElement('div');n.className='n';col.appendChild(n);c.appendChild(col);cols.push([bs,n])}
+function tick(){const d=new Date(),p=x=>String(x).padStart(2,'0'),s=p(d.getHours())+p(d.getMinutes())+p(d.getSeconds());
+cols.forEach(([bs,n],i)=>{const v=+s[i];bs.forEach(([w,b])=>b.classList.toggle('on',(v&w)>0));n.textContent=v});
+document.getElementById('d').textContent=d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
+tick();setInterval(tick,250);
+</script></body></html>

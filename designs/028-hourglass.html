@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hourglass</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:linear-gradient(#e9dcc3,#cdb48a);color:#4a3418;font-family:"Book Antiqua",Palatino,serif}
+.wrap{height:100%;display:flex;align-items:center;justify-content:center;gap:6vw}
+canvas{height:88vh;width:calc(88vh*.6);max-width:46vw}
+.info{display:flex;flex-direction:column;gap:2vh}
+.t{font-size:clamp(30px,min(9vw,14vh),150px);font-variant-numeric:tabular-nums;line-height:1}
+.l{font-size:clamp(11px,2vmin,20px);letter-spacing:.3em;text-transform:uppercase;opacity:.6}
+.d{font-size:clamp(13px,3vmin,30px)}
+@media (max-aspect-ratio:1/1){.wrap{flex-direction:column;gap:2vh}canvas{height:62vh;width:calc(62vh*.6);max-width:80vw}.info{text-align:center}}
+</style></head><body>
+<div class="wrap"><canvas id="c"></canvas>
+<div class="info"><div class="l">the sand measures this minute</div><div class="t" id="t"></div><div class="d" id="d"></div><div class="l" id="n"></div></div></div>
+<script>
+const c=document.getElementById('c'),x=c.getContext('2d');let grains=[];
+function size(){const b=c.getBoundingClientRect(),p=devicePixelRatio||1;c.width=b.width*p;c.height=b.height*p}addEventListener('resize',size);size();
+function glass(W,H,top){// returns path half-width at y
+return y=>{const cy=H/2,dy=Math.abs(y-cy)/(H/2-H*.08);return W*.04+W*.38*Math.pow(Math.min(dy,1),.7)}}
+function draw(){const d=new Date(),W=c.width,H=c.height,f=(d.getSeconds()+d.getMilliseconds()/1000)/60,cx=W/2,cy=H/2,top=H*.08,bot=H*.92,hw=glass(W,H);
+x.clearRect(0,0,W,H);
+// frame
+x.fillStyle='#5b3a1a';x.fillRect(W*.05,0,W*.9,H*.05);x.fillRect(W*.05,H*.95,W*.9,H*.05);x.fillStyle='#7a5228';x.fillRect(W*.08,H*.05,W*.04,H*.9);x.fillRect(W*.88,H*.05,W*.04,H*.9);
+// glass outline path
+x.beginPath();for(let y=top;y<=bot;y+=2)x.lineTo(cx-hw(y),y);for(let y=bot;y>=top;y-=2)x.lineTo(cx+hw(y),y);x.closePath();x.fillStyle='rgba(255,255,255,.25)';x.fill();
+x.save();x.clip();x.fillStyle='#d9a441';
+// top sand: fills from neck up to level that shrinks with f
+const topLevel=top+(cy-top)*(.15+.85*f);for(let y=topLevel;y<cy;y+=1){const w=hw(y);x.fillRect(cx-w,y,w*2,1.2)}
+// bottom sand: pile height grows with f
+const pile=(bot-cy)*.85*f;for(let y=bot-pile;y<bot;y+=1){const w=hw(y)*Math.min(1,(y-(bot-pile))/(pile*.35+1)+.2);x.fillRect(cx-w,y,w*2,1.2)}
+// stream
+if(f<.995){x.fillRect(cx-W*.006,cy-2,W*.012,bot-pile-cy+2);for(let i=0;i<6;i++){x.fillRect(cx+(Math.random()-.5)*W*.03,bot-pile-Math.random()*H*.02,2,2)}}
+x.restore();x.strokeStyle='rgba(90,60,25,.5)';x.lineWidth=2;x.beginPath();for(let y=top;y<=bot;y+=2)x.lineTo(cx-hw(y),y);x.stroke();x.beginPath();for(let y=top;y<=bot;y+=2)x.lineTo(cx+hw(y),y);x.stroke();
+x.fillStyle='rgba(255,255,255,.35)';x.fillRect(cx-W*.3,H*.15,W*.02,H*.2);
+const p=n=>String(n).padStart(2,'0');document.getElementById('t').textContent=p(d.getHours())+':'+p(d.getMinutes());
+document.getElementById('n').textContent=(60-d.getSeconds())+' grains of seconds left';
+document.getElementById('d').textContent=d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'});requestAnimationFrame(draw)}
+draw();
+</script></body></html>

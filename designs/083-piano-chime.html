@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Piano Chime</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#141414;color:#eee;font-family:"Segoe UI",system-ui,sans-serif}
+.wrap{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3vh}
+.t{font-size:clamp(40px,min(13vw,20vh),200px);font-weight:200;letter-spacing:.02em}
+.d{font-size:clamp(12px,2.6vmin,26px);opacity:.7;margin-top:-2vh}
+.kb{position:relative;display:flex;width:min(94vw,150vh);height:min(26vw,36vh);background:#000;padding:1vmin;border-radius:1vmin;box-sizing:border-box}
+.w{flex:1;background:linear-gradient(#fafafa,#e8e8e8);margin:0 .15vmin;border-radius:0 0 .6vmin .6vmin;position:relative;display:flex;align-items:flex-end;justify-content:center;padding-bottom:1vmin;font-size:clamp(8px,1.4vmin,14px);color:#999;transition:background .15s;cursor:pointer}
+.b{position:absolute;top:1vmin;height:60%;background:linear-gradient(#333,#000);border-radius:0 0 .4vmin .4vmin;z-index:2;cursor:pointer;transition:background .15s}
+.on.w{background:linear-gradient(#ffd166,#f4a259)!important;color:#5a3a00}
+.on.b{background:linear-gradient(#ff8a5b,#c2410c)!important}
+.hit.w{background:linear-gradient(#a7f3d0,#34d399)!important}.hit.b{background:linear-gradient(#34d399,#047857)!important}
+button{font:inherit;font-size:clamp(12px,2vmin,18px);padding:1vmin 3vmin;border-radius:3vmin;border:1px solid #555;background:#222;color:#eee;cursor:pointer}
+.k{font-size:clamp(10px,1.7vmin,16px);opacity:.55;text-align:center}
+</style></head><body>
+<div class="wrap"><div class="t" id="t"></div><div class="d" id="d"></div><div class="kb" id="kb"></div>
+<button id="play">♪ Play the time</button><div class="k">Orange keys: the current hour (C = 0 … B = 11, upper octave for PM) · click play to hear hours then minutes as notes</div></div>
+<script>
+// two octaves = 24 semitones = 24 hours
+const kb=document.getElementById('kb'),WH=[0,2,4,5,7,9,11],keys=[];let wi=0;const wcount=14;
+for(let s=0;s<24;s++){const n=s%12;if(WH.includes(n)){const e=document.createElement('div');e.className='w';e.textContent=s;kb.appendChild(e);keys[s]=e;wi++}
+else{const e=document.createElement('div');e.className='b';e.style.left=`calc(1vmin + (100% - 2vmin) * ${wi/wcount} - (100% - 2vmin) / ${wcount} * .3)`;e.style.width=`calc((100% - 2vmin) / ${wcount} * .6)`;kb.appendChild(e);keys[s]=e}}
+keys.forEach((k,s)=>k.onclick=()=>note(s,0,.6));
+let ac;function note(s,when,dur){ac=ac||new (window.AudioContext||window.webkitAudioContext)();const t=ac.currentTime+when,o=ac.createOscillator(),g=ac.createGain();o.type='triangle';o.frequency.value=261.63*Math.pow(2,s/12);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.3,t+.01);g.gain.exponentialRampToValueAtTime(.001,t+dur);o.connect(g).connect(ac.destination);o.start(t);o.stop(t+dur);
+setTimeout(()=>{keys[s].classList.add('hit');setTimeout(()=>keys[s].classList.remove('hit'),dur*600)},when*1000)}
+document.getElementById('play').onclick=()=>{const d=new Date(),h=d.getHours(),m=d.getMinutes();note(h,0,1.2);
+// minutes: tens then units, mapped onto the scale
+const scale=[0,2,4,5,7,9,11,12,14,16];note(scale[Math.floor(m/10)],.9,.6);note(scale[m%10],1.4,.9)};
+function tick(){const d=new Date();keys.forEach((k,s)=>k.classList.toggle('on',s===d.getHours()));
+document.getElementById('t').textContent=d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+document.getElementById('d').textContent=d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
+tick();setInterval(tick,500);
+</script></body></html>

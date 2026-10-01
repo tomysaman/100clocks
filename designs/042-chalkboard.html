@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Chalkboard</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#6b4a2b}
+.board{position:fixed;inset:2.5vmin;background:radial-gradient(ellipse at 30% 30%,#3c5a48,#22362b 70%);border-radius:.6vmin;box-shadow:inset 0 0 6vmin rgba(0,0,0,.6),0 0 0 1.2vmin #8b5e34,0 0 0 1.6vmin #5a3a1e;overflow:hidden}
+canvas{position:absolute;inset:0;width:100%;height:100%}
+.ledge{position:fixed;left:6vw;bottom:3vmin;display:flex;gap:2vw;align-items:flex-end;z-index:2}
+.ledge i{display:block;width:5vmin;height:1.2vmin;background:#f3f0e6;border-radius:.4vmin}
+.ledge b{display:block;width:10vmin;height:3vmin;background:linear-gradient(#b48b5a 40%,#444 40%);border-radius:.4vmin}
+</style></head><body>
+<div class="board"><canvas id="c"></canvas></div>
+<div class="ledge"><i></i><i style="background:#f6c2c2;width:3vmin"></i><b></b></div>
+<script>
+const c=document.getElementById('c'),x=c.getContext('2d');let W,H,smudge;
+function size(){const b=c.getBoundingClientRect(),p=devicePixelRatio||1;W=c.width=b.width*p;H=c.height=b.height*p;
+smudge=document.createElement('canvas');smudge.width=W;smudge.height=H;const s=smudge.getContext('2d');for(let i=0;i<14;i++){const g=s.createRadialGradient(Math.random()*W,Math.random()*H,0,Math.random()*W,Math.random()*H,W*.25);g.addColorStop(0,'rgba(255,255,255,.05)');g.addColorStop(1,'rgba(255,255,255,0)');s.fillStyle=g;s.fillRect(0,0,W,H)}}
+addEventListener('resize',size);size();
+// chalk stroke: jittered, multi-pass lines
+function seed(n){let s=n;return()=>((s=Math.sin(s*9301+49297)*233280)-Math.floor(s))}
+function chalkLine(x1,y1,x2,y2,w,r){for(let k=0;k<3;k++){x.globalAlpha=.35+.2*r();x.lineWidth=w*(.6+.6*r());x.beginPath();x.moveTo(x1+(r()-.5)*w,y1+(r()-.5)*w);x.lineTo(x2+(r()-.5)*w,y2+(r()-.5)*w);x.stroke()}x.globalAlpha=1}
+function chalkText(t,X,Y,size,font,r){x.font=`${size}px ${font}`;x.textAlign='center';x.textBaseline='middle';for(let k=0;k<3;k++){x.globalAlpha=.4+.25*r();x.fillText(t,X+(r()-.5)*size*.03,Y+(r()-.5)*size*.03)}x.globalAlpha=1}
+function draw(){const d=new Date(),r=seed(d.getMinutes()+1),m=d.getMinutes()+d.getSeconds()/60,h=d.getHours()%12+m/60,port=H>W;
+x.clearRect(0,0,W,H);x.drawImage(smudge,0,0);x.strokeStyle='#f3f0e6';x.fillStyle='#f3f0e6';x.lineCap='round';
+const R=Math.min(port?W*.38:W*.2,H*(port?.22:.38)),cx=port?W/2:W*.3,cy=port?H*.3:H*.5,font='"Segoe Print","Comic Sans MS",cursive';
+// circle as many short chalk segments
+for(let i=0;i<60;i++){const a1=i/60*Math.PI*2,a2=(i+1.1)/60*Math.PI*2;chalkLine(cx+Math.cos(a1)*R,cy+Math.sin(a1)*R,cx+Math.cos(a2)*R,cy+Math.sin(a2)*R,R*.03,r)}
+for(let i=1;i<=12;i++){const a=i/12*Math.PI*2;chalkText(String(i),cx+Math.sin(a)*R*.8,cy-Math.cos(a)*R*.8,R*.15,font,r)}
+const ha=h/12*Math.PI*2,ma=m/60*Math.PI*2;chalkLine(cx,cy,cx+Math.sin(ha)*R*.5,cy-Math.cos(ha)*R*.5,R*.06,r);chalkLine(cx,cy,cx+Math.sin(ma)*R*.72,cy-Math.cos(ma)*R*.72,R*.04,r);
+x.fillStyle='#f6c2c2';const sa=d.getSeconds()/60*Math.PI*2;x.beginPath();x.arc(cx+Math.sin(sa)*R*.95,cy-Math.cos(sa)*R*.95,R*.03,0,7);x.fill();x.fillStyle='#f3f0e6';
+const tx=port?W/2:W*.7,p=n=>String(n).padStart(2,'0'),big=Math.min(port?W*.22:W*.11,H*.2);
+chalkText(p(d.getHours())+':'+p(d.getMinutes()),tx,port?H*.66:H*.38,big,font,r);
+chalkText(d.toLocaleDateString(undefined,{weekday:'long'}),tx,(port?H*.66:H*.38)+big*.85,big*.36,font,r);
+chalkText(d.toLocaleDateString(undefined,{day:'numeric',month:'long',year:'numeric'}),tx,(port?H*.66:H*.38)+big*1.3,big*.3,font,r);
+chalkLine(tx-big*1.3,(port?H*.66:H*.38)+big*.55,tx+big*1.3,(port?H*.66:H*.38)+big*.58,big*.03,r)}
+draw();setInterval(draw,1000);
+</script></body></html>

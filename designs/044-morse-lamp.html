@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Morse Lamp</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#101418;color:#e9e2c8;font-family:"Courier New",monospace}
+.wrap{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3.5vh}
+.lamp{width:min(18vw,18vh);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 40% 35%,#3a3428,#1a1712);box-shadow:inset 0 0 2vmin #000,0 0 0 1vmin #2a2a2a,0 0 0 1.4vmin #444;transition:background .04s,box-shadow .04s}
+.lamp.on{background:radial-gradient(circle at 40% 35%,#fffbe0,#ffd25a 50%,#d48a10);box-shadow:0 0 6vmin #ffcf4a,0 0 14vmin rgba(255,200,60,.5),0 0 0 1vmin #2a2a2a,0 0 0 1.4vmin #444}
+.rows{display:grid;grid-template-columns:auto auto auto;gap:1.6vh 3vw;align-items:center;font-size:clamp(12px,2.6vmin,26px)}
+.rows .k{opacity:.5;text-align:right;letter-spacing:.2em}
+.code{display:flex;gap:2.4vmin}
+.ch{display:flex;gap:.7vmin;align-items:center}
+.dot,.dash{height:1.4vmin;border-radius:1vmin;background:#4d4636}
+.dot{width:1.4vmin}.dash{width:4.6vmin}
+.on2{background:#ffd25a;box-shadow:0 0 1vmin #ffd25a}
+.v{font-size:1.2em;letter-spacing:.1em}
+.hint{opacity:.45;font-size:clamp(10px,1.8vmin,16px);text-align:center}
+@media (max-aspect-ratio:1/1){.dot,.dash{height:1vmin}.dot{width:1vmin}.dash{width:2.8vmin}.ch{gap:.5vmin}.code{gap:1.6vmin}.rows{gap:1.4vh 2.5vw;font-size:11px}}
+</style></head><body>
+<div class="wrap"><div class="lamp" id="lamp"></div>
+<div class="rows" id="rows"></div>
+<div class="hint">the lamp signals the time every minute · 20 wpm</div></div>
+<script>
+const M={'0':'-----','1':'.----','2':'..---','3':'...--','4':'....-','5':'.....','6':'-....','7':'--...','8':'---..','9':'----.'};
+const rows=document.getElementById('rows'),lamp=document.getElementById('lamp');
+function row(k,v){return `<span class="k">${k}</span><div class="code">${[...v].map(ch=>`<div class="ch">${[...M[ch]].map(s=>`<i class="${s=='.'?'dot':'dash'}"></i>`).join('')}</div>`).join('')}</div><span class="v">${v}</span>`}
+let lastKey='',playing=false;
+function render(d){const p=n=>String(n).padStart(2,'0');rows.innerHTML=row('HOUR',p(d.getHours()))+row('MIN',p(d.getMinutes()))+row('SEC',p(d.getSeconds()))+row('DAY',p(d.getDate()))+row('MONTH',p(d.getMonth()+1))+row('YEAR',String(d.getFullYear()))}
+async function play(str){playing=true;const U=60;const wait=t=>new Promise(r=>setTimeout(r,t));const symEls=[...rows.querySelectorAll('.code')].slice(0,2).flatMap(c=>[...c.querySelectorAll('i')]);let si=0;
+for(const ch of str){for(const s of M[ch]){lamp.classList.add('on');symEls[si]&&symEls[si].classList.add('on2');await wait(s=='.'?U:U*3);lamp.classList.remove('on');symEls[si]&&symEls[si].classList.remove('on2');si++;await wait(U)}await wait(U*2)}
+playing=false}
+function tick(){const d=new Date(),p=n=>String(n).padStart(2,'0');if(!playing){render(d);const k=p(d.getHours())+p(d.getMinutes());if(k!==lastKey){lastKey=k;play(k)}}}
+tick();setInterval(tick,250);
+</script></body></html>

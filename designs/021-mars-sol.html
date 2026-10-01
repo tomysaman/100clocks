@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mars Sol Clock</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:radial-gradient(ellipse at 70% 120%,#7a2e12,#2a0e06 55%,#0d0503);color:#ffd9c2;font-family:"Segoe UI",system-ui,sans-serif}
+.wrap{height:100%;display:flex;align-items:center;justify-content:center;gap:6vw;padding:0 5vw;box-sizing:border-box}
+.planet{flex:none;width:min(36vw,60vh);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 35% 30%,#f1a06b,#c1440e 45%,#5a1a05 80%);box-shadow:inset -4vmin -3vmin 6vmin rgba(0,0,0,.6),0 0 6vmin rgba(255,110,40,.25);position:relative;overflow:hidden}
+.planet::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse 30% 8% at 40% 45%,rgba(90,25,5,.5),transparent),radial-gradient(ellipse 20% 6% at 65% 62%,rgba(90,25,5,.45),transparent),radial-gradient(ellipse 50% 12% at 50% 2%,rgba(255,255,255,.7),transparent)}
+.term{position:absolute;inset:0;border-radius:50%;background:linear-gradient(90deg,transparent 50%,rgba(0,0,0,.65) 50%);transform-origin:center}
+.info{display:flex;flex-direction:column;gap:2vh}
+.lbl{font-size:clamp(10px,1.8vmin,18px);letter-spacing:.35em;color:#ff8a50}
+.mtc{font-size:clamp(34px,min(10vw,15vh),180px);font-weight:200;color:#fff;font-variant-numeric:tabular-nums;line-height:1}
+.sol{font-size:clamp(14px,3.4vmin,34px)}
+.earth{font-size:clamp(12px,2.4vmin,24px);opacity:.7;line-height:1.6}
+@media (max-aspect-ratio:1/1){.wrap{flex-direction:column;gap:4vh;text-align:center}.planet{width:min(60vw,40vh)}}
+</style></head><body>
+<div class="wrap"><div class="planet"><div class="term" id="tm"></div></div>
+<div class="info"><div class="lbl">COORDINATED MARS TIME</div><div class="mtc" id="m"></div><div class="sol" id="s"></div>
+<div class="lbl" style="margin-top:2vh">EARTH</div><div class="earth" id="e"></div></div></div>
+<script>
+function tick(){const now=Date.now(),jdut=now/864e5+2440587.5,jdtt=jdut+69.184/86400,msd=(jdtt-2405522.0028779)/1.0274912517,mtc=(msd%1)*24;
+const h=Math.floor(mtc),m=Math.floor(mtc%1*60),s=Math.floor(mtc*3600%60),p=n=>String(n).padStart(2,'0');
+document.getElementById('m').textContent=`${p(h)}:${p(m)}:${p(s)}`;
+document.getElementById('s').textContent=`Sol ${Math.floor(msd).toLocaleString()} · Mars Sol Date ${msd.toFixed(4)}`;
+document.getElementById('tm').style.transform=`rotate(${mtc/24*360}deg)`;
+const d=new Date(now);document.getElementById('e').innerHTML=d.toLocaleTimeString()+'<br>'+d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'});requestAnimationFrame(tick)}
+tick();
+</script></body></html>

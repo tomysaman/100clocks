@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sundial</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:radial-gradient(#7d8f5a,#3f4d2b);font-family:"Trajan Pro",Georgia,serif;transition:background 2s}
+body.night{background:radial-gradient(#2c3550,#0b0f1c)}
+.wrap{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2vh}
+svg{width:min(90vw,80vh);height:min(90vw,80vh)}
+.cap{color:#f3ead2;font-size:clamp(13px,2.8vmin,28px);letter-spacing:.2em;text-shadow:0 .2vmin .6vmin rgba(0,0,0,.6);text-align:center}
+</style></head><body>
+<div class="wrap">
+<svg viewBox="-110 -110 220 220">
+<defs><radialGradient id="st" cx="40%" cy="35%"><stop offset="0" stop-color="#e9e2d0"/><stop offset="1" stop-color="#a99f88"/></radialGradient>
+<filter id="bl"><feGaussianBlur stdDeviation="1.4"/></filter></defs>
+<circle r="104" fill="#6e6656"/><circle r="100" fill="url(#st)"/>
+<circle r="92" fill="none" stroke="#5d5545" stroke-width=".6"/><circle r="72" fill="none" stroke="#5d5545" stroke-width=".4"/>
+<g id="hl"></g>
+<polygon id="sh" points="0,0 -3,0 0,-80 3,0" fill="rgba(30,25,15,.55)" filter="url(#bl)"/>
+<polygon points="0,4 -2.2,4 0,-40 2.2,4" fill="#7a5a26" stroke="#4a3714" stroke-width=".5"/>
+<circle r="4" fill="#8b6a30"/>
+<text y="40" text-anchor="middle" font-size="7" fill="#5d5545" letter-spacing="2">TEMPUS FUGIT</text>
+<text id="tt" y="54" text-anchor="middle" font-size="10" fill="#3d3628"></text>
+</svg>
+<div class="cap" id="d"></div></div>
+<script>
+// Horizontal sundial for latitude 45°. Hour lines from tan(θ)=sin(φ)·tan(15°·(h−12)).
+const lat=45*Math.PI/180,NS="http://www.w3.org/2000/svg",hl=document.getElementById('hl');
+const ang=h=>Math.atan2(Math.sin(lat)*Math.sin((h-12)*Math.PI/12),Math.cos((h-12)*Math.PI/12));
+const R=['VI','VII','VIII','IX','X','XI','XII','I','II','III','IV','V','VI'];
+for(let h=6;h<=18;h++){const a=ang(h),l=document.createElementNS(NS,'line');l.setAttribute('x2',Math.sin(a)*92);l.setAttribute('y2',-Math.cos(a)*92);l.setAttribute('stroke','#5d5545');l.setAttribute('stroke-width',.7);hl.appendChild(l);
+const t=document.createElementNS(NS,'text');t.setAttribute('x',Math.sin(a)*82);t.setAttribute('y',-Math.cos(a)*82+3);t.setAttribute('text-anchor','middle');t.setAttribute('font-size',8);t.setAttribute('fill','#3d3628');t.setAttribute('transform',`rotate(${a*180/Math.PI} ${Math.sin(a)*82} ${-Math.cos(a)*82})`);t.textContent=R[h-6];hl.appendChild(t)}
+function tick(){const d=new Date(),h=d.getHours()+d.getMinutes()/60+d.getSeconds()/3600,day=h>=6&&h<=18,sh=document.getElementById('sh');
+document.body.classList.toggle('night',!day);
+if(day){const a=ang(h)*180/Math.PI,len=40+60*Math.abs(h-12)/6;sh.setAttribute('points',`0,0 -3,0 0,${-len} 3,0`);sh.setAttribute('transform',`rotate(${a})`);sh.style.opacity=1}else sh.style.opacity=0;
+document.getElementById('tt').textContent=d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+document.getElementById('d').textContent=(day?'':'☾ The sun has set — ')+d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
+tick();setInterval(tick,1000);
+</script></body></html>

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Split-Flap Board</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#1d1f22;font-family:"Helvetica Neue",Arial,sans-serif}
+.wrap{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3vmin}
+.hdr{color:#ffcc00;font-weight:bold;letter-spacing:.4em;font-size:clamp(12px,3vmin,30px)}
+.line{display:flex;gap:.6vmin}
+.cell{--w:min(10vw,15vh);position:relative;width:var(--w);height:calc(var(--w)*1.4);perspective:calc(var(--w)*6);font-size:calc(var(--w)*1.05);font-weight:bold;color:#f0f0f0;font-family:"Helvetica Neue",Arial,sans-serif}
+.l2 .cell{--w:min(5.4vw,8vh)}
+.half{position:absolute;left:0;right:0;height:50%;overflow:hidden;background:#2a2c30;backface-visibility:hidden}
+.half span{position:absolute;left:0;right:0;height:200%;display:flex;align-items:center;justify-content:center;line-height:1}
+.up{top:0;border-radius:.6vmin .6vmin 0 0;background:linear-gradient(#2e3034,#26282b)}
+.dn{bottom:0;border-radius:0 0 .6vmin .6vmin;background:linear-gradient(#222427,#2a2c30)}
+.dn span{top:-100%}
+.up span{top:0}
+.cell::after{content:"";position:absolute;left:0;right:0;top:50%;height:2px;margin-top:-1px;background:#0e0f10;z-index:5}
+.fu{transform-origin:50% 100%;z-index:3}
+.fd{transform-origin:50% 0;z-index:3;transform:rotateX(90deg)}
+.cell.go .fu{animation:fu .15s ease-in forwards}
+.cell.go .fd{animation:fd .15s .15s ease-out forwards}
+@keyframes fu{to{transform:rotateX(-90deg)}}
+@keyframes fd{from{transform:rotateX(90deg)}to{transform:rotateX(0)}}
+.gap{width:min(3vw,4vh)}
+.l2 .gap{width:min(2vw,3vh)}
+</style></head><body>
+<div class="wrap">
+<div class="hdr">LOCAL TIME</div>
+<div class="line l1" id="l1"></div>
+<div class="line l2" id="l2"></div>
+</div>
+<script>
+const ALPH=' 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+function mk(parent,n,gaps){const cells=[];for(let i=0;i<n;i++){if(gaps.includes(i)){const g=document.createElement('div');g.className='gap';parent.appendChild(g)}
+const c=document.createElement('div');c.className='cell';c.innerHTML='<div class="half up s1"><span></span></div><div class="half dn s2"><span></span></div><div class="half up fu"><span></span></div><div class="half dn fd"><span></span></div>';c.v=' ';c.q=[];parent.appendChild(c);cells.push(c)}return cells}
+const L1=mk(document.getElementById('l1'),6,[2,4]),L2=mk(document.getElementById('l2'),12,[3,5,8]);
+function show(c,from,to){const [s1,s2,fu,fd]=c.querySelectorAll('span');s1.textContent=to;s2.textContent=from;fu.textContent=from;fd.textContent=to;
+c.classList.remove('go');void c.offsetWidth;c.classList.add('go');setTimeout(()=>{s2.textContent=to;c.busy=false;step(c)},300)}
+function step(c){if(c.busy||c.v===c.target)return;let i=ALPH.indexOf(c.v),j=ALPH.indexOf(c.target);
+// step through a few intermediate flaps for realism
+let nxt=(j-i+ALPH.length)%ALPH.length>3?ALPH[(i+1+Math.floor(Math.random()*2))%ALPH.length]:ALPH[(i+1)%ALPH.length];
+if((j-i+ALPH.length)%ALPH.length>6)nxt=ALPH[(j-3+ALPH.length)%ALPH.length];
+c.busy=true;const f=c.v;c.v=nxt;show(c,f,nxt)}
+function setLine(cells,str){cells.forEach((c,i)=>{c.target=str[i]||' ';step(c)})}
+function tick(){const d=new Date(),p=n=>String(n).padStart(2,'0');setLine(L1,p(d.getHours())+p(d.getMinutes())+p(d.getSeconds()));
+const days=['SUN','MON','TUE','WED','THU','FRI','SAT'],mo=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+setLine(L2,days[d.getDay()]+p(d.getDate())+mo[d.getMonth()]+d.getFullYear())}
+tick();setInterval(tick,250);
+</script></body></html>

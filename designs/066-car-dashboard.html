@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Car Dashboard</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#050608;font-family:"Segoe UI",system-ui,sans-serif;color:#dfe8ff}
+.wrap{height:100%;display:flex;align-items:center;justify-content:center}
+svg{width:min(98vw,210vh);height:auto;max-height:96vh}
+</style></head><body>
+<div class="wrap"><svg viewBox="0 0 420 200" id="s">
+<defs><radialGradient id="dg" cx="50%" cy="50%"><stop offset="0" stop-color="#151a24"/><stop offset="1" stop-color="#07090d"/></radialGradient>
+<filter id="gl"><feGaussianBlur stdDeviation="1.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+<path d="M10 150 Q10 20 210 14 Q410 20 410 150 Q410 190 370 190 L50 190 Q10 190 10 150Z" fill="#0c0e12" stroke="#2a2f3a"/>
+<g transform="translate(115 110)" id="tach"></g>
+<g transform="translate(305 110)" id="spd"></g>
+<g transform="translate(210 112)" font-family="Consolas,monospace">
+<rect x="-34" y="-40" width="68" height="74" rx="6" fill="#0a0f16" stroke="#243042"/>
+<text id="gear" y="-12" text-anchor="middle" font-size="22" fill="#5ad1ff" filter="url(#gl)">D</text>
+<text id="dd" y="8" text-anchor="middle" font-size="7.5" fill="#dfe8ff"></text>
+<text id="yy" y="18" text-anchor="middle" font-size="6" fill="#8899bb"></text>
+<text id="odo" y="28" text-anchor="middle" font-size="5.5" fill="#8899bb"></text>
+</g>
+<g transform="translate(40 170)" font-size="6" fill="#8899bb"><text>FUEL = DAY LEFT</text><rect y="4" width="60" height="4" rx="2" fill="#1a2030"/><rect id="fuel" y="4" width="60" height="4" rx="2" fill="#ffb03a"/></g>
+<g transform="translate(320 170)" font-size="6" fill="#8899bb"><text>TEMP = SECONDS</text><rect y="4" width="60" height="4" rx="2" fill="#1a2030"/><rect id="tmp" y="4" width="0" height="4" rx="2" fill="#ff4d5a"/></g>
+</svg></div>
+<script>
+const NS="http://www.w3.org/2000/svg";
+function gauge(g,max,step,label,unit,red){const R=70,a0=-135,a1=135;let s=`<circle r="${R+6}" fill="url(#dg)" stroke="#2a3344" stroke-width="1.5"/>`;
+for(let k=0;k<=max/step*5;k++){const v=k*step/5,f=v/max,a=(a0+(a1-a0)*f)*Math.PI/180,big=k%5===0,r1=R-(big?9:4),col=v>=red?'#ff4d5a':'#dfe8ff';
+s+=`<line x1="${Math.sin(a)*R}" y1="${-Math.cos(a)*R}" x2="${Math.sin(a)*r1}" y2="${-Math.cos(a)*r1}" stroke="${col}" stroke-width="${big?1.6:.6}"/>`;
+if(big)s+=`<text x="${Math.sin(a)*(R-18)}" y="${-Math.cos(a)*(R-18)+3}" font-size="9" text-anchor="middle" fill="${col}">${v}</text>`}
+s+=`<text y="28" text-anchor="middle" font-size="7" fill="#8899bb" letter-spacing="1.5">${label}</text><text class="v" y="48" text-anchor="middle" font-size="16" fill="#fff" font-family="Consolas,monospace"></text><text y="58" text-anchor="middle" font-size="5" fill="#8899bb">${unit}</text>
+<g class="n" filter="url(#gl)"><path d="M-2 10 L0 ${-R+6} L2 10Z" fill="#ff5a3a"/></g><circle r="7" fill="#222a36" stroke="#3a4558"/>`;g.innerHTML=s;return [g.querySelector('.n'),g.querySelector('.v')]}
+const [TN,TV]=gauge(document.getElementById('tach'),24,3,'HOURS','× 1 h',21),[SN,SV]=gauge(document.getElementById('spd'),60,10,'MINUTES','min/h',55);
+let th=0,tm=0;
+function tick(){const d=new Date(),s=d.getSeconds()+d.getMilliseconds()/1000,m=d.getMinutes()+s/60,h=d.getHours()+m/60;th+=(h-th)*.06;tm+=(m-tm)*.06;
+TN.setAttribute('transform',`rotate(${-135+270*th/24})`);SN.setAttribute('transform',`rotate(${-135+270*tm/60})`);
+TV.textContent=String(d.getHours()).padStart(2,'0');SV.textContent=String(d.getMinutes()).padStart(2,'0');
+document.getElementById('gear').textContent=d.getHours()<12?'AM':'PM';
+document.getElementById('dd').textContent=d.toLocaleDateString('en-GB',{weekday:'short',day:'2-digit',month:'short'}).toUpperCase();
+document.getElementById('yy').textContent=d.getFullYear();
+document.getElementById('odo').textContent='ODO '+Math.floor(Date.now()/1000).toString().slice(-7)+' s';
+const f=1-(d.getHours()*3600+d.getMinutes()*60+d.getSeconds())/86400;document.getElementById('fuel').setAttribute('width',60*f);document.getElementById('tmp').setAttribute('width',60*s/60);
+requestAnimationFrame(tick)}
+tick();
+</script></body></html>

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Minimal Bauhaus</title>
+<style>
+:root{--bg:#ecebe6;--face:#f7f6f2;--ink:#1a1a1a;--acc:#f2b705}
+body.dark{--bg:#161616;--face:#202020;--ink:#eee}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);font-family:"Helvetica Neue",Arial,sans-serif;color:var(--ink);transition:background .4s}
+.wrap{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3vmin}
+.face{position:relative;overflow:hidden;width:min(80vw,72vh);aspect-ratio:1;border-radius:50%;background:var(--face);box-shadow:0 2vmin 6vmin rgba(0,0,0,.15)}
+.tk{position:absolute;inset:0}
+.tk::after{content:"";position:absolute;left:50%;top:4%;width:.5%;height:3%;background:var(--ink);transform:translateX(-50%)}
+.tk.b::after{width:1.4%;height:8%}
+.hand{position:absolute;left:50%;bottom:50%;transform-origin:50% 100%;border-radius:1vmin;background:var(--ink)}
+#h{width:3%;height:28%;margin-left:-1.5%}#m{width:2%;height:40%;margin-left:-1%}
+#s{width:.8%;height:44%;margin-left:-.4%;background:var(--acc)}
+.pin{position:absolute;left:50%;top:50%;width:5%;height:5%;margin:-2.5% 0 0 -2.5%;border-radius:50%;background:var(--acc)}
+.date{font-size:clamp(13px,2.6vmin,26px);font-weight:300;letter-spacing:.3em;text-transform:uppercase;text-align:center}
+button{position:fixed;top:12px;right:12px;background:none;border:1px solid var(--ink);color:var(--ink);border-radius:50%;width:36px;height:36px;cursor:pointer;opacity:.5}
+</style></head><body>
+<button id="t" title="Toggle theme">◐</button>
+<div class="wrap"><div class="face" id="f"><div class="hand" id="h"></div><div class="hand" id="m"></div><div class="hand" id="s"></div><div class="pin"></div></div>
+<div class="date" id="d"></div></div>
+<script>
+const f=document.getElementById('f');
+for(let i=0;i<60;i++){const e=document.createElement('div');e.className='tk'+(i%5?'':' b');e.style.transform=`rotate(${i*6}deg)`;f.prepend(e)}
+try{if(localStorage.getItem('bh-dark')==='1')document.body.classList.add('dark')}catch(e){}
+document.getElementById('t').onclick=()=>{document.body.classList.toggle('dark');try{localStorage.setItem('bh-dark',document.body.classList.contains('dark')?'1':'0')}catch(e){}};
+const H=document.getElementById('h'),M=document.getElementById('m'),S=document.getElementById('s'),D=document.getElementById('d');
+function tick(){const d=new Date(),s=d.getSeconds()+d.getMilliseconds()/1000,m=d.getMinutes()+s/60,h=d.getHours()%12+m/60;
+H.style.transform=`rotate(${h*30}deg)`;M.style.transform=`rotate(${m*6}deg)`;S.style.transform=`rotate(${s*6}deg)`;
+D.textContent=d.toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short',year:'numeric'});requestAnimationFrame(tick)}
+tick();
+</script></body></html>

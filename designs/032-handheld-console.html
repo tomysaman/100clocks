@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Handheld Console</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#6b6f7a;font-family:"Arial Rounded MT Bold",Arial,sans-serif}
+.wrap{height:100%;display:flex;align-items:center;justify-content:center}
+.gb{position:relative;height:94vh;width:calc(94vh*.6);max-width:94vw;max-height:calc(94vw/.6);background:#c9c6bf;border-radius:2.5vh 2.5vh 10vh 2.5vh;box-shadow:inset -.6vh -.6vh 1.5vh rgba(0,0,0,.2),0 2vh 4vh rgba(0,0,0,.35);container-type:size}
+.bez{position:absolute;left:7%;right:7%;top:6%;height:42%;background:#5c5f6b;border-radius:2cqh 2cqh 7cqh 2cqh;display:flex;align-items:center;justify-content:center}
+.bez small{position:absolute;top:3%;left:6%;right:6%;color:#a7a9b3;font-size:1.6cqh;letter-spacing:.1em;border-top:.3cqh solid #8b1d4f;border-bottom:.3cqh solid #2b3a8b;padding:.3cqh 0}
+canvas{width:76%;aspect-ratio:160/144;image-rendering:pixelated;margin-top:4%}
+.led{position:absolute;left:5%;top:45%;width:2.6cqh;height:2.6cqh;border-radius:50%;background:#ff2e2e;box-shadow:0 0 1cqh #f00}
+.logo{position:absolute;left:8%;top:50%;color:#2b3a8b;font-style:italic;font-weight:bold;font-size:3.4cqh}
+.dpad{position:absolute;left:10%;top:62%;width:26%;aspect-ratio:1}
+.dpad i{position:absolute;background:#222;border-radius:.6cqh}.dpad i:first-child{left:33%;width:34%;height:100%}.dpad i:last-child{top:33%;height:34%;width:100%}
+.ab{position:absolute;right:8%;top:62%;display:flex;gap:6%;transform:rotate(-25deg);width:34%}
+.ab button{width:47%;aspect-ratio:1;border-radius:50%;background:#9a2257;border:0;box-shadow:0 .6cqh 0 #5d1434;color:#2b3a8b;font-weight:bold;cursor:pointer;font-size:2cqh}
+.ab button:active{transform:translateY(.4cqh);box-shadow:0 .2cqh 0 #5d1434}
+.ss{position:absolute;left:30%;top:84%;display:flex;gap:10%;transform:rotate(-25deg);width:40%}
+.ss span{flex:1;height:1.4cqh;background:#888;border-radius:1cqh}
+.tip{position:absolute;bottom:2%;width:100%;text-align:center;color:#888;font-size:1.5cqh}
+</style></head><body>
+<div class="wrap"><div class="gb">
+<div class="bez"><small>DOT MATRIX WITH STEREO SOUND</small><canvas id="c" width="160" height="144"></canvas><div class="led"></div></div>
+<div class="logo">Clockboy</div>
+<div class="dpad"><i></i><i></i></div>
+<div class="ab"><button id="b">B</button><button id="a">A</button></div>
+<div class="ss"><span></span><span></span></div>
+<div class="tip">A / B: change palette</div>
+</div></div>
+<script>
+const PAL=[['#9bbc0f','#8bac0f','#306230','#0f380f'],['#e0f8d0','#88c070','#346856','#081820'],['#fff6d3','#f9a875','#eb6b6f','#7c3f58'],['#c4f0c2','#5ab9a8','#1e606e','#2d1b00']];
+let pi=0;try{pi=+localStorage.getItem('gbpal')||0}catch(e){}
+const setP=v=>{pi=(v+PAL.length)%PAL.length;try{localStorage.setItem('gbpal',pi)}catch(e){}};
+document.getElementById('a').onclick=()=>setP(pi+1);document.getElementById('b').onclick=()=>setP(pi-1);
+const F={'0':[14,17,19,21,25,17,14],'1':[4,12,4,4,4,4,14],'2':[14,17,1,2,4,8,31],'3':[31,2,4,2,1,17,14],'4':[2,6,10,18,31,2,2],'5':[31,16,30,1,1,17,14],'6':[6,8,16,30,17,17,14],'7':[31,1,2,4,8,8,8],'8':[14,17,17,14,17,17,14],'9':[14,17,17,15,1,2,12],':':[0,12,12,0,12,12,0],' ':[0,0,0,0,0,0,0],'/':[1,1,2,4,8,16,16],
+A:[14,17,17,31,17,17,17],B:[30,17,17,30,17,17,30],C:[14,17,16,16,16,17,14],D:[28,18,17,17,17,18,28],E:[31,16,16,30,16,16,31],F:[31,16,16,30,16,16,16],G:[14,17,16,23,17,17,15],H:[17,17,17,31,17,17,17],I:[14,4,4,4,4,4,14],J:[7,2,2,2,2,18,12],L:[16,16,16,16,16,16,31],M:[17,27,21,21,17,17,17],N:[17,17,25,21,19,17,17],O:[14,17,17,17,17,17,14],P:[30,17,17,30,16,16,16],R:[30,17,17,30,20,18,17],S:[15,16,16,14,1,1,30],T:[31,4,4,4,4,4,4],U:[17,17,17,17,17,17,14],V:[17,17,17,17,17,10,4],W:[17,17,17,21,21,21,10],Y:[17,17,10,4,4,4,4]};
+const c=document.getElementById('c'),x=c.getContext('2d');
+function txt(s,X,Y,sc,col){x.fillStyle=col;[...s].forEach((ch,i)=>{const g=F[ch]||F[' '];for(let r=0;r<7;r++)for(let k=0;k<5;k++)if(g[r]>>(4-k)&1)x.fillRect(X+(i*6+k)*sc,Y+r*sc,sc,sc)})}
+const HERO=['..XXXX..','.XXXXXX.','.X.XX.X.','.XXXXXX.','..XXXX..','.XXXXXX.','X.XXXX.X','..X..X..'],HERO2=['..XXXX..','.XXXXXX.','.X.XX.X.','.XXXXXX.','..XXXX..','.XXXXXX.','X.XXXX.X','.X....X.'];
+function draw(){const d=new Date(),P=PAL[pi],p=n=>String(n).padStart(2,'0');x.fillStyle=P[0];x.fillRect(0,0,160,144);
+const hm=p(d.getHours())+':'+p(d.getMinutes()),w=hm.length*6*3-3;txt(hm,(160-w)/2,22,3,P[3]);
+txt(p(d.getSeconds()),(160-11*2)/2,52,2,P[2]);
+const days=['SUN','MON','TUE','WED','THU','FRI','SAT'],mons=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+const dl=days[d.getDay()]+' '+p(d.getDate())+' '+mons[d.getMonth()];txt(dl,(160-dl.length*6+1)/2,74,1,P[3]);txt(String(d.getFullYear()),(160-23)/2,84,1,P[2]);
+// ground and walking hero, position = seconds
+x.fillStyle=P[1];x.fillRect(0,118,160,26);x.fillStyle=P[2];for(let i=0;i<160;i+=8)x.fillRect(i+(i/8%2)*4,118,4,2);
+const hx=Math.floor((d.getSeconds()+d.getMilliseconds()/1000)/60*150),fr=Math.floor(d.getMilliseconds()/250)%2?HERO:HERO2;
+x.fillStyle=P[3];fr.forEach((row,r)=>[...row].forEach((ch,k)=>{if(ch==='X')x.fillRect(hx+k,110+r,1,1)}));
+x.fillStyle=P[2];x.fillRect(151,104,2,14);x.fillStyle=P[3];x.fillRect(153,104,6,4);
+requestAnimationFrame(draw)}
+draw();
+</script></body></html>

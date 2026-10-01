@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Falling Blocks</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#101024;color:#fff;font-family:"Press Start 2P",Consolas,monospace}
+.wrap{height:100%;display:flex;align-items:center;justify-content:center;gap:3vw}
+canvas{border:.6vmin solid #4a4a8a;background:#000010;width:min(68vw,calc(88vh*1.9));height:auto}
+.side{display:flex;flex-direction:column;gap:3vh;font-size:clamp(11px,2.2vmin,22px)}
+.side div{border:.4vmin solid #4a4a8a;padding:1.2vh 1.5vw;background:#000010}
+.side b{display:block;color:#ffd84a;font-size:.8em;margin-bottom:.8vh}
+@media (max-aspect-ratio:1/1){.wrap{flex-direction:column}canvas{width:92vw}.side{flex-direction:row;flex-wrap:wrap;justify-content:center;gap:1.5vh}}
+</style></head><body>
+<div class="wrap"><canvas id="c" width="380" height="200"></canvas>
+<div class="side"><div><b>LEVEL</b><span id="lv"></span></div><div><b>STAGE</b><span id="st"></span></div><div><b>WORLD</b><span id="yr"></span></div><div><b>LINES</b><span id="ln"></span></div></div></div>
+<script>
+// digits as 4x7 block glyphs
+const G={'0':['1111','1001','1001','1001','1001','1001','1111'],'1':['0010','0110','0010','0010','0010','0010','0111'],'2':['1111','0001','0001','1111','1000','1000','1111'],'3':['1111','0001','0001','0111','0001','0001','1111'],'4':['1001','1001','1001','1111','0001','0001','0001'],'5':['1111','1000','1000','1111','0001','0001','1111'],'6':['1111','1000','1000','1111','1001','1001','1111'],'7':['1111','0001','0010','0100','0100','0100','0100'],'8':['1111','1001','1001','1111','1001','1001','1111'],'9':['1111','1001','1001','1111','0001','0001','1111']};
+const COL=['#00f0f0','#f0f000','#a000f0','#00f000','#f00000','#0060f0','#f0a000'];
+const c=document.getElementById('c'),x=c.getContext('2d'),B=10;// cols 38 rows 20
+const slots=[2,7,15,20,28,33];let cells=[],shown='';
+function place(slot,ch,idx){cells=cells.filter(b=>b.slot!==slot);const g=G[ch],col=COL[(+ch+idx)%7];
+for(let r=6;r>=0;r--)for(let k=0;k<4;k++)if(g[r][k]==='1'){const ty=6+r;cells.push({slot,x:slots[slot]+k,ty,y:-(7-r)*1.3-Math.random()*2-k*.4,v:0,col})}}
+function draw(){const d=new Date(),p=n=>String(n).padStart(2,'0'),s=p(d.getHours())+p(d.getMinutes())+p(d.getSeconds());
+for(let i=0;i<6;i++)if(s[i]!==shown[i])place(i,s[i],i);shown=s;
+x.fillStyle='#000010';x.fillRect(0,0,380,200);x.strokeStyle='rgba(80,80,160,.15)';for(let i=0;i<=38;i++){x.beginPath();x.moveTo(i*B,0);x.lineTo(i*B,200);x.stroke()}for(let j=0;j<=20;j++){x.beginPath();x.moveTo(0,j*B);x.lineTo(380,j*B);x.stroke()}
+for(const b of cells){if(b.y<b.ty){b.v+=.02;b.y=Math.min(b.ty,b.y+b.v)}const X=b.x*B,Y=b.y*B;x.fillStyle=b.col;x.fillRect(X,Y,B,B);x.fillStyle='rgba(255,255,255,.35)';x.fillRect(X,Y,B,2);x.fillRect(X,Y,2,B);x.fillStyle='rgba(0,0,0,.35)';x.fillRect(X,Y+B-2,B,2);x.fillRect(X+B-2,Y,2,B)}
+x.fillStyle='#fff';for(const cx of [12.5,25.5]){x.fillRect(cx*B,8*B,B,B);x.fillRect(cx*B,11*B,B,B)}
+x.fillStyle='#4a4a8a';x.fillRect(0,17*B,380,3*B);x.fillStyle='#ffd84a';x.font='bold 12px Consolas,monospace';x.textAlign='center';
+x.fillText(d.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).toUpperCase(),190,18.9*B);
+document.getElementById('lv').textContent=p(d.getDate());document.getElementById('st').textContent=d.toLocaleDateString('en',{month:'short'}).toUpperCase();
+document.getElementById('yr').textContent=d.getFullYear();document.getElementById('ln').textContent=d.getHours()*60+d.getMinutes();requestAnimationFrame(draw)}
+draw();
+</script></body></html>

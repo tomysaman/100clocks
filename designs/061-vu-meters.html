@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VU Meters</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#1a1410;font-family:"Futura","Century Gothic",Arial,sans-serif}
+.wrap{height:100%;display:flex;align-items:center;justify-content:center}
+.amp{width:min(94vw,160vh);background:linear-gradient(#5a3a1e,#3a2410);padding:2vmin;border-radius:1.4vmin;box-shadow:0 2vmin 5vmin #000;box-sizing:border-box}
+.face{background:linear-gradient(#1b1b1d,#0d0d0e);border-radius:1vmin;padding:2.5vmin;display:flex;flex-direction:column;gap:2vmin}
+.meters{display:flex;gap:2.5vmin}
+.m{flex:1;aspect-ratio:1.7;background:radial-gradient(ellipse at 50% 100%,#ffe9a8,#f2c768 70%,#c8963a);border-radius:.6vmin;position:relative;overflow:hidden;box-shadow:inset 0 0 2vmin rgba(0,0,0,.5)}
+.m svg{position:absolute;inset:0;width:100%;height:100%}
+.leds{display:flex;gap:.6vmin;align-items:center}
+.leds span{color:#999;font-size:clamp(9px,1.6vmin,16px);letter-spacing:.2em;margin-right:1vmin;white-space:nowrap}
+.leds i{flex:1;height:1.4vmin;border-radius:.3vmin;background:#222}
+.leds i.g{background:#3aff6a;box-shadow:0 0 .8vmin #3aff6a}.leds i.y{background:#ffd03a;box-shadow:0 0 .8vmin #ffd03a}.leds i.r{background:#ff3a3a;box-shadow:0 0 .8vmin #ff3a3a}
+.bot{display:flex;justify-content:space-between;align-items:center;color:#d9c39a;font-size:clamp(11px,2.2vmin,22px);letter-spacing:.15em}
+.bot b{font-size:1.6em;font-weight:normal;color:#fff3d0}
+@media (max-aspect-ratio:1/1){.meters{flex-direction:column}}
+</style></head><body>
+<div class="wrap"><div class="amp"><div class="face">
+<div class="meters"><div class="m" id="mh"></div><div class="m" id="mm"></div></div>
+<div class="leds" id="leds"><span>SEC</span></div>
+<div class="bot"><span id="d"></span><b id="t"></b><span>STEREO · TIME</span></div>
+</div></div></div>
+<script>
+function meter(el,label,max,step,red){let s='<svg viewBox="0 0 170 100">';const cx=85,cy=118,R=95;
+for(let v=0;v<=max;v+=step/2){const f=v/max,a=(-50+100*f)*Math.PI/180,big=v%step===0,r1=R-(big?10:5),col=v>=red?'#c0201a':'#222';
+s+=`<line x1="${cx+Math.sin(a)*R}" y1="${cy-Math.cos(a)*R}" x2="${cx+Math.sin(a)*r1}" y2="${cy-Math.cos(a)*r1}" stroke="${col}" stroke-width="${big?1.4:.7}"/>`;
+if(big)s+=`<text x="${cx+Math.sin(a)*(R-17)}" y="${cy-Math.cos(a)*(R-17)+3}" font-size="8" text-anchor="middle" fill="${col}" font-family="Arial">${v}</text>`}
+const a1=-50*Math.PI/180,ar=(-50+100*red/max)*Math.PI/180,a2=50*Math.PI/180;
+s+=`<path d="M${cx+Math.sin(ar)*(R+3)} ${cy-Math.cos(ar)*(R+3)} A${R+3} ${R+3} 0 0 1 ${cx+Math.sin(a2)*(R+3)} ${cy-Math.cos(a2)*(R+3)}" stroke="#c0201a" stroke-width="3" fill="none"/>`;
+s+=`<text x="85" y="78" font-size="11" text-anchor="middle" fill="#3a2a10" letter-spacing="3" font-family="Arial">${label}</text><g class="n"><line x1="85" y1="118" x2="85" y2="20" stroke="#111" stroke-width="1.2"/></g><rect x="0" y="92" width="170" height="10" fill="#2a1a0a"/></svg>`;el.innerHTML=s;return el.querySelector('.n')}
+const NH=meter(document.getElementById('mh'),'HOURS',24,2,20),NM=meter(document.getElementById('mm'),'MINUTES',60,10,50);
+const leds=document.getElementById('leds');for(let i=0;i<30;i++)leds.appendChild(document.createElement('i'));const L=[...leds.querySelectorAll('i')];
+let vh=0,vm=0;
+function tick(){const d=new Date(),s=d.getSeconds()+d.getMilliseconds()/1000,m=d.getMinutes()+s/60,h=d.getHours()+m/60;
+// needles ease toward target with a little jitter, like a real VU ballistic
+const jit=Math.sin(Date.now()/90)*.15+Math.sin(Date.now()/37)*.1;vh+=(h-vh)*.08;vm+=(m-vm)*.08;
+NH.setAttribute('transform',`rotate(${-50+100*vh/24+jit} 85 118)`);NM.setAttribute('transform',`rotate(${-50+100*vm/60+jit*1.4} 85 118)`);
+const n=Math.round(s/60*30);L.forEach((e,i)=>e.className=i<n?(i<20?'g':i<26?'y':'r'):'');
+const p=x=>String(x).padStart(2,'0');document.getElementById('t').textContent=p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds());
+document.getElementById('d').textContent=d.toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short',year:'numeric'}).toUpperCase();requestAnimationFrame(tick)}
+tick();
+</script></body></html>

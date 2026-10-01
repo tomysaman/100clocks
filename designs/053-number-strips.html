@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Number Strips</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#111418;color:#fff;font-family:"Segoe UI",system-ui,sans-serif}
+.wrap{position:relative;height:100%;display:flex;align-items:center;justify-content:center;gap:min(2.4vw,3vh)}
+.band{position:absolute;left:0;right:0;top:50%;height:min(10vw,12vh);transform:translateY(-50%);background:rgba(255,255,255,.06);border-top:1px solid rgba(255,255,255,.12);border-bottom:1px solid rgba(255,255,255,.12)}
+.col{position:relative;width:min(8vw,10vh);height:100%;overflow:hidden;-webkit-mask:linear-gradient(transparent,#000 30%,#000 70%,transparent);mask:linear-gradient(transparent,#000 30%,#000 70%,transparent)}
+.strip{position:absolute;left:0;right:0;top:50%;transition:transform .6s cubic-bezier(.5,1.6,.5,1)}
+.strip span{display:block;height:min(10vw,12vh);line-height:min(10vw,12vh);text-align:center;font-size:min(6vw,7.5vh);font-weight:300;color:rgba(255,255,255,.25);transition:color .4s,font-weight .4s}
+.strip span.on{color:#fff;font-weight:600}
+.sp{width:min(2vw,2vh)}
+.date{position:absolute;bottom:5vh;left:0;right:0;text-align:center;font-size:clamp(12px,2.6vmin,26px);letter-spacing:.25em;opacity:.7;text-transform:uppercase}
+.lbl{position:absolute;top:5vh;left:0;right:0;text-align:center;font-size:clamp(10px,1.8vmin,18px);letter-spacing:.5em;opacity:.4}
+</style></head><body>
+<div class="band"></div>
+<div class="wrap" id="w"></div><div class="lbl">HH · MM · SS</div><div class="date" id="d"></div>
+<script>
+const w=document.getElementById('w'),max=[2,9,5,9,5,9],strips=[];
+for(let i=0;i<6;i++){if(i===2||i===4){const s=document.createElement('div');s.className='sp';w.appendChild(s)}
+const c=document.createElement('div');c.className='col';const st=document.createElement('div');st.className='strip';for(let n=0;n<=max[i];n++){const s=document.createElement('span');s.textContent=n;st.appendChild(s)}c.appendChild(st);w.appendChild(c);strips.push(st)}
+function tick(){const d=new Date(),p=n=>String(n).padStart(2,'0'),s=p(d.getHours())+p(d.getMinutes())+p(d.getSeconds());
+strips.forEach((st,i)=>{const v=+s[i];st.style.transform=`translateY(calc(${-v} * min(10vw,12vh) - min(5vw,6vh)))`;[...st.children].forEach((e,k)=>e.classList.toggle('on',k===v))});
+document.getElementById('d').textContent=d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
+tick();setInterval(tick,200);
+</script></body></html>

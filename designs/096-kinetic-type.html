@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kinetic Type</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#ff4b2b;color:#111;font-family:"Arial Black","Helvetica Neue",Arial,sans-serif;transition:background 1s}
+.wrap{position:fixed;inset:0;display:flex;flex-direction:column;justify-content:center;padding:0 5vw;overflow:hidden}
+.ln{width:max-content;white-space:nowrap;text-transform:uppercase;line-height:.88;letter-spacing:-.04em;font-weight:900}
+.ln span{display:inline-block;transition:transform .7s cubic-bezier(.7,0,.2,1),opacity .7s}
+.ln span.out{transform:translateY(-110%) rotate(-6deg);opacity:0}
+.ln span.in{transform:translateY(110%) rotate(6deg);opacity:0}
+.ln.out2{color:transparent;-webkit-text-stroke:.25vmin #111}
+.foot{position:fixed;left:5vw;right:5vw;bottom:4vh;display:flex;justify-content:space-between;font-family:"Helvetica Neue",Arial,sans-serif;font-weight:bold;font-size:clamp(11px,2.2vmin,22px);text-transform:uppercase;letter-spacing:.1em}
+</style></head><body>
+<div class="wrap" id="w"></div>
+<div class="foot"><span id="d"></span><span id="s"></span></div>
+<script>
+const N=['zero','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen'],T=['','','twenty','thirty','forty','fifty'];
+const num=n=>n<20?N[n]:T[Math.floor(n/10)]+(n%10?'-'+N[n%10]:'');
+const BG=['#ff4b2b','#ffd23f','#3bceac','#0ead69','#ee4266','#540d6e','#f8f9fa','#4361ee'];
+const w=document.getElementById('w');let last='';
+function lines(d){const h=d.getHours()%12||12,m=d.getMinutes();return m===0?['it is',num(h),"o'clock"]:['it is',num(h),m<10?'oh '+num(m):num(m)]}
+function fit(){const L=[...w.children];L.forEach(l=>{l.style.fontSize='100px';const k=(innerWidth*.9)/l.scrollWidth;l.style.fontSize=Math.min(100*k,innerHeight*.26)+"px"})}
+function render(d){const ls=lines(d),key=ls.join('|');if(key===last)return;const first=!last;last=key;
+const old=[...w.querySelectorAll('span')];old.forEach(s=>s.classList.add('out'));
+setTimeout(()=>{w.innerHTML=ls.map((t,i)=>`<div class="ln${i===1?'':' out2'}">${[...t].map(c=>`<span class="in">${c===' '?'&nbsp;':c}</span>`).join('')}</div>`).join('');fit();
+w.querySelectorAll('span').forEach((s,i)=>setTimeout(()=>s.classList.remove('in'),20+i*25));
+const bg=BG[d.getMinutes()%BG.length];document.body.style.background=bg;const dark=['#540d6e','#4361ee','#0ead69','#ee4266'].includes(bg);document.body.style.color=dark?'#fff':'#111';
+w.querySelectorAll('.out2').forEach(l=>l.style.webkitTextStroke=`.25vmin ${dark?'#fff':'#111'}`)},first?0:600)}
+function tick(){const d=new Date();render(d);document.getElementById('d').textContent=d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+document.getElementById('s').textContent=d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'})}
+tick();setInterval(tick,500);addEventListener('resize',fit);
+</script></body></html>

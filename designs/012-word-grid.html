@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Word Grid</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#111;font-family:"Courier New",monospace}
+.wrap{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2vmin}
+.grid{display:grid;grid-template-columns:repeat(11,minmax(0,1fr));box-sizing:border-box;gap:.4vmin;width:min(88vw,74vh);padding:3vmin;background:#000;box-shadow:0 0 0 .3vmin #222}
+.grid span{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:min(5vw,4.2vh);color:#2a2a2a;transition:color .6s,text-shadow .6s}
+.grid span.on{color:#fff;text-shadow:0 0 1.5vmin rgba(255,255,255,.7)}
+.dots{display:flex;gap:2vmin}
+.dots i{width:1.2vmin;height:1.2vmin;border-radius:50%;background:#2a2a2a}.dots i.on{background:#fff;box-shadow:0 0 1vmin #fff}
+.date{color:#888;font-size:clamp(12px,2.6vmin,26px);letter-spacing:.3em;text-transform:uppercase}
+</style></head><body>
+<div class="wrap"><div class="dots" id="dots"><i></i><i></i><i></i><i></i></div><div class="grid" id="g"></div><div class="date" id="d"></div></div>
+<script>
+const ROWS=['ITLISASAMPM','ACQUARTERDC','TWENTYFIVEX','HALFSTENFTO','PASTERUNINE','ONESIXTHREE','FOURFIVETWO','EIGHTELEVEN','SEVENTWELVE','TENSEOCLOCK'];
+// word -> [row, col, length]
+const W={IT:[0,0,2],IS:[0,3,2],A:[1,0,1],QUARTER:[1,2,7],TWENTY:[2,0,6],FIVEM:[2,6,4],HALF:[3,0,4],TENM:[3,5,3],TO:[3,9,2],PAST:[4,0,4],
+NINE:[4,7,4],ONE:[5,0,3],SIX:[5,3,3],THREE:[5,6,5],FOUR:[6,0,4],FIVE:[6,4,4],TWO:[6,8,3],EIGHT:[7,0,5],ELEVEN:[7,5,6],SEVEN:[8,0,5],TWELVE:[8,5,6],TEN:[9,0,3],OCLOCK:[9,5,6]};
+const HRS=['TWELVE','ONE','TWO','THREE','FOUR','FIVE','SIX','SEVEN','EIGHT','NINE','TEN','ELEVEN'];
+const g=document.getElementById('g'),cells=[];ROWS.forEach(r=>[...r].forEach(ch=>{const s=document.createElement('span');s.textContent=ch;g.appendChild(s);cells.push(s)}));
+function tick(){const d=new Date(),m=d.getMinutes(),f=Math.floor(m/5);let h=d.getHours()%12;const words=['IT','IS'];
+const M=[[],['FIVEM','PAST'],['TENM','PAST'],['A','QUARTER','PAST'],['TWENTY','PAST'],['TWENTY','FIVEM','PAST'],['HALF','PAST'],['TWENTY','FIVEM','TO'],['TWENTY','TO'],['A','QUARTER','TO'],['TENM','TO'],['FIVEM','TO']][f];
+words.push(...M);if(f>=7)h=(h+1)%12;words.push(HRS[h]);if(f===0)words.push('OCLOCK');
+const on=new Set();words.forEach(w=>{const [r,c,l]=W[w];for(let i=0;i<l;i++)on.add(r*11+c+i)});cells.forEach((s,i)=>s.classList.toggle('on',on.has(i)));
+[...document.getElementById('dots').children].forEach((e,i)=>e.classList.toggle('on',i<m%5));
+document.getElementById('d').textContent=d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
+tick();setInterval(tick,1000);
+</script></body></html>

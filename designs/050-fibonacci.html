@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fibonacci Clock</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#f5f5f0;font-family:"Segoe UI",system-ui,sans-serif;color:#333}
+.wrap{height:100%;display:flex;align-items:center;justify-content:center;gap:5vw}
+.fib{position:relative;width:min(60vw,calc(78vh*1.6));aspect-ratio:8/5;border:.6vmin solid #222;background:#222}
+.sq{position:absolute;box-sizing:border-box;border:.6vmin solid #222;transition:background .6s;background:#fff}
+.side{display:flex;flex-direction:column;gap:2vh;font-size:clamp(12px,2.4vmin,24px);min-width:22vw}
+.key{display:flex;align-items:center;gap:1vw}.key i{width:2.4vmin;height:2.4vmin;border:2px solid #222}
+.t{font-size:clamp(26px,min(6vw,9vh),90px);font-weight:600}
+.sum{font-family:Consolas,monospace;font-size:.85em;opacity:.75;line-height:1.6}
+@media (max-aspect-ratio:1/1){.wrap{flex-direction:column;gap:3vh}.fib{width:90vw}.side{align-items:center;text-align:center}}
+</style></head><body>
+<div class="wrap"><div class="fib" id="f"></div>
+<div class="side"><div class="t" id="t"></div><div id="d"></div>
+<div class="key"><i style="background:#ff4d4d"></i>hours</div><div class="key"><i style="background:#4dcc4d"></i>minutes × 5</div><div class="key"><i style="background:#4d8bff"></i>both</div><div class="key"><i style="background:#fff"></i>neither</div>
+<div class="sum" id="sum"></div></div></div>
+<script>
+// squares: sizes 1,1,2,3,5 laid out on an 8x5 grid
+const SQ=[{v:1,x:2,y:0,s:1},{v:1,x:2,y:1,s:1},{v:2,x:0,y:0,s:2},{v:3,x:0,y:2,s:3},{v:5,x:3,y:0,s:5}];
+const f=document.getElementById('f');SQ.forEach(q=>{const e=document.createElement('div');e.className='sq';e.style.left=q.x/8*100+'%';e.style.top=q.y/5*100+'%';e.style.width=q.s/8*100+'%';e.style.height=q.s/5*100+'%';f.appendChild(e);q.el=e});
+// pick a random subset of the squares that sums to n (different every time it changes)
+function subsets(n){const out=[];for(let m=0;m<32;m++){let s=0;for(let i=0;i<5;i++)if(m>>i&1)s+=SQ[i].v;if(s===n)out.push(m)}return out}
+let lastKey='';
+function tick(){const d=new Date(),h=d.getHours()%12||12,m5=Math.floor(d.getMinutes()/5),key=h+':'+m5;
+if(key!==lastKey){lastKey=key;const hs=subsets(h),ms=subsets(m5),hm=hs[Math.random()*hs.length|0],mm=ms[Math.random()*ms.length|0];
+SQ.forEach((q,i)=>{const H=hm>>i&1,M=mm>>i&1;q.el.style.background=H&&M?'#4d8bff':H?'#ff4d4d':M?'#4dcc4d':'#fff'});
+const hv=SQ.filter((q,i)=>hm>>i&1).map(q=>q.v),mv=SQ.filter((q,i)=>mm>>i&1).map(q=>q.v);
+document.getElementById('sum').innerHTML=`hours: ${hv.join(' + ')||'0'} = ${h}<br>minutes: (${mv.join(' + ')||'0'}) × 5 = ${m5*5}`}
+const p=n=>String(n).padStart(2,'0');document.getElementById('t').textContent=p(d.getHours())+':'+p(d.getMinutes());
+document.getElementById('d').textContent=d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
+tick();setInterval(tick,1000);
+</script></body></html>

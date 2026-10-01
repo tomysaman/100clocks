@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Star Clock</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:radial-gradient(#0d1a33,#02040b 70%);color:#c9d6ff;font-family:Georgia,serif}
+canvas{position:fixed;inset:0;width:100%;height:100%}
+.ov{position:fixed;left:3vmin;bottom:3vmin;font-size:clamp(11px,2vmin,20px);line-height:1.6;opacity:.85;max-width:60vw}
+.tt{position:fixed;right:3vmin;top:3vmin;text-align:right}
+.tt b{display:block;font-weight:normal;font-size:clamp(28px,7vmin,72px);color:#fff}
+.tt span{font-size:clamp(11px,2.2vmin,22px);font-style:italic;opacity:.8}
+</style></head><body>
+<canvas id="c"></canvas>
+<div class="tt"><b id="t"></b><span id="d"></span></div>
+<div class="ov">The pointer stars of the Big Dipper sweep around Polaris like an hour hand on a 24-hour dial. Read the hour from the ring.</div>
+<script>
+const c=document.getElementById('c'),x=c.getContext('2d');let W,H,bg=[];
+function size(){W=c.width=innerWidth;H=c.height=innerHeight;bg=Array.from({length:500},()=>[Math.random()*2-1,Math.random()*2-1,Math.random()])}addEventListener('resize',size);size();
+// Big Dipper + Cassiopeia in a rough polar projection (unit radius ~ distance from Polaris)
+const UMA=[[0,.42],[.08,.52],[.2,.55],[.3,.53],[.4,.5],[.47,.6],[.44,.72],[.33,.68]].map(([a,b])=>[a-.04,b]);
+const DIP=[[0,.48],[.13,.5],[.22,.55],[.33,.55],[.43,.62],[.45,.74],[.33,.72],[.33,.55]];
+function rot(p,a){return [p[0]*Math.cos(a)-p[1]*Math.sin(a),p[0]*Math.sin(a)+p[1]*Math.cos(a)]}
+function draw(){const d=new Date(),h=d.getHours()+d.getMinutes()/60+d.getSeconds()/3600,cx=W/2,cy=H/2,R=Math.min(W,H)*.42,a=-h/24*Math.PI*2;
+x.clearRect(0,0,W,H);
+bg.forEach(([u,v,z])=>{const [px,py]=rot([u,v],a);x.fillStyle=`rgba(220,230,255,${.15+z*.5})`;x.fillRect(cx+px*Math.max(W,H)*.7,cy+py*Math.max(W,H)*.7,z*1.8,z*1.8)});
+x.strokeStyle='rgba(180,200,255,.25)';x.lineWidth=1;x.beginPath();x.arc(cx,cy,R,0,7);x.stroke();x.beginPath();x.arc(cx,cy,R*1.07,0,7);x.stroke();
+x.fillStyle='rgba(200,215,255,.75)';x.font=`${R*.055}px Georgia`;x.textAlign='center';x.textBaseline='middle';
+for(let i=0;i<24;i++){const an=i/24*Math.PI*2-Math.PI/2;x.fillText(String(i),cx+Math.cos(an)*R*1.16,cy+Math.sin(an)*R*1.16);x.beginPath();x.moveTo(cx+Math.cos(an)*R,cy+Math.sin(an)*R);x.lineTo(cx+Math.cos(an)*R*1.07,cy+Math.sin(an)*R*1.07);x.stroke()}
+// dipper rotated so pointer line (stars 6->7... we use first two) points at the current hour
+const ha=h/24*Math.PI*2;const pts=DIP.map(p=>{const q=rot([p[0]*R,-p[1]*R],ha);return [cx+q[0],cy+q[1]]});
+x.strokeStyle='rgba(160,190,255,.5)';x.beginPath();pts.slice(0,7).forEach((p,i)=>i?x.lineTo(p[0],p[1]):x.moveTo(p[0],p[1]));x.lineTo(pts[3][0],pts[3][1]);x.stroke();
+pts.slice(0,7).forEach((p,i)=>{const g=x.createRadialGradient(p[0],p[1],0,p[0],p[1],R*.035);g.addColorStop(0,'#fff');g.addColorStop(.3,'rgba(200,220,255,.8)');g.addColorStop(1,'rgba(200,220,255,0)');x.fillStyle=g;x.beginPath();x.arc(p[0],p[1],R*.035,0,7);x.fill()});
+// pointer line from Polaris through the hour
+const pa=ha-Math.PI/2;x.setLineDash([4,6]);x.strokeStyle='rgba(255,220,140,.6)';x.beginPath();x.moveTo(cx,cy);x.lineTo(cx+Math.cos(pa)*R,cy+Math.sin(pa)*R);x.stroke();x.setLineDash([]);
+const g=x.createRadialGradient(cx,cy,0,cx,cy,R*.06);g.addColorStop(0,'#fff');g.addColorStop(.3,'#ffe9b0');g.addColorStop(1,'rgba(255,230,170,0)');x.fillStyle=g;x.beginPath();x.arc(cx,cy,R*.06,0,7);x.fill();
+x.fillStyle='rgba(255,230,170,.8)';x.font=`italic ${R*.045}px Georgia`;x.fillText('Polaris',cx,cy+R*.09);
+document.getElementById('t').textContent=d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+document.getElementById('d').textContent=d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'});requestAnimationFrame(draw)}
+draw();
+</script></body></html>

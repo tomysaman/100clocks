@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Maya Numerals</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#c9b48a;color:#3b2a16;font-family:"Palatino Linotype",Palatino,serif}
+body{background:radial-gradient(ellipse at 50% 30%,#d8c59c,#a68d5e)}
+.wrap{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3vh}
+.row{display:flex;gap:min(3vw,4vh);align-items:flex-end}
+.g{display:flex;flex-direction:column;align-items:center;gap:1vh}
+.g svg{width:min(14vw,22vh);height:min(14vw,22vh);background:rgba(255,245,220,.35);border:.4vmin solid #6b4f2a;border-radius:1.4vmin}
+.g span{font-size:clamp(10px,1.8vmin,18px);letter-spacing:.2em}
+.lc{font-size:clamp(16px,4.4vmin,44px);letter-spacing:.15em}
+.info{font-size:clamp(12px,2.4vmin,24px);text-align:center;line-height:1.6}
+.info b{font-weight:normal;color:#7a2e10}
+</style></head><body>
+<div class="wrap"><div class="row" id="r"></div><div class="lc" id="lc"></div><div class="info" id="i"></div></div>
+<script>
+// Maya bar-and-dot digit (0-19): shell for 0, dots for 1s, bars for 5s. Values over 19 stack two vigesimal places.
+function digit(v,y0,h){let s='';if(v===0){s+=`<ellipse cx="50" cy="${y0+h/2}" rx="22" ry="${Math.min(10,h/3)}" fill="none" stroke="#3b2a16" stroke-width="3"/><path d="M32 ${y0+h/2} Q50 ${y0+h/2-6} 68 ${y0+h/2}" stroke="#3b2a16" stroke-width="2" fill="none"/>`;return s}
+const bars=Math.floor(v/5),dots=v%5,bh=Math.min(9,h/(bars+2)),gap=bh*.5;let y=y0+h-bars*(bh+gap);
+for(let b=0;b<bars;b++)s+=`<rect x="18" y="${y+b*(bh+gap)}" width="64" height="${bh}" rx="3" fill="#3b2a16"/>`;
+const dr=Math.min(6,bh*.7);for(let k=0;k<dots;k++)s+=`<circle cx="${50+(k-(dots-1)/2)*16}" cy="${y-gap-dr}" r="${dr}" fill="#3b2a16"/>`;return s}
+function glyph(n){const hi=Math.floor(n/20),lo=n%20;let s='<svg viewBox="0 0 100 100">';if(hi){s+=digit(hi,6,38);s+='<line x1="12" y1="50" x2="88" y2="50" stroke="#6b4f2a" stroke-width=".8" stroke-dasharray="3 3"/>';s+=digit(lo,54,40)}else s+=digit(lo,20,60);return s+'</svg>'}
+const TZ=['Imix','Ik\'','Ak\'b\'al','K\'an','Chikchan','Kimi','Manik\'','Lamat','Muluk','Ok','Chuwen','Eb\'','B\'en','Ix','Men','K\'ib\'','Kab\'an','Etz\'nab\'','Kawak','Ajaw'];
+const HB=['Pop','Wo\'','Sip','Sotz\'','Sek','Xul','Yaxk\'in','Mol','Ch\'en','Yax','Sak\'','Keh','Mak','K\'ank\'in','Muwan','Pax','K\'ayab','Kumk\'u','Wayeb\''];
+function tick(){const d=new Date();
+document.getElementById('r').innerHTML=[['HOURS',d.getHours()],['MINUTES',d.getMinutes()],['SECONDS',d.getSeconds()]].map(([n,v])=>`<div class="g">${glyph(v)}<span>${n} · ${v}</span></div>`).join('');
+// Long Count with GMT correlation 584283
+const jdn=Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5+2440587.5),days=jdn-584283;
+let r=days;const b=Math.floor(r/144000);r%=144000;const k=Math.floor(r/7200);r%=7200;const t=Math.floor(r/360);r%=360;const w=Math.floor(r/20),ki=r%20;
+document.getElementById('lc').textContent=`${b}.${k}.${t}.${w}.${ki}`;
+const tzn=((days+3)%13+13)%13+1,tzd=TZ[((days+19)%20+20)%20],hy=((days+348)%365+365)%365,hm=Math.floor(hy/20),hd=hy%20;
+document.getElementById('i').innerHTML=`Long Count · Tzolk'in <b>${tzn} ${tzd}</b> · Haab' <b>${hd} ${HB[hm]}</b><br>${d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'})}`}
+tick();setInterval(tick,1000);
+</script></body></html>

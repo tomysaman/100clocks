@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Nixie Tubes</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:radial-gradient(ellipse at 50% 30%,#2a1d14,#0a0705);font-family:"Trebuchet MS",sans-serif}
+.wrap{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.tubes{display:flex;align-items:flex-end;gap:1.2vw;padding:0 2vw}
+.tube{position:relative;width:min(11vw,19vh);aspect-ratio:.55;border-radius:45% 45% 10% 10%/22% 22% 5% 5%;background:linear-gradient(90deg,rgba(255,255,255,.08),rgba(255,255,255,.02) 30%,rgba(255,255,255,.01) 70%,rgba(255,255,255,.1));border:1px solid rgba(255,255,255,.15);overflow:hidden}
+.tube.sm{width:min(7vw,12vh)}
+.tube::before{content:"";position:absolute;inset:8% 10%;background:repeating-linear-gradient(0deg,rgba(120,100,80,.25) 0 1px,transparent 1px 5px),repeating-linear-gradient(90deg,rgba(120,100,80,.25) 0 1px,transparent 1px 5px);border-radius:8%}
+.tube span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:min(13vw,22vh);font-weight:300;color:rgba(160,140,120,.045);line-height:1}
+.tube.sm span{font-size:min(8vw,14vh)}
+.tube span.on{color:#ffb35c;text-shadow:0 0 .1em #ff7a1a,0 0 .3em #ff5a00,0 0 .6em #ff3c00}
+.sep{display:flex;flex-direction:column;gap:3vh;padding-bottom:9vh}
+.sep i{width:min(1.4vw,2.4vh);aspect-ratio:1;border-radius:50%;background:#ff8a2a;box-shadow:0 0 1vmin #ff5a00,0 0 2vmin #ff3c00}
+.base{width:min(96vw,170vh);max-width:96vw;height:3vh;margin-top:-.5vh;background:linear-gradient(#5a3a22,#2d1c10);border-radius:.5vh;box-shadow:0 1vh 3vh #000}
+.date{margin-top:3vh;color:#ffb35c;font-size:clamp(14px,3.4vmin,36px);letter-spacing:.3em;text-shadow:0 0 .4em #ff5a00}
+</style></head><body>
+<div class="wrap"><div class="tubes" id="t"></div><div class="base"></div><div class="date" id="d"></div></div>
+<script>
+const t=document.getElementById('t'),tubes=[];
+function tube(sm){const e=document.createElement('div');e.className='tube'+(sm?' sm':'');[1,6,2,7,3,8,9,4,0,5].forEach(n=>{const s=document.createElement('span');s.textContent=n;s.dataset.n=n;e.appendChild(s)});tubes.push(e);return e}
+function sep(){const e=document.createElement('div');e.className='sep';e.innerHTML='<i></i><i></i>';return e}
+t.append(tube(),tube(),sep(),tube(),tube(),sep(),tube(1),tube(1));
+let last='';
+function tick(){const d=new Date(),p=n=>String(n).padStart(2,'0'),s=p(d.getHours())+p(d.getMinutes())+p(d.getSeconds());
+if(s!==last){tubes.forEach((tb,i)=>{[...tb.children].forEach(sp=>sp.classList.toggle('on',sp.dataset.n===s[i]))});last=s}
+document.getElementById('d').textContent=d.toLocaleDateString(undefined,{weekday:'short',day:'2-digit',month:'short',year:'numeric'}).toUpperCase()}
+tick();setInterval(tick,200);
+</script></body></html>

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Digital Rain</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#000}
+canvas{position:fixed;inset:0;width:100%;height:100%}
+</style></head><body>
+<canvas id="c"></canvas>
+<script>
+const c=document.getElementById('c'),x=c.getContext('2d'),off=document.createElement('canvas'),ox=off.getContext('2d');
+const CH='ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ0123456789';
+let W,H,S,cols,rows,drops,mask,last='';
+function size(){W=c.width=innerWidth;H=c.height=innerHeight;S=Math.max(12,Math.round(Math.min(W,H)/45));cols=Math.ceil(W/S);rows=Math.ceil(H/S);drops=Array.from({length:cols},()=>Math.random()*-rows);last=''}
+addEventListener('resize',size);size();
+function makeMask(t,dt){off.width=cols;off.height=rows;ox.fillStyle='#fff';ox.textAlign='center';ox.textBaseline='middle';
+const fs=Math.min(cols/4.6,rows/2.2);ox.font=`bold ${fs}px Consolas,monospace`;ox.fillText(t,cols/2,rows*.44);
+ox.font=`bold ${Math.max(5,Math.min(cols/(dt.length*.62),fs*.32))}px Consolas,monospace`;ox.fillText(dt,cols/2,rows*.44+fs*.75);
+const d=ox.getImageData(0,0,cols,rows).data;mask=new Uint8Array(cols*rows);for(let i=0;i<cols*rows;i++)mask[i]=d[i*4+3]>100?1:0}
+let tPrev=0;
+function frame(ts){const d=new Date(),p=n=>String(n).padStart(2,'0'),t=p(d.getHours())+':'+p(d.getMinutes()),dt=d.toLocaleDateString('en-GB',{weekday:'short',day:'2-digit',month:'short',year:'numeric'}).toUpperCase();
+if(t+dt!==last){makeMask(t,dt);last=t+dt}
+if(ts-tPrev>50){tPrev=ts;x.fillStyle='rgba(0,0,0,.08)';x.fillRect(0,0,W,H);x.font=`${S}px "MS Gothic",monospace`;x.textAlign='center';
+for(let i=0;i<cols;i++){const r=Math.floor(drops[i]);if(r>=0&&r<rows){x.fillStyle='#d8ffd8';x.fillText(CH[Math.random()*CH.length|0],i*S+S/2,r*S+S)}
+drops[i]+=1;if(drops[i]>rows&&Math.random()>.975)drops[i]=Math.random()*-20}
+// time cells glow
+for(let r=0;r<rows;r++)for(let i=0;i<cols;i++)if(mask[r*cols+i]&&Math.random()<.6){x.fillStyle=Math.random()<.2?'#eaffea':'#3dff6e';x.fillText(CH[Math.random()*CH.length|0],i*S+S/2,r*S+S)}}
+requestAnimationFrame(frame)}
+requestAnimationFrame(frame);
+</script></body></html>

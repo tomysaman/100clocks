@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Isometric Blocks</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:linear-gradient(#bfe3f0,#eaf6f9);font-family:"Segoe UI",system-ui,sans-serif;color:#2b4a5a}
+canvas{position:fixed;inset:0;width:100%;height:100%}
+.d{position:fixed;left:0;right:0;bottom:6vh;text-align:center;font-size:clamp(13px,3vmin,30px);letter-spacing:.15em}
+</style></head><body>
+<canvas id="c"></canvas><div class="d" id="d"></div>
+<script>
+const G={'0':['111','101','101','101','111'],'1':['010','110','010','010','111'],'2':['111','001','111','100','111'],'3':['111','001','111','001','111'],'4':['101','101','111','001','001'],'5':['111','100','111','001','111'],'6':['111','100','111','101','111'],'7':['111','001','001','001','001'],'8':['111','101','111','101','111'],'9':['111','101','111','001','111'],':':['0','1','0','1','0']};
+const c=document.getElementById('c'),x=c.getContext('2d');let W,H,cur={},anim={};
+function size(){const p=devicePixelRatio||1;W=innerWidth;H=innerHeight;c.width=W*p;c.height=H*p;x.setTransform(p,0,0,p,0,0)}addEventListener('resize',size);size();
+const COLS=['#ff6b6b','#ffa94d','#ffd43b','#69db7c','#4dabf7','#9775fa'];
+function cube(px,py,s,h,col){// iso cube top at (px,py)
+x.fillStyle=col;x.beginPath();x.moveTo(px,py);x.lineTo(px+s,py+s/2);x.lineTo(px,py+s);x.lineTo(px-s,py+s/2);x.closePath();x.fill();
+x.fillStyle=shade(col,-.18);x.beginPath();x.moveTo(px-s,py+s/2);x.lineTo(px,py+s);x.lineTo(px,py+s+h);x.lineTo(px-s,py+s/2+h);x.closePath();x.fill();
+x.fillStyle=shade(col,-.35);x.beginPath();x.moveTo(px+s,py+s/2);x.lineTo(px,py+s);x.lineTo(px,py+s+h);x.lineTo(px+s,py+s/2+h);x.closePath();x.fill()}
+function shade(hex,a){const n=parseInt(hex.slice(1),16),r=n>>16,g=n>>8&255,b=n&255,f=v=>Math.max(0,Math.min(255,Math.round(v*(1+a))));return `rgb(${f(r)},${f(g)},${f(b)})`}
+function draw(t){const d=new Date(),p=n=>String(n).padStart(2,'0'),str=p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds());
+x.clearRect(0,0,W,H);
+// digits stand upright like a wall running along the iso x-axis
+let gx=0;const blocks=[];[...str].forEach((ch,i)=>{const g=G[ch],w=g[0].length;for(let r=0;r<5;r++)for(let k=0;k<w;k++)if(g[r][k]==='1')blocks.push({key:i+'-'+r+'-'+k,gx:gx+k,gz:4-r,col:ch===':'?'#5c7cfa':COLS[Math.floor(i/3)%6*2%6]});gx+=w+1});
+const span=gx-1,s=Math.min(W*.9/(span+2),H*.6/(span/2+5*1.25+2)),hh=s*1.25,ox=W/2-span*s/2,oy=H*.42-span*s/4+2*hh;
+blocks.sort((a,b)=>a.gx-b.gx||a.gz-b.gz);
+const now=performance.now();blocks.forEach(b=>{if(!cur[b.key])anim[b.key]=now;cur[b.key]=1});
+Object.keys(cur).forEach(k=>{if(!blocks.find(b=>b.key===k)){delete cur[k];delete anim[k]}});
+const P=(gx,gz)=>[ox+gx*s,oy+gx*s/2-gz*hh];
+x.fillStyle='rgba(43,74,90,.1)';x.beginPath();const c0=P(-1,0),c1=P(span+1,0);x.moveTo(c0[0]-s,c0[1]+s/2);x.lineTo(c1[0]-s,c1[1]+s/2);x.lineTo(c1[0]+s,c1[1]+s*1.5);x.lineTo(c0[0]+s,c0[1]+s*1.5);x.fill();
+blocks.forEach(b=>{const age=(now-anim[b.key])/450,drop=age<1?(1-age)*(1-age)*hh*6:0,[px,py]=P(b.gx,b.gz);cube(px,py-drop,s,hh,b.col)});
+document.getElementById('d').textContent=d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'});requestAnimationFrame(draw)}
+requestAnimationFrame(draw);
+</script></body></html>

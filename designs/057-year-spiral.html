@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Year Spiral</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#0f0d16;color:#eee;font-family:"Segoe UI",system-ui,sans-serif}
+.wrap{height:100%;display:flex;align-items:center;justify-content:center}
+svg{width:min(96vw,96vh);height:min(96vw,96vh)}
+</style></head><body>
+<div class="wrap"><svg viewBox="-100 -100 200 200" id="s">
+<g id="days"></g><g id="mlab" font-size="3.4" fill="#aaa" text-anchor="middle"></g>
+<circle r="22" fill="#1b1826"/><circle id="ring" r="20" fill="none" stroke="#ff6fa8" stroke-width="1.4" stroke-linecap="round" transform="rotate(-90)"/>
+<text id="t" y="2" text-anchor="middle" font-size="10" font-weight="300" fill="#fff"></text>
+<text id="d" y="9" text-anchor="middle" font-size="3.2" fill="#bbb"></text>
+<text id="d2" y="-8" text-anchor="middle" font-size="3" fill="#ff6fa8"></text>
+</svg></div>
+<script>
+const NS="http://www.w3.org/2000/svg",days=document.getElementById('days'),ml=document.getElementById('mlab');
+const HUE=[200,215,140,110,90,55,40,25,15,340,280,240];let built=null;
+function build(y){days.innerHTML='';ml.innerHTML='';const n=(y%4==0&&(y%100!=0||y%400==0))?366:365,dots=[];
+for(let i=0;i<n;i++){const t=i/n,turns=3,a=t*turns*Math.PI*2-Math.PI/2,r=30+t*64,dt=new Date(y,0,1+i),c=document.createElementNS(NS,'circle');
+c.setAttribute('cx',Math.cos(a)*r);c.setAttribute('cy',Math.sin(a)*r);c.setAttribute('r',.9+t*.9);c.dataset.h=HUE[dt.getMonth()];c.dataset.we=dt.getDay()%6===0?1:0;days.appendChild(c);dots.push(c);
+if(dt.getDate()===1){const tx=document.createElementNS(NS,'text');tx.setAttribute('x',Math.cos(a)*(r+5.5));tx.setAttribute('y',Math.sin(a)*(r+5.5)+1);tx.textContent=dt.toLocaleDateString(undefined,{month:'short'});ml.appendChild(tx)}}
+built=y;return dots}
+let dots=[];const C=2*Math.PI*20;document.getElementById('ring').setAttribute('stroke-dasharray',C);
+function tick(){const d=new Date(),y=d.getFullYear();if(built!==y)dots=build(y);
+const doy=Math.floor((new Date(y,d.getMonth(),d.getDate())-new Date(y,0,1))/864e5);
+dots.forEach((c,i)=>{const h=c.dataset.h;c.setAttribute('fill',i<doy?`hsla(${h},45%,45%,.55)`:i===doy?'#fff':`hsla(${h},40%,30%,${c.dataset.we==1?.25:.4})`);if(i===doy){c.setAttribute('r',3);c.setAttribute('stroke','#ff6fa8');c.setAttribute('stroke-width',1)}});
+const f=(d.getHours()*3600+d.getMinutes()*60+d.getSeconds())/86400;document.getElementById('ring').setAttribute('stroke-dashoffset',C*(1-f));
+const p=n=>String(n).padStart(2,'0');document.getElementById('t').textContent=p(d.getHours())+':'+p(d.getMinutes());
+document.getElementById('d').textContent=d.toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+document.getElementById('d2').textContent=`day ${doy+1} · ${(f*100).toFixed(1)}% of today`}
+tick();setInterval(tick,1000);
+</script></body></html>

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Oscilloscope</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#2b2d2f;font-family:Arial,sans-serif}
+.wrap{height:100%;display:flex;align-items:center;justify-content:center}
+.scope{position:relative;width:min(94vw,150vh);aspect-ratio:1.6;max-height:94vh;background:linear-gradient(#4a4d50,#323437);border-radius:2vmin;padding:2.5%;box-sizing:border-box;display:flex;gap:3%;box-shadow:0 2vmin 4vmin rgba(0,0,0,.5)}
+.crt{position:relative;flex:1;background:#041008;border-radius:3%/5%;box-shadow:inset 0 0 4vmin #000;overflow:hidden}
+canvas{position:absolute;inset:0;width:100%;height:100%}
+.knobs{width:16%;display:flex;flex-direction:column;justify-content:space-around;align-items:center;color:#ccc;font-size:min(1.4vw,2vh);text-align:center}
+.knob{width:60%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 40% 35%,#666,#111);box-shadow:0 .4vmin .8vmin #000;position:relative;margin:0 auto .6vh}
+.knob::after{content:"";position:absolute;left:48%;top:8%;width:4%;height:30%;background:#eee}
+.info{color:#9aff9a;font-family:Consolas,monospace;font-size:min(1.3vw,1.8vh);line-height:1.6}
+</style></head><body>
+<div class="wrap"><div class="scope"><div class="crt"><canvas id="c"></canvas></div>
+<div class="knobs"><div><div class="knob" style="transform:rotate(-40deg)"></div>TIME/DIV</div><div><div class="knob" style="transform:rotate(25deg)"></div>VOLTS/DIV</div><div class="info" id="i"></div></div></div></div>
+<script>
+// digits as vector strokes on a 0..1 x 0..2 box (7-segment-like paths traced by the beam)
+const S={a:[[0,0],[1,0]],b:[[1,0],[1,1]],c:[[1,1],[1,2]],d:[[1,2],[0,2]],e:[[0,2],[0,1]],f:[[0,1],[0,0]],g:[[0,1],[1,1]]};
+const D={0:'abcdef',1:'bc',2:'abged',3:'abgcd',4:'fgbc',5:'afgcd',6:'afgedc',7:'abc',8:'abcdefg',9:'abcdfg'};
+const c=document.getElementById('c'),x=c.getContext('2d');let W,H;
+function size(){const b=c.getBoundingClientRect();W=c.width=b.width;H=c.height=b.height}addEventListener('resize',size);size();
+function path(str){const pts=[],cw=W/(str.length*1.55+1),ch=cw,ox=(W-(str.length*1.55-0.55)*cw)/2,oy=H*.42-ch;
+[...str].forEach((k,i)=>{const X=ox+i*1.55*cw;if(k===':'){[[.5,.6],[.5,1.4]].forEach(([a,b])=>{pts.push(null);for(let t=0;t<=12;t++){const an=t/12*Math.PI*2;pts.push([X+a*cw+Math.cos(an)*cw*.06,oy+b*ch+Math.sin(an)*cw*.06])}});return}
+for(const s of D[k]){const [[x1,y1],[x2,y2]]=S[s];pts.push(null);for(let t=0;t<=10;t++)pts.push([X+(x1+(x2-x1)*t/10)*cw,oy+(y1+(y2-y1)*t/10)*ch])}});return pts}
+let pts=[],last='',i=0;
+function grid(){x.strokeStyle='rgba(120,255,140,.12)';x.lineWidth=1;for(let k=1;k<10;k++){x.beginPath();x.moveTo(W*k/10,0);x.lineTo(W*k/10,H);x.stroke()}for(let k=1;k<8;k++){x.beginPath();x.moveTo(0,H*k/8);x.lineTo(W,H*k/8);x.stroke()}}
+function frame(t){const d=new Date(),p=n=>String(n).padStart(2,'0'),str=p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds());if(str!==last){pts=path(str);last=str}
+x.fillStyle='rgba(4,16,8,.22)';x.fillRect(0,0,W,H);grid();
+x.strokeStyle='#7dff8e';x.shadowColor='#3dff5e';x.shadowBlur=12;x.lineWidth=2.2;x.beginPath();
+// draw several hundred beam points per frame with slight noise
+let pen=false;for(let k=0;k<pts.length*.5;k++){const q=pts[i%pts.length];i++;if(!q){pen=false;continue}const nx=q[0]+(Math.random()-.5)*1.2,ny=q[1]+(Math.random()-.5)*1.2;if(!pen){x.moveTo(nx,ny);pen=true}else x.lineTo(nx,ny)}x.stroke();
+// date as a sine wave whose frequency is the day of month
+x.beginPath();x.lineWidth=1.6;const f=d.getDate(),amp=H*.05,base=H*.82;for(let X=0;X<=W;X+=2){const y=base+Math.sin(X/W*Math.PI*2*f/4+t/600)*amp*(.6+.4*Math.sin(t/900));X?x.lineTo(X,y):x.moveTo(X,y)}x.stroke();x.shadowBlur=0;
+x.fillStyle='rgba(125,255,142,.8)';x.font=`${Math.max(10,H*.04)}px Consolas`;x.fillText(d.toLocaleDateString('en-GB',{weekday:'short',day:'2-digit',month:'short',year:'numeric'}).toUpperCase(),W*.03,H*.07);
+x.fillText(`CH2  f = ${f}/4 Hz (day ${f})`,W*.03,H*.96);
+document.getElementById('i').innerHTML=`CH1 TIME<br>CH2 DATE<br>${p(d.getHours())}h ${p(d.getMinutes())}m`;requestAnimationFrame(frame)}
+requestAnimationFrame(frame);
+</script></body></html>

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Grandfather Clock</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:linear-gradient(#3b2a20,#1c130d);font-family:Georgia,serif;color:#e9d8b4}
+.wrap{height:100%;display:flex;align-items:center;justify-content:center;gap:5vw}
+.case{position:relative;height:94vh;width:calc(94vh*.36);max-width:44vw;display:flex;flex-direction:column;align-items:center}
+.hood{width:100%;aspect-ratio:1/1.05;background:linear-gradient(90deg,#4a2a14,#7a4a26 50%,#4a2a14);border-radius:50% 50% 4% 4%/30% 30% 4% 4%;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 2vh rgba(0,0,0,.6)}
+.hood svg{width:84%;height:84%}
+.trunk{position:relative;flex:1;width:78%;background:linear-gradient(90deg,#3e2210,#6b3e1e 50%,#3e2210);box-shadow:inset 0 0 2vh rgba(0,0,0,.7);overflow:hidden}
+.glass{position:absolute;inset:4% 12%;background:linear-gradient(110deg,rgba(255,255,255,.08),rgba(0,0,0,.4) 40%,rgba(255,255,255,.05));border:.4vh solid #a9803f;border-radius:40% 40% 2% 2%/10% 10% 2% 2%;overflow:hidden}
+.pend{position:absolute;left:50%;top:-2%;width:.6vh;height:80%;margin-left:-.3vh;background:linear-gradient(90deg,#8a6a2a,#e8c66a,#8a6a2a);transform-origin:50% 0}
+.bob{position:absolute;left:50%;bottom:-6vh;width:10vh;height:10vh;margin-left:-5vh;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff4c2,#d4a73c 40%,#7a5512);box-shadow:0 0 2vh rgba(0,0,0,.6)}
+.base{width:100%;height:5vh;background:linear-gradient(90deg,#3a1f0d,#6b3e1e,#3a1f0d);border-radius:.5vh}
+.side{max-width:40vw}
+.time{font-size:clamp(28px,min(8vw,12vh),120px);font-variant-numeric:tabular-nums}
+.date{font-size:clamp(13px,3vmin,30px);font-style:italic;opacity:.8;margin-top:1vh}
+@media (max-aspect-ratio:1/1){.wrap{flex-direction:column;gap:1vh}.case{height:76vh;width:calc(76vh*.36)}.side{text-align:center;max-width:90vw}.time{font-size:6vh}}
+</style></head><body>
+<div class="wrap"><div class="case">
+<div class="hood"><svg viewBox="-55 -55 110 110"><circle r="52" fill="#efe3c4" stroke="#b08a3a" stroke-width="3"/><g id="nm" font-size="9" text-anchor="middle" dominant-baseline="central" fill="#2b1e10"></g>
+<line id="h" y1="5" y2="-26" stroke="#1a120a" stroke-width="3" stroke-linecap="round"/><line id="m" y1="6" y2="-40" stroke="#1a120a" stroke-width="1.8" stroke-linecap="round"/><circle r="2.5" fill="#b08a3a"/></svg></div>
+<div class="trunk"><div class="glass"><div class="pend" id="p"><div class="bob"></div></div></div></div>
+<div class="base"></div></div>
+<div class="side"><div class="time" id="t"></div><div class="date" id="d"></div></div></div>
+<script>
+const NS="http://www.w3.org/2000/svg",R=['XII','I','II','III','IIII','V','VI','VII','VIII','IX','X','XI'],nm=document.getElementById('nm');
+R.forEach((r,i)=>{const a=i*Math.PI/6,t=document.createElementNS(NS,'text');t.setAttribute('x',Math.sin(a)*42);t.setAttribute('y',-Math.cos(a)*42);t.textContent=r;nm.appendChild(t)});
+function tick(){const d=new Date(),ms=d.getMilliseconds(),s=d.getSeconds()+ms/1000,m=d.getMinutes()+s/60,h=d.getHours()%12+m/60;
+// one swing per second
+document.getElementById('p').style.transform=`rotate(${Math.cos(s*Math.PI)*9}deg)`;
+document.getElementById('h').setAttribute('transform',`rotate(${h*30})`);document.getElementById('m').setAttribute('transform',`rotate(${m*6})`);
+document.getElementById('t').textContent=d.toLocaleTimeString();document.getElementById('d').textContent=d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'});requestAnimationFrame(tick)}
+tick();
+</script></body></html>
