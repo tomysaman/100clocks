@@ -2,33 +2,81 @@
 <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Skeleton Gears</title>
 <style>
-html,body{margin:0;height:100%;overflow:hidden;background:radial-gradient(#1b1611,#050403);color:#d9b26a;font-family:"Palatino Linotype",Palatino,serif}
-.wrap{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5vmin}
-canvas{width:min(88vw,80vh);height:min(88vw,80vh)}
-.date{font-size:clamp(13px,3vmin,30px);letter-spacing:.2em;font-style:italic;text-align:center}
+html,body{margin:0;height:100%;overflow:hidden;background:radial-gradient(ellipse at 50% 45%,#2a2420,#0c0a08 70%);font-family:"Palatino Linotype",Palatino,serif}
+canvas{position:fixed;inset:0;width:100%;height:100%}
+.cap{position:fixed;left:0;right:0;bottom:2.5vh;text-align:center;color:#cbb58a;font-size:clamp(12px,2.4vmin,24px);letter-spacing:.2em;font-style:italic}
 </style></head><body>
-<div class="wrap"><canvas id="c"></canvas><div class="date" id="d"></div></div>
+<canvas id="c"></canvas><div class="cap" id="cap"></div>
 <script>
-const c=document.getElementById('c'),x=c.getContext('2d'),D=document.getElementById('d');
-function size(){const r=c.getBoundingClientRect(),p=devicePixelRatio||1;c.width=r.width*p;c.height=r.height*p}
-addEventListener('resize',size);size();
-function gear(cx,cy,r,teeth,ang,col,spokes){x.save();x.translate(cx,cy);x.rotate(ang);x.fillStyle=col;x.beginPath();
-for(let i=0;i<teeth*2;i++){const a=i*Math.PI/teeth,rr=i%2?r:r*1.1;x.lineTo(Math.cos(a-.08)*rr,Math.sin(a-.08)*rr);x.lineTo(Math.cos(a+.08)*rr,Math.sin(a+.08)*rr)}
-x.closePath();x.arc(0,0,r*.78,0,Math.PI*2,true);x.fill('evenodd');
-for(let i=0;i<spokes;i++){x.save();x.rotate(i*2*Math.PI/spokes);x.fillRect(-r*.06,0,r*.12,r*.8);x.restore()}
-x.beginPath();x.arc(0,0,r*.15,0,7);x.fill();x.fillStyle='#7a1010';x.beginPath();x.arc(0,0,r*.06,0,7);x.fill();x.restore()}
-function hand(a,len,w,col){x.save();x.rotate(a);x.beginPath();x.moveTo(-w,len*.15);x.lineTo(0,-len);x.lineTo(w,len*.15);x.closePath();x.fillStyle=col;x.fill();x.restore()}
-function draw(){const d=new Date(),W=c.width,R=W/2,t=d.getTime()/1000%3600;x.clearRect(0,0,W,W);x.save();x.translate(R,R);
-x.strokeStyle='#b8893c';x.lineWidth=R*.03;x.beginPath();x.arc(0,0,R*.95,0,7);x.stroke();x.lineWidth=R*.006;x.beginPath();x.arc(0,0,R*.86,0,7);x.stroke();
-gear(-R*.32,-R*.25,R*.28,24,t*.4,'rgba(201,160,90,.85)',5);gear(R*.18,-R*.36,R*.18,16,-t*.6,'rgba(184,137,60,.8)',4);
-gear(R*.33,R*.2,R*.26,22,t*.43,'rgba(214,180,110,.75)',6);gear(-R*.2,R*.36,R*.2,18,-t*.53,'rgba(170,120,50,.85)',5);gear(0,0,R*.12,12,t*.9,'#e0c080',3);
-const bal=Math.sin(t*Math.PI*5)*1.2;x.save();x.translate(-R*.5,R*.08);x.rotate(bal);x.strokeStyle='#e8d29a';x.lineWidth=R*.01;x.beginPath();x.arc(0,0,R*.12,0,7);x.stroke();x.beginPath();x.moveTo(-R*.12,0);x.lineTo(R*.12,0);x.stroke();x.restore();
-x.fillStyle='#e6c88a';x.font=`${R*.11}px Palatino, serif`;x.textAlign='center';x.textBaseline='middle';
-['XII','III','VI','IX'].forEach((n,i)=>{const a=i*Math.PI/2;x.fillText(n,Math.sin(a)*R*.74,-Math.cos(a)*R*.74)});
-for(let i=0;i<60;i++){const a=i*Math.PI/30,l=i%5?.02:.05;x.strokeStyle='#d9b26a';x.lineWidth=i%5?R*.005:R*.012;x.beginPath();x.moveTo(Math.sin(a)*R*.9,-Math.cos(a)*R*.9);x.lineTo(Math.sin(a)*R*(.9-l),-Math.cos(a)*R*(.9-l));x.stroke()}
-const s=d.getSeconds()+d.getMilliseconds()/1000,m=d.getMinutes()+s/60,h=d.getHours()%12+m/60;
-x.shadowColor='rgba(0,0,0,.6)';x.shadowBlur=R*.03;hand(h*Math.PI/6,R*.5,R*.035,'#f2dca5');hand(m*Math.PI/30,R*.78,R*.025,'#f2dca5');hand(Math.floor(s*4)/4*Math.PI/30,R*.85,R*.008,'#c0392b');
-x.shadowBlur=0;x.fillStyle='#c0392b';x.beginPath();x.arc(0,0,R*.025,0,7);x.fill();x.restore();
-D.textContent=d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'});requestAnimationFrame(draw)}
+// Skeletonised mechanical watch: anthracite bridges with polished bevels, brass gear train, ruby jewels, blued screws,
+// a balance wheel with a breathing hairspring and an escape wheel that steps 6 times per second.
+const c=document.getElementById('c'),x=c.getContext('2d');let W,H,P;
+function size(){P=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;c.width=W*P;c.height=H*P;x.setTransform(P,0,0,P,0,0)}addEventListener('resize',size);size();
+const TAU=Math.PI*2;
+function brass(r){const g=x.createRadialGradient(-r*.3,-r*.3,r*.1,0,0,r*1.1);g.addColorStop(0,'#fbe7a6');g.addColorStop(.5,'#d4a94e');g.addColorStop(1,'#8a6420');return g}
+function gear(cx,cy,r,teeth,ang,spokes,col){x.save();x.translate(cx,cy);x.rotate(ang);const th=r*.09;
+x.beginPath();for(let i=0;i<teeth;i++){const a0=i/teeth*TAU,a1=(i+.5)/teeth*TAU,w=.5/teeth*TAU*.45;x.lineTo(Math.cos(a0-w)*r,Math.sin(a0-w)*r);x.lineTo(Math.cos(a0-w*.5)*(r+th),Math.sin(a0-w*.5)*(r+th));x.lineTo(Math.cos(a0+w*.5)*(r+th),Math.sin(a0+w*.5)*(r+th));x.lineTo(Math.cos(a0+w)*r,Math.sin(a0+w)*r);x.lineTo(Math.cos(a1)*r*.985,Math.sin(a1)*r*.985)}
+x.closePath();x.arc(0,0,r*.8,0,TAU,true);x.fillStyle=col||brass(r);x.fill('evenodd');
+// curved spokes and hub
+x.fillStyle=col||brass(r);for(let i=0;i<spokes;i++){x.save();x.rotate(i/spokes*TAU);x.beginPath();x.moveTo(r*.14,-r*.06);x.quadraticCurveTo(r*.5,-r*.18,r*.82,-r*.04);x.lineTo(r*.82,r*.08);x.quadraticCurveTo(r*.5,-r*.04,r*.14,r*.06);x.fill();x.restore()}
+x.beginPath();x.arc(0,0,r*.2,0,TAU);x.fill();x.strokeStyle='rgba(90,60,10,.6)';x.lineWidth=Math.max(.6,r*.015);x.beginPath();x.arc(0,0,r*.8,0,TAU);x.stroke();
+// sunburst finish on the rim
+x.strokeStyle='rgba(255,255,255,.12)';x.lineWidth=.6;for(let i=0;i<teeth;i+=2){const a=i/teeth*TAU;x.beginPath();x.moveTo(Math.cos(a)*r*.82,Math.sin(a)*r*.82);x.lineTo(Math.cos(a)*r*.97,Math.sin(a)*r*.97);x.stroke()}
+x.restore()}
+function jewel(px,py,r){const g=x.createRadialGradient(px-r*.3,py-r*.3,0,px,py,r);g.addColorStop(0,'#ffb0b8');g.addColorStop(.4,'#d0102a');g.addColorStop(1,'#5a0010');x.fillStyle='#c9ced4';x.beginPath();x.arc(px,py,r*1.6,0,TAU);x.fill();x.fillStyle=g;x.beginPath();x.arc(px,py,r,0,TAU);x.fill();x.fillStyle='#222';x.beginPath();x.arc(px,py,r*.25,0,TAU);x.fill()}
+function screw(px,py,r,a){const g=x.createRadialGradient(px-r*.3,py-r*.3,0,px,py,r);g.addColorStop(0,'#8fb0ff');g.addColorStop(.6,'#1f3fa8');g.addColorStop(1,'#0a1a50');x.fillStyle=g;x.beginPath();x.arc(px,py,r,0,TAU);x.fill();
+x.strokeStyle='#061030';x.lineWidth=r*.28;x.beginPath();x.moveTo(px+Math.cos(a)*r*.8,py+Math.sin(a)*r*.8);x.lineTo(px-Math.cos(a)*r*.8,py-Math.sin(a)*r*.8);x.stroke()}
+function bridge(path,R){x.save();const g=x.createLinearGradient(-R,-R,R,R);g.addColorStop(0,'#55585e');g.addColorStop(.5,'#2e3034');g.addColorStop(1,'#43464c');x.fillStyle=g;x.shadowColor='rgba(0,0,0,.7)';x.shadowBlur=R*.04;x.shadowOffsetY=R*.015;path();x.fill();x.shadowColor='transparent';
+// Côtes de Genève stripes clipped to the bridge
+x.save();path();x.clip();x.strokeStyle='rgba(255,255,255,.05)';x.lineWidth=R*.03;for(let k=-R*2;k<R*2;k+=R*.07){x.beginPath();x.moveTo(k,-R);x.lineTo(k+R*.6,R);x.stroke()}x.restore();
+// polished bevel
+x.strokeStyle='rgba(235,240,248,.75)';x.lineWidth=Math.max(1,R*.007);path();x.stroke();x.restore()}
+function hand(len,w,ang,col){x.save();x.rotate(ang);x.fillStyle=col;x.strokeStyle=col;x.lineWidth=w*.5;x.beginPath();x.moveTo(-w,len*.12);x.lineTo(-w*.7,-len*.75);x.lineTo(0,-len);x.lineTo(w*.7,-len*.75);x.lineTo(w,len*.12);x.closePath();x.fill();
+x.fillStyle='rgba(10,10,12,.92)';x.beginPath();x.moveTo(-w*.45,-len*.1);x.lineTo(-w*.35,-len*.7);x.lineTo(0,-len*.86);x.lineTo(w*.35,-len*.7);x.lineTo(w*.45,-len*.1);x.closePath();x.fill();x.restore()}
+function draw(){const d=new Date(),ms=d.getMilliseconds(),sec=d.getSeconds()+ms/1000,m=d.getMinutes()+sec/60,h=d.getHours()%12+m/60,t=performance.now()/1000;
+const R=Math.min(W*.42,H*.39),cx=W/2,cy=H*.47;x.clearRect(0,0,W,H);x.save();x.translate(cx,cy);
+// case and crown
+x.save();x.shadowColor='rgba(0,0,0,.8)';x.shadowBlur=R*.08;x.shadowOffsetY=R*.04;const cg=x.createLinearGradient(-R,-R,R,R);cg.addColorStop(0,'#f2f3f5');cg.addColorStop(.3,'#8d929a');cg.addColorStop(.55,'#e4e7ea');cg.addColorStop(.8,'#5c6168');cg.addColorStop(1,'#b8bcc2');
+x.fillStyle=cg;x.fillRect(R*1.02,-R*.09,R*.12,R*.18);x.beginPath();x.arc(0,0,R*1.08,0,TAU);x.fill();x.restore();
+x.fillStyle='#0b0b0d';x.beginPath();x.arc(0,0,R*.99,0,TAU);x.fill();
+// dark mainplate seen through the openings, with perlage
+x.save();x.beginPath();x.arc(0,0,R*.96,0,TAU);x.clip();x.fillStyle='#1a1b1e';x.fill();
+for(let i=0;i<220;i++){const a=i*2.399,rr=R*.95*Math.sqrt(i/220);const g=x.createRadialGradient(Math.cos(a)*rr,Math.sin(a)*rr,0,Math.cos(a)*rr,Math.sin(a)*rr,R*.06);g.addColorStop(0,'rgba(255,255,255,.07)');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.beginPath();x.arc(Math.cos(a)*rr,Math.sin(a)*rr,R*.06,0,TAU);x.fill()}
+// gear train: barrel → centre wheel → third → fourth → escape
+const step=Math.floor(t*6)/6;// the train advances in beats
+const barrel=[-R*.42,-R*.32,R*.36],centre=[0,0,R*.3],third=[R*.36,-R*.2,R*.2],fourth=[R*.28,R*.3,R*.22],esc=[-R*.08,R*.5,R*.13];
+gear(barrel[0],barrel[1],barrel[2],72,-step*.004,6);
+// ratchet wheel on top of the barrel
+gear(barrel[0],barrel[1],barrel[2]*.55,40,step*.01,0,'#c9ced4');
+gear(centre[0],centre[1],centre[2],64,m/60*TAU,5);gear(third[0],third[1],third[2],48,-step*.3,4);gear(fourth[0],fourth[1],fourth[2],50,sec/60*TAU,5);gear(esc[0],esc[1],esc[2],15,-step*1.4,3,'#c9ced4');
+x.restore();
+// bridges over the train
+bridge(()=>{x.beginPath();x.moveTo(-R*.9,-R*.2);x.quadraticCurveTo(-R*.6,-R*.75,-R*.1,-R*.72);x.lineTo(-R*.02,-R*.6);x.quadraticCurveTo(-R*.4,-R*.55,-R*.55,-R*.12);x.quadraticCurveTo(-R*.7,R*.05,-R*.9,-R*.2);x.closePath()},R);
+bridge(()=>{x.beginPath();x.moveTo(R*.1,-R*.12);x.quadraticCurveTo(R*.45,-R*.55,R*.8,-R*.3);x.lineTo(R*.82,-R*.18);x.quadraticCurveTo(R*.6,-R*.2,R*.42,R*.1);x.quadraticCurveTo(R*.36,R*.42,R*.2,R*.46);x.lineTo(R*.1,R*.36);x.quadraticCurveTo(R*.26,R*.2,R*.1,-R*.12);x.closePath()},R);
+// balance cock and balance wheel
+const BX=-R*.42,BY=R*.38,BR=R*.2,osc=Math.sin(t*Math.PI*2*3)*2.3;
+bridge(()=>{x.beginPath();x.moveTo(-R*.9,R*.4);x.quadraticCurveTo(-R*.7,R*.2,BX,BY-R*.04);x.lineTo(BX+R*.04,BY+R*.05);x.quadraticCurveTo(-R*.68,R*.42,-R*.86,R*.56);x.closePath()},R);
+x.save();x.translate(BX,BY);x.rotate(osc);x.strokeStyle='#d8b062';x.lineWidth=R*.02;x.beginPath();x.arc(0,0,BR,0,TAU);x.stroke();for(let i=0;i<3;i++){x.save();x.rotate(i*TAU/3);x.beginPath();x.moveTo(0,0);x.lineTo(BR,0);x.lineWidth=R*.012;x.stroke();x.restore()}
+for(let i=0;i<8;i++){const a=i*TAU/8;x.fillStyle='#f0d68a';x.beginPath();x.arc(Math.cos(a)*BR,Math.sin(a)*BR,R*.014,0,TAU);x.fill()}x.restore();
+// hairspring breathing with the balance
+x.strokeStyle='rgba(30,60,160,.85)';x.lineWidth=Math.max(.7,R*.004);x.beginPath();for(let a=0;a<TAU*9;a+=.12){const rr=R*.012+a*R*.0024*(1+.04*Math.sin(osc)),aa=a+osc*.15;x.lineTo(BX+Math.cos(aa)*rr,BY+Math.sin(aa)*rr)}x.stroke();
+// pallet fork flicks with each beat
+const fork=Math.sign(Math.sin(t*Math.PI*6))*.18;x.save();x.translate(-R*.2,R*.46);x.rotate(fork-.4);x.fillStyle='#b8bec6';x.fillRect(-R*.01,-R*.02,R*.18,R*.03);x.restore();
+// jewels and screws
+[[barrel[0],barrel[1]],[third[0],third[1]],[fourth[0],fourth[1]],[esc[0],esc[1]],[BX,BY],[-R*.2,R*.46],[R*.6,-R*.26]].forEach(([a,b])=>jewel(a,b,R*.022));
+[[-R*.8,-R*.2],[-R*.15,-R*.66],[R*.72,-R*.28],[R*.18,R*.4],[-R*.8,R*.5],[-R*.6,-R*.42]].forEach(([a,b],i)=>screw(a,b,R*.03,i));
+// chapter ring with Roman numerals
+x.save();x.strokeStyle='rgba(230,215,180,.85)';x.lineWidth=R*.004;x.beginPath();x.arc(0,0,R*.94,0,TAU);x.stroke();x.beginPath();x.arc(0,0,R*.86,0,TAU);x.stroke();
+for(let i=0;i<60;i++){const a=i/60*TAU;x.lineWidth=i%5?R*.004:R*.012;x.beginPath();x.moveTo(Math.sin(a)*R*.94,-Math.cos(a)*R*.94);x.lineTo(Math.sin(a)*R*(i%5?.915:.89),-Math.cos(a)*R*(i%5?.915:.89));x.stroke()}
+x.fillStyle='#ecdcb2';x.font=`${R*.085}px "Palatino Linotype",serif`;x.textAlign='center';x.textBaseline='middle';
+['XII','I','II','III','IIII','V','VI','VII','VIII','IX','X','XI'].forEach((n,i)=>{const a=i/12*TAU;x.save();x.translate(Math.sin(a)*R*.77,-Math.cos(a)*R*.77);x.rotate(a);x.shadowColor='#000';x.shadowBlur=4;x.fillText(n,0,0);x.restore()});x.restore();
+// hands (open-worked, polished gold) and a blued seconds hand
+x.shadowColor='rgba(0,0,0,.7)';x.shadowBlur=R*.03;x.shadowOffsetX=R*.01;x.shadowOffsetY=R*.02;
+hand(R*.5,R*.035,h/12*TAU,'#e8cf8a');hand(R*.78,R*.026,m/60*TAU,'#e8cf8a');
+x.save();x.rotate(Math.floor(sec*6)/6/60*TAU);x.fillStyle='#2a4ab8';x.fillRect(-R*.004,-R*.86,R*.008,R*1.02);x.beginPath();x.arc(0,R*.13,R*.025,0,TAU);x.fill();x.restore();
+x.shadowColor='transparent';x.fillStyle='#e8cf8a';x.beginPath();x.arc(0,0,R*.03,0,TAU);x.fill();jewel(0,0,R*.012);
+// sapphire crystal glare
+const gl=x.createLinearGradient(-R,-R,R,R);gl.addColorStop(0,'rgba(255,255,255,.14)');gl.addColorStop(.4,'rgba(255,255,255,.02)');gl.addColorStop(.6,'rgba(255,255,255,0)');x.fillStyle=gl;x.beginPath();x.arc(0,0,R*.99,0,TAU);x.fill();
+x.restore();document.getElementById('cap').textContent=d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'})+' · '+d.toLocaleTimeString();requestAnimationFrame(draw)}
 draw();
 </script></body></html>

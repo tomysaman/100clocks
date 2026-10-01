@@ -2,43 +2,67 @@
 <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>VU Meters</title>
 <style>
-html,body{margin:0;height:100%;overflow:hidden;background:#1a1410;font-family:"Futura","Century Gothic",Arial,sans-serif}
-.wrap{height:100%;display:flex;align-items:center;justify-content:center}
-.amp{width:min(94vw,160vh);background:linear-gradient(#5a3a1e,#3a2410);padding:2vmin;border-radius:1.4vmin;box-shadow:0 2vmin 5vmin #000;box-sizing:border-box}
-.face{background:linear-gradient(#1b1b1d,#0d0d0e);border-radius:1vmin;padding:2.5vmin;display:flex;flex-direction:column;gap:2vmin}
-.meters{display:flex;gap:2.5vmin}
-.m{flex:1;aspect-ratio:1.7;background:radial-gradient(ellipse at 50% 100%,#ffe9a8,#f2c768 70%,#c8963a);border-radius:.6vmin;position:relative;overflow:hidden;box-shadow:inset 0 0 2vmin rgba(0,0,0,.5)}
-.m svg{position:absolute;inset:0;width:100%;height:100%}
-.leds{display:flex;gap:.6vmin;align-items:center}
-.leds span{color:#999;font-size:clamp(9px,1.6vmin,16px);letter-spacing:.2em;margin-right:1vmin;white-space:nowrap}
-.leds i{flex:1;height:1.4vmin;border-radius:.3vmin;background:#222}
-.leds i.g{background:#3aff6a;box-shadow:0 0 .8vmin #3aff6a}.leds i.y{background:#ffd03a;box-shadow:0 0 .8vmin #ffd03a}.leds i.r{background:#ff3a3a;box-shadow:0 0 .8vmin #ff3a3a}
-.bot{display:flex;justify-content:space-between;align-items:center;color:#d9c39a;font-size:clamp(11px,2.2vmin,22px);letter-spacing:.15em}
-.bot b{font-size:1.6em;font-weight:normal;color:#fff3d0}
-@media (max-aspect-ratio:1/1){.meters{flex-direction:column}}
+html,body{margin:0;height:100%;overflow:hidden;background:radial-gradient(ellipse at 50% 40%,#2a2420,#0a0807 75%);font-family:"Futura","Century Gothic","Segoe UI",sans-serif}
+svg{position:fixed;inset:0;width:100%;height:100%}
 </style></head><body>
-<div class="wrap"><div class="amp"><div class="face">
-<div class="meters"><div class="m" id="mh"></div><div class="m" id="mm"></div></div>
-<div class="leds" id="leds"><span>SEC</span></div>
-<div class="bot"><span id="d"></span><b id="t"></b><span>STEREO · TIME</span></div>
-</div></div></div>
+<svg viewBox="0 0 1200 520" preserveAspectRatio="xMidYMid meet">
+<defs>
+<filter id="brushed" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".9 .005" numOctaves="2" seed="3" result="t"/><feColorMatrix in="t" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .22 0" result="g"/><feComposite in="g" in2="SourceGraphic" operator="in" result="gc"/><feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="gc"/></feMerge></filter>
+<linearGradient id="alu" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e6e8ea"/><stop offset=".5" stop-color="#c4c7cb"/><stop offset="1" stop-color="#9da1a7"/></linearGradient>
+<linearGradient id="walnut" x1="0" x2="1"><stop offset="0" stop-color="#3a1e0c"/><stop offset=".5" stop-color="#6a3a1a"/><stop offset="1" stop-color="#3a1e0c"/></linearGradient>
+<radialGradient id="meter" cx="50%" cy="85%" r="90%"><stop offset="0" stop-color="#fff2c4"/><stop offset=".55" stop-color="#f6d27e"/><stop offset="1" stop-color="#c88a2a"/></radialGradient>
+<linearGradient id="glass" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".35"/><stop offset=".25" stop-color="#fff" stop-opacity=".05"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+<radialGradient id="knob" cx="40%" cy="32%"><stop offset="0" stop-color="#f6f7f8"/><stop offset=".55" stop-color="#b0b4ba"/><stop offset="1" stop-color="#5a5e66"/></radialGradient>
+<filter id="ds" x="-5%" y="-10%" width="110%" height="130%"><feDropShadow dx="0" dy="14" stdDeviation="14" flood-color="#000" flood-opacity=".65"/></filter>
+<filter id="ns" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="3" dy="4" stdDeviation="2" flood-color="#5a3a10" flood-opacity=".55"/></filter>
+<filter id="ks" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="2" dy="4" stdDeviation="3" flood-color="#000" flood-opacity=".55"/></filter>
+<filter id="glow"><feGaussianBlur stdDeviation="3"/></filter>
+</defs>
+<g filter="url(#ds)">
+<rect x="30" y="60" width="1140" height="400" rx="10" fill="url(#walnut)"/>
+<rect x="60" y="80" width="1080" height="360" rx="6" fill="url(#alu)" filter="url(#brushed)"/>
+</g>
+<rect x="60" y="80" width="1080" height="2" fill="#fff" opacity=".7"/>
+<text x="90" y="118" font-size="20" fill="#2a2a2e" letter-spacing="6" font-weight="bold">CHRONOTONE</text>
+<text x="90" y="136" font-size="10" fill="#4a4a50" letter-spacing="2">STEREO INTEGRATED AMPLIFIER · TA-2400</text>
+<g id="m1" transform="translate(110 156)"></g><g id="m2" transform="translate(620 156)"></g>
+<g id="ctrl" font-size="10" fill="#2a2a2e" text-anchor="middle" letter-spacing="1"></g>
+<text id="date" x="600" y="500" text-anchor="middle" font-size="18" fill="#d8c69a" letter-spacing="3"></text>
+</svg>
 <script>
-function meter(el,label,max,step,red){let s='<svg viewBox="0 0 170 100">';const cx=85,cy=118,R=95;
-for(let v=0;v<=max;v+=step/2){const f=v/max,a=(-50+100*f)*Math.PI/180,big=v%step===0,r1=R-(big?10:5),col=v>=red?'#c0201a':'#222';
-s+=`<line x1="${cx+Math.sin(a)*R}" y1="${cy-Math.cos(a)*R}" x2="${cx+Math.sin(a)*r1}" y2="${cy-Math.cos(a)*r1}" stroke="${col}" stroke-width="${big?1.4:.7}"/>`;
-if(big)s+=`<text x="${cx+Math.sin(a)*(R-17)}" y="${cy-Math.cos(a)*(R-17)+3}" font-size="8" text-anchor="middle" fill="${col}" font-family="Arial">${v}</text>`}
-const a1=-50*Math.PI/180,ar=(-50+100*red/max)*Math.PI/180,a2=50*Math.PI/180;
-s+=`<path d="M${cx+Math.sin(ar)*(R+3)} ${cy-Math.cos(ar)*(R+3)} A${R+3} ${R+3} 0 0 1 ${cx+Math.sin(a2)*(R+3)} ${cy-Math.cos(a2)*(R+3)}" stroke="#c0201a" stroke-width="3" fill="none"/>`;
-s+=`<text x="85" y="78" font-size="11" text-anchor="middle" fill="#3a2a10" letter-spacing="3" font-family="Arial">${label}</text><g class="n"><line x1="85" y1="118" x2="85" y2="20" stroke="#111" stroke-width="1.2"/></g><rect x="0" y="92" width="170" height="10" fill="#2a1a0a"/></svg>`;el.innerHTML=s;return el.querySelector('.n')}
-const NH=meter(document.getElementById('mh'),'HOURS',24,2,20),NM=meter(document.getElementById('mm'),'MINUTES',60,10,50);
-const leds=document.getElementById('leds');for(let i=0;i<30;i++)leds.appendChild(document.createElement('i'));const L=[...leds.querySelectorAll('i')];
+const NS="http://www.w3.org/2000/svg",$=id=>document.getElementById(id);
+const el=(t,a,p)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);p.appendChild(e);return e};
+function meter(g,label,max,step,red,unit){const w=470,h=200,cx=w/2,cy=h+70,R=230;
+el('rect',{x:-8,y:-8,width:w+16,height:h+16,rx:8,fill:'#1a1a1c'},g);el('rect',{width:w,height:h,rx:4,fill:'url(#meter)'},g);
+el('rect',{width:w,height:h,rx:4,fill:'#ffb040',opacity:.15,filter:'url(#glow)'},g);
+const a0=-48,a1=48,ang=v=>(a0+(a1-a0)*v/max)*Math.PI/180;
+for(let v=0;v<=max;v+=step/4){const a=ang(v),big=Math.abs(v%step)<1e-6,col=v>=red?'#b8201a':'#2a1a08',r1=R-(big?16:8);
+el('line',{x1:cx+Math.sin(a)*R,y1:cy-Math.cos(a)*R,x2:cx+Math.sin(a)*r1,y2:cy-Math.cos(a)*r1,stroke:col,'stroke-width':big?2:.8},g);
+if(big)el('text',{x:cx+Math.sin(a)*(R+16),y:cy-Math.cos(a)*(R+16)+5,'text-anchor':'middle','font-size':14,fill:col},g).textContent=v}
+const ar=ang(red),ae=ang(max);el('path',{d:`M${cx+Math.sin(ar)*(R-22)} ${cy-Math.cos(ar)*(R-22)} A${R-22} ${R-22} 0 0 1 ${cx+Math.sin(ae)*(R-22)} ${cy-Math.cos(ae)*(R-22)}`,fill:'none',stroke:'#b8201a','stroke-width':5},g);
+el('path',{d:`M${cx+Math.sin(ang(0))*(R-22)} ${cy-Math.cos(ang(0))*(R-22)} A${R-22} ${R-22} 0 0 1 ${cx+Math.sin(ar)*(R-22)} ${cy-Math.cos(ar)*(R-22)}`,fill:'none',stroke:'#2a1a08','stroke-width':1.5},g);
+el('text',{x:cx,y:h-62,'text-anchor':'middle','font-size':32,fill:'#2a1a08','font-weight':'bold','letter-spacing':4},g).textContent='VU';
+el('text',{x:cx,y:h-36,'text-anchor':'middle','font-size':13,fill:'#4a3010','letter-spacing':3},g).textContent=label;
+const val=el('text',{x:w-18,y:h-14,'text-anchor':'end','font-size':20,fill:'#4a3010','font-family':'Consolas,monospace'},g);
+el('text',{x:18,y:h-14,'font-size':11,fill:'#4a3010'},g).textContent=unit;
+const cid='mc'+Math.random().toString(36).slice(2,7),cp=el('clipPath',{id:cid},document.querySelector('defs'));el('rect',{width:w,height:h},cp);const n=el('g',{},el('g',{'clip-path':`url(#${cid})`},g));el('line',{x1:cx+4,y1:cy+5,x2:cx+5,y2:cy-R+9,stroke:'rgba(90,58,16,.4)','stroke-width':3},n);el('line',{x1:cx,y1:cy,x2:cx,y2:cy-R+4,stroke:'#111','stroke-width':2.2},n);
+el('rect',{x:cx-40,y:h-14,width:80,height:14,fill:'#1a1a1c'},g);el('rect',{x:-8,y:h,width:w+16,height:8,fill:'#1a1a1c'},g);
+el('rect',{width:w,height:h,rx:4,fill:'url(#glass)'},g);
+const led=el('circle',{cx:w-20,cy:20,r:6,fill:'#5a1010'},g);el('text',{x:w-34,y:24,'text-anchor':'end','font-size':10,fill:'#4a3010'},g).textContent='PEAK';
+return {n,val,led,cx,cy,ang}}
+const A=meter($('m1'),'LEFT · HOURS',24,4,20,'h'),B=meter($('m2'),'RIGHT · MINUTES',60,10,50,'min');
+const C=$('ctrl');[['VOLUME',180],['BASS',380],['TREBLE',580],['BALANCE',780],['INPUT',980]].forEach(([t,x0],i)=>{const g=el('g',{transform:`translate(${x0} 404)`},C);
+for(let k=0;k<11;k++){const a=(-135+k*27)*Math.PI/180;el('line',{x1:Math.sin(a)*24,y1:-Math.cos(a)*24,x2:Math.sin(a)*28,y2:-Math.cos(a)*28,stroke:'#2a2a2e'},g)}
+const kg=el('g',{filter:'url(#ks)',transform:`rotate(${-90+i*45})`},g);el('circle',{r:20,fill:'url(#knob)'},kg);for(let k=0;k<30;k++)el('line',{y1:-20,y2:-17,stroke:'rgba(0,0,0,.3)',transform:`rotate(${k*12})`},kg);el('line',{y1:-16,y2:-6,stroke:'#222','stroke-width':2.4},kg);
+el('text',{x:0,y:-32},g).textContent=t});
+el('rect',{x:1060,y:388,width:40,height:24,rx:3,fill:'#2a2a2e',filter:'url(#ks)'},C);el('text',{x:1080,y:380},C).textContent='POWER';el('circle',{cx:1080,cy:426,r:4,fill:'#ff4a2a',filter:'url(#glow)'},C);el('circle',{cx:1080,cy:426,r:2.5,fill:'#ffb090'},C);
 let vh=0,vm=0;
-function tick(){const d=new Date(),s=d.getSeconds()+d.getMilliseconds()/1000,m=d.getMinutes()+s/60,h=d.getHours()+m/60;
-// needles ease toward target with a little jitter, like a real VU ballistic
-const jit=Math.sin(Date.now()/90)*.15+Math.sin(Date.now()/37)*.1;vh+=(h-vh)*.08;vm+=(m-vm)*.08;
-NH.setAttribute('transform',`rotate(${-50+100*vh/24+jit} 85 118)`);NM.setAttribute('transform',`rotate(${-50+100*vm/60+jit*1.4} 85 118)`);
-const n=Math.round(s/60*30);L.forEach((e,i)=>e.className=i<n?(i<20?'g':i<26?'y':'r'):'');
-const p=x=>String(x).padStart(2,'0');document.getElementById('t').textContent=p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds());
-document.getElementById('d').textContent=d.toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short',year:'numeric'}).toUpperCase();requestAnimationFrame(tick)}
+function tick(){const d=new Date(),s=d.getSeconds()+d.getMilliseconds()/1000,m=d.getMinutes()+s/60,h=d.getHours()+m/60,now=Date.now();
+const jit=Math.sin(now/90)*.18+Math.sin(now/37)*.12+Math.sin(now/13)*.06;vh+=(h-vh)*.08;vm+=(m-vm)*.08;
+const rot=(M,v,max)=>M.n.setAttribute('transform',`rotate(${M.ang(Math.max(0,Math.min(max,v)))*180/Math.PI} ${M.cx} ${M.cy})`);
+rot(A,vh+jit*.25,24);rot(B,vm+jit*.6,60);
+const p=n=>String(n).padStart(2,'0');A.val.textContent=p(d.getHours());B.val.textContent=p(d.getMinutes());
+A.led.setAttribute('fill',d.getHours()>=20?'#ff3020':'#5a1010');B.led.setAttribute('fill',d.getMinutes()>=50||d.getMilliseconds()<120?'#ff3020':'#5a1010');
+$('date').textContent=d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'}).toUpperCase()+' · '+d.toLocaleTimeString();requestAnimationFrame(tick)}
 tick();
 </script></body></html>

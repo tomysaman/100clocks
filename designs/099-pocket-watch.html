@@ -2,43 +2,113 @@
 <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Pocket Watch</title>
 <style>
-html,body{margin:0;height:100%;overflow:hidden;background:radial-gradient(ellipse at 50% 40%,#5b1e1e,#250a0a);font-family:"Palatino Linotype",Palatino,serif;color:#e9d7a6}
-.wrap{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2vh}
-.watch{position:relative;width:min(42vw,56vh);aspect-ratio:1;perspective:200vmin;cursor:pointer;margin-top:calc(min(42vw,56vh)*.24);transition:transform 1.4s cubic-bezier(.5,0,.2,1)}
-.watch.open{transform:translateX(48%)}
-.crown{position:absolute;left:50%;top:-9%;width:12%;height:10%;margin-left:-6%;background:repeating-linear-gradient(90deg,#c9a54a 0 3px,#8a6a20 3px 5px);border-radius:30% 30% 10% 10%}
-.bow{position:absolute;left:50%;top:-22%;width:26%;height:16%;margin-left:-13%;border:1.4vmin solid #c9a54a;border-bottom:none;border-radius:50% 50% 0 0;box-sizing:border-box}
-.chain{position:absolute;left:50%;top:-22%;width:2px;height:22%;}
-.body{position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff1b8,#d9b04f 35%,#8a6418 80%);box-shadow:0 2vmin 4vmin rgba(0,0,0,.6)}
-.face{position:absolute;inset:7%;border-radius:50%;background:radial-gradient(#fffaf0,#efe3c8);box-shadow:inset 0 0 2vmin rgba(0,0,0,.3)}
-.face svg{width:100%;height:100%}
-.lid{position:absolute;inset:0;border-radius:50%;transform-origin:0% 50%;transition:transform 1.4s cubic-bezier(.5,0,.2,1);transform-style:preserve-3d;z-index:3}
-.lid .out,.lid .in{position:absolute;inset:0;border-radius:50%;backface-visibility:hidden}
-.lid .out{background:radial-gradient(circle at 35% 30%,#fff1b8,#d9b04f 35%,#8a6418 80%);display:flex;align-items:center;justify-content:center}
-.lid .out::after{content:"";width:70%;height:70%;border-radius:50%;background:repeating-conic-gradient(from 0deg,rgba(255,255,255,.18) 0 4deg,rgba(0,0,0,.1) 4deg 8deg);box-shadow:inset 0 0 0 .6vmin rgba(120,80,10,.6)}
-.lid .in{background:radial-gradient(#e6c76a,#9a7420);transform:rotateY(180deg);display:flex;align-items:center;justify-content:center;font-style:italic;color:#5a3d0a;font-size:min(2.2vw,2.8vh);text-align:center}
-.watch.open .lid{transform:rotateY(-160deg)}
-.cap{font-size:clamp(13px,3vmin,30px);font-style:italic;text-align:center}
-.hint{font-size:clamp(10px,1.8vmin,18px);opacity:.6}
+html,body{margin:0;height:100%;overflow:hidden;font-family:"Palatino Linotype",Palatino,Georgia,serif;color:#e8d9b8}
+body{background:radial-gradient(ellipse at 45% 40%,#4a3424 0%,#2a1c12 55%,#120b06 100%)}
+body::before{content:"";position:fixed;inset:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.012 .35' numOctaves='3' seed='4'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='.18'/%3E%3C/svg%3E");mix-blend-mode:overlay;pointer-events:none}
+.wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+svg{width:100%;height:100%;display:block}
+.ctl{position:fixed;right:14px;bottom:12px;display:flex;gap:6px;z-index:2}
+.ctl button{font:12px system-ui;padding:5px 10px;border-radius:14px;border:1px solid rgba(232,217,184,.35);background:rgba(0,0,0,.25);color:#e8d9b8;cursor:pointer}
+.ctl button.on{background:#e8d9b8;color:#2a1c12}
 </style></head><body>
-<div class="wrap"><div class="watch" id="w"><div class="bow"></div><div class="crown"></div><div class="body"></div>
-<div class="face"><svg viewBox="-100 -100 200 200"><g id="tk"></g><g id="nm" font-size="17" text-anchor="middle" dominant-baseline="central" fill="#2b2110" font-family="Palatino Linotype,serif"></g>
-<g transform="translate(0 45)"><circle r="20" fill="none" stroke="#7a6a4a" stroke-width=".6"/><g id="sst"></g><line id="ss" y1="3" y2="-17" stroke="#2b2110" stroke-width="1"/></g>
-<path id="H" d="M-3 8 L0 -46 L3 8Z" fill="#1b2a5a"/><path id="M" d="M-2 10 L0 -70 L2 10Z" fill="#1b2a5a"/><circle r="3" fill="#1b2a5a"/></svg></div>
-<div class="lid"><div class="out"></div><div class="in" id="eng"></div></div></div>
-<div class="cap" id="c"></div><div class="hint">click the watch to open or close the lid</div></div>
+<div class="wrap"><svg id="s" viewBox="-200 -215 400 430" preserveAspectRatio="xMidYMid meet">
+<defs>
+<!-- metal: swapped between gold and silver -->
+<linearGradient id="m1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" class="ma"/><stop offset=".35" class="mb"/><stop offset=".55" class="mc"/><stop offset=".8" class="mb"/><stop offset="1" class="md"/></linearGradient>
+<linearGradient id="m2" x1="1" y1="0" x2="0" y2="1"><stop offset="0" class="mc"/><stop offset=".5" class="md"/><stop offset="1" class="mb"/></linearGradient>
+<radialGradient id="m3" cx="35%" cy="30%" r="80%"><stop offset="0" class="ma"/><stop offset=".45" class="mb"/><stop offset="1" class="md"/></radialGradient>
+<linearGradient id="knurl" x1="0" x2="1"><stop offset="0" class="md"/><stop offset=".5" class="ma"/><stop offset="1" class="md"/></linearGradient>
+<radialGradient id="enamel" cx="45%" cy="38%" r="75%"><stop offset="0" stop-color="#fffdf7"/><stop offset=".7" stop-color="#f5efe1"/><stop offset="1" stop-color="#e6dcc6"/></radialGradient>
+<radialGradient id="sub" cx="50%" cy="40%"><stop offset="0" stop-color="#f3ecdc"/><stop offset="1" stop-color="#e2d7bf"/></radialGradient>
+<linearGradient id="blue" x1="0" x2="1"><stop offset="0" stop-color="#0b1e5c"/><stop offset=".45" stop-color="#3653b8"/><stop offset=".55" stop-color="#1c3488"/><stop offset="1" stop-color="#081640"/></linearGradient>
+<radialGradient id="glass" cx="32%" cy="24%" r="70%"><stop offset="0" stop-color="#fff" stop-opacity=".28"/><stop offset=".25" stop-color="#fff" stop-opacity=".07"/><stop offset=".6" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".18"/></radialGradient>
+<filter id="sh" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur in="SourceAlpha" stdDeviation="9"/><feOffset dx="8" dy="14"/><feComponentTransfer><feFuncA type="linear" slope=".7"/></feComponentTransfer><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+<filter id="hs" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="1.4" dy="2.2" stdDeviation="1" flood-opacity=".45"/></filter>
+<filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="2.2" numOctaves="2" seed="7"/><feColorMatrix values="0 0 0 0 .5  0 0 0 0 .45  0 0 0 0 .35  0 0 0 .06 0"/><feComposite in2="SourceGraphic" operator="in"/></filter>
+<path id="rim" d="M0 0"/>
+</defs>
+
+<!-- chain: oval links running from the bow off to the lower right -->
+<g id="chain" filter="url(#hs)"></g>
+
+<g filter="url(#sh)" id="watch">
+<!-- bow (ring) and pendant -->
+<ellipse cx="0" cy="-152" rx="26" ry="22" fill="none" stroke="url(#m1)" stroke-width="7"/>
+<ellipse cx="0" cy="-152" rx="26" ry="22" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1.2" transform="translate(-1.5 -1.5)"/>
+<path d="M-11 -133 h22 l3 14 h-28z" fill="url(#m2)"/>
+<!-- crown: knurled -->
+<rect x="-17" y="-140" width="34" height="14" rx="4" fill="url(#knurl)"/>
+<g id="kn" stroke="rgba(0,0,0,.35)" stroke-width=".8"></g>
+<rect x="-12" y="-127" width="24" height="10" rx="2" fill="url(#m2)"/>
+<!-- case -->
+<circle r="122" fill="url(#m1)"/>
+<circle r="117" fill="none" stroke="url(#m2)" stroke-width="3"/>
+<!-- coin-edge bezel -->
+<g id="coin"></g>
+<circle r="108" fill="url(#m3)"/>
+<circle r="104.5" fill="none" stroke="rgba(0,0,0,.35)" stroke-width="1.4"/>
+<!-- enamel dial -->
+<circle r="103" fill="url(#enamel)"/>
+<circle r="103" fill="#000" filter="url(#grain)" opacity=".9"/>
+<!-- railroad minute track -->
+<circle r="92" fill="none" stroke="#1b1b1b" stroke-width=".6"/><circle r="86" fill="none" stroke="#1b1b1b" stroke-width=".6"/>
+<g id="ticks"></g>
+<g id="five" font-size="5.4" fill="#b0281e" text-anchor="middle" dominant-baseline="central" font-family="Georgia,serif"></g>
+<g id="num" font-size="15" fill="#151515" text-anchor="middle" dominant-baseline="central" font-family="'Times New Roman',Georgia,serif" letter-spacing="-.4"></g>
+<text y="-40" text-anchor="middle" font-size="6.2" fill="#2a2a2a" letter-spacing="1.6" font-family="Georgia,serif">CHRONOMÈTRE</text>
+<text y="-32" text-anchor="middle" font-size="3.6" fill="#555" letter-spacing="1" font-style="italic">Railroad Grade · 21 Jewels</text>
+<!-- date aperture at 3 o'clock -->
+<rect x="36" y="-7" width="22" height="14" rx="1.2" fill="#fff" stroke="#8a7a5a" stroke-width=".8"/>
+<text id="dw" x="47" y="1" text-anchor="middle" dominant-baseline="central" font-size="8.5" fill="#111" font-family="Georgia,serif"></text>
+<!-- sub seconds at 6 -->
+<g transform="translate(0 46)">
+<circle r="23" fill="url(#sub)" stroke="#1b1b1b" stroke-width=".5"/><circle r="19.5" fill="none" stroke="#1b1b1b" stroke-width=".35"/>
+<g id="sticks"></g><g id="snum" font-size="4.6" fill="#222" text-anchor="middle" dominant-baseline="central" font-family="Georgia,serif"></g>
+<g id="sh2" filter="url(#hs)"><path d="M-.5 5 L-.35 -19 L0 -20.5 L.35 -19 L.5 5 Z" fill="url(#blue)"/><circle r="1.6" fill="url(#blue)"/></g>
+</g>
+<!-- hands: blued-steel spade (Breguet-style moon tip on the hour hand) -->
+<g id="hh" filter="url(#hs)"><path d="M-2.4 12 L-1.8 -36 C-7 -38 -7 -48 0 -52 C7 -48 7 -38 1.8 -36 L2.4 12 Z" fill="url(#blue)"/><circle cy="-44" r="3.4" fill="#f5efe1"/><circle r="5" fill="url(#blue)"/></g>
+<g id="mh" filter="url(#hs)"><path d="M-1.8 14 L-1.1 -70 L0 -80 L1.1 -70 L1.8 14 Z" fill="url(#blue)"/><circle r="3.6" fill="url(#blue)"/></g>
+<circle r="1.6" fill="#c9a24a"/>
+<!-- domed crystal -->
+<circle r="104" fill="url(#glass)"/>
+<path d="M-74 -52 A92 92 0 0 1 30 -92" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="3.2" stroke-linecap="round"/>
+<path d="M-64 -38 A80 80 0 0 1 -30 -70" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1.6" stroke-linecap="round"/>
+</g>
+<text id="cap" y="185" text-anchor="middle" font-size="11" fill="#e8d9b8" font-style="italic" letter-spacing=".5"></text>
+<text id="cap2" y="200" text-anchor="middle" font-size="7.5" fill="#bfae8a" letter-spacing="2"></text>
+</svg></div>
+<div class="ctl"><button data-m="gold">Gold</button><button data-m="silver">Silver</button><button data-m="rose">Rose gold</button></div>
 <script>
-const NS="http://www.w3.org/2000/svg",w=document.getElementById('w');
-const R=['XII','I','II','III','IV','V','VI','VII','VIII','IX','X','XI'];
-R.forEach((r,i)=>{const a=i*Math.PI/6,t=document.createElementNS(NS,'text');t.setAttribute('x',Math.sin(a)*74);t.setAttribute('y',-Math.cos(a)*74);t.textContent=r;document.getElementById('nm').appendChild(t)});
-for(let i=0;i<60;i++){const l=document.createElementNS(NS,'line');l.setAttribute('y1',-93);l.setAttribute('y2',i%5?-89:-85);l.setAttribute('stroke','#2b2110');l.setAttribute('stroke-width',i%5?.6:1.6);l.setAttribute('transform',`rotate(${i*6})`);document.getElementById('tk').appendChild(l)}
-for(let i=0;i<12;i++){const l=document.createElementNS(NS,'line');l.setAttribute('y1',-20);l.setAttribute('y2',-17);l.setAttribute('stroke','#2b2110');l.setAttribute('stroke-width',.6);l.setAttribute('transform',`rotate(${i*30})`);document.getElementById('sst').appendChild(l)}
-let open=true;try{open=localStorage.getItem('pw-open')!=='0'}catch(e){}w.classList.toggle('open',open);
-w.onclick=()=>{open=!open;w.classList.toggle('open',open);try{localStorage.setItem('pw-open',open?'1':'0')}catch(e){}};
-function tick(){const d=new Date(),s=d.getSeconds()+d.getMilliseconds()/1000,m=d.getMinutes()+s/60,h=d.getHours()%12+m/60;
-document.getElementById('H').setAttribute('transform',`rotate(${h*30})`);document.getElementById('M').setAttribute('transform',`rotate(${m*6})`);
-document.getElementById('ss').setAttribute('transform',`rotate(${Math.floor(s*5)/5*6})`);
-document.getElementById('c').textContent=d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'})+(open?'':' · '+d.toLocaleTimeString());
-document.getElementById('eng').innerHTML=`To keep good time<br>${d.getFullYear()}`;requestAnimationFrame(tick)}
+const NS="http://www.w3.org/2000/svg",$=id=>document.getElementById(id);
+const el=(tag,attrs,parent)=>{const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);parent.appendChild(e);return e};
+const METALS={gold:['#fff6cf','#e2b955','#a87a22','#5e4110'],silver:['#ffffff','#d5d8dc','#8c9298','#4a4f55'],rose:['#ffe6dc','#e7a98f','#a8644c','#5c3022']};
+function metal(k){const c=METALS[k]||METALS.gold;document.querySelectorAll('.ma').forEach(s=>s.setAttribute('stop-color',c[0]));document.querySelectorAll('.mb').forEach(s=>s.setAttribute('stop-color',c[1]));
+document.querySelectorAll('.mc').forEach(s=>s.setAttribute('stop-color',c[2]));document.querySelectorAll('.md').forEach(s=>s.setAttribute('stop-color',c[3]));
+document.querySelectorAll('.ctl button').forEach(b=>b.classList.toggle('on',b.dataset.m===k));try{localStorage.setItem('pw-metal',k)}catch(e){}}
+let mk='gold';try{mk=localStorage.getItem('pw-metal')||'gold'}catch(e){}
+document.querySelectorAll('.ctl button').forEach(b=>b.onclick=()=>metal(b.dataset.m));
+// knurling on the crown and the coin edge
+for(let x=-15;x<=15;x+=2.2)el('line',{x1:x,y1:-139,x2:x,y2:-127},$('kn'));
+for(let i=0;i<180;i++){el('line',{y1:-116,y2:-109,stroke:i%2?'rgba(0,0,0,.28)':'rgba(255,255,255,.28)','stroke-width':1.4,transform:`rotate(${i*2})`},$('coin'))}
+// minute track
+for(let i=0;i<60;i++){const five=i%5===0;el('line',{y1:-92,y2:-86,stroke:'#151515','stroke-width':five?1.6:.7,transform:`rotate(${i*6})`},$('ticks'))}
+for(let i=1;i<=12;i++){const a=i*Math.PI/6;el('text',{x:Math.sin(a)*97.5,y:-Math.cos(a)*97.5},$('five')).textContent=i*5}
+const R=['XII','I','II','III','IIII','V','VI','VII','VIII','IX','X','XI'];
+R.forEach((r,i)=>{if(i===3||i===6)return;const a=i*Math.PI/6,x=Math.sin(a)*72,y=-Math.cos(a)*72;el('text',{x,y,transform:`rotate(${i*30} ${x} ${y})`},$('num')).textContent=r});
+for(let i=0;i<60;i++)el('line',{y1:-23,y2:i%5?-21:-19.5,stroke:'#222','stroke-width':i%5?.3:.6,transform:`rotate(${i*6})`},$('sticks'));
+[10,20,30,40,50,60].forEach(v=>{const a=v/60*Math.PI*2;el('text',{x:Math.sin(a)*15,y:-Math.cos(a)*15},$('snum')).textContent=v});
+// chain: links along a curve from the bow down to the bottom right
+(function(){const g=$('chain');const P=t=>{const x0=0,y0=-174,cx1=60,cy1=-250,cx2=230,cy2=-60,x1=210,y1=215,u=1-t;return [u*u*u*x0+3*u*u*t*cx1+3*u*t*t*cx2+t*t*t*x1,u*u*u*y0+3*u*u*t*cy1+3*u*t*t*cy2+t*t*t*y1]};
+let len=0,prev=P(0);const pts=[prev];for(let t=.002;t<=1;t+=.002){const p=P(t);len+=Math.hypot(p[0]-prev[0],p[1]-prev[1]);pts.push(p);prev=p}
+const step=9,n=Math.floor(len/step);let acc=0,j=0;for(let k=0;k<n;k++){const target=k*step;while(j<pts.length-1&&acc+Math.hypot(pts[j+1][0]-pts[j][0],pts[j+1][1]-pts[j][1])<target){acc+=Math.hypot(pts[j+1][0]-pts[j][0],pts[j+1][1]-pts[j][1]);j++}
+const a=pts[j],b=pts[Math.min(j+1,pts.length-1)],ang=Math.atan2(b[1]-a[1],b[0]-a[0])*180/Math.PI;
+el('ellipse',{cx:a[0],cy:a[1],rx:6.2,ry:3.4,fill:'none',stroke:'url(#m1)','stroke-width':2.2,transform:`rotate(${ang+(k%2?90*0:0)} ${a[0]} ${a[1]})${k%2?` scale(1 1)`:''}`,opacity:k%2?.9:1},g)}})();
+metal(mk);
+function tick(){const d=new Date(),ms=d.getMilliseconds(),s=d.getSeconds()+Math.floor(ms/200)/5,m=d.getMinutes()+s/60,h=d.getHours()%12+m/60;
+$('hh').setAttribute('transform',`rotate(${h*30})`);$('mh').setAttribute('transform',`rotate(${m*6})`);$('sh2').setAttribute('transform',`rotate(${s*6})`);
+$('dw').textContent=d.getDate();
+$('cap').textContent=d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+$('cap2').textContent=d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});requestAnimationFrame(tick)}
 tick();
 </script></body></html>

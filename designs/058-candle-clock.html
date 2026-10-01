@@ -2,33 +2,58 @@
 <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Candle Clock</title>
 <style>
-html,body{margin:0;height:100%;overflow:hidden;background:radial-gradient(ellipse at 40% 45%,#3a2410,#0c0703 60%);font-family:"Palatino Linotype",Palatino,serif;color:#f1d9a8}
-.wrap{height:100%;display:flex;align-items:flex-end;justify-content:center;gap:8vw}
-.cwrap{position:relative;height:96vh;width:min(14vw,16vh);display:flex;flex-direction:column;justify-content:flex-end;align-items:center}
-.candle{position:relative;width:100%;background:linear-gradient(90deg,#d8c9a8,#fbf3df 40%,#e8dcc0 70%,#bba887);border-radius:.6vmin .6vmin 0 0;transition:height 1s linear}
-.candle::before{content:"";position:absolute;left:0;right:0;top:-1vh;height:2vh;border-radius:50%;background:radial-gradient(#fff6e0,#e8dcc0)}
-.mark{position:absolute;left:0;right:0;height:1px;background:rgba(120,60,20,.6)}
-.mark span{position:absolute;left:110%;top:-.8em;font-size:min(1.6vh,1.6vw);color:#c9a878;white-space:nowrap}
-.wick{position:absolute;left:50%;top:-3vh;width:.5vh;height:2.4vh;margin-left:-.25vh;background:#222;border-radius:.3vh}
-.flame{position:absolute;left:50%;top:-11vh;width:3.6vh;height:9vh;margin-left:-1.8vh;border-radius:50% 50% 50% 50%/60% 60% 40% 40%;background:radial-gradient(ellipse at 50% 75%,#fff 0 15%,#ffe58a 30%,#ff9a1a 60%,rgba(255,80,0,0) 72%);filter:blur(.5px);animation:fl .15s infinite alternate;transform-origin:50% 90%}
-.glow{position:absolute;left:50%;top:-16vh;width:32vh;height:32vh;margin-left:-16vh;border-radius:50%;background:radial-gradient(rgba(255,170,60,.25),transparent 60%);pointer-events:none;animation:gl 3s infinite alternate}
-@keyframes fl{from{transform:scale(1,1) rotate(-1.5deg)}to{transform:scale(.94,1.05) rotate(1.5deg)}}
-@keyframes gl{to{opacity:.7}}
-.holder{width:180%;height:3vh;background:linear-gradient(#a57a3a,#5a3a14);border-radius:50%/40%;flex:none}
-.side{align-self:center;max-width:40vw}
-.t{font-size:clamp(30px,min(9vw,13vh),140px);text-shadow:0 0 2vmin rgba(255,160,40,.4)}
-.d{font-size:clamp(13px,3vmin,30px);font-style:italic;opacity:.85}
-.n{font-size:clamp(11px,2vmin,20px);opacity:.55;margin-top:2vh}
-@media (max-aspect-ratio:1/1){.wrap{gap:4vw}.side{max-width:55vw}.t{font-size:12vw}.glow{width:18vh;height:18vh;margin-left:-9vh;top:-11vh}}
+html,body{margin:0;height:100%;overflow:hidden;background:#0c0704;font-family:"Palatino Linotype",Palatino,serif}
+canvas{position:fixed;inset:0;width:100%;height:100%}
 </style></head><body>
-<div class="wrap"><div class="cwrap"><div class="candle" id="cd"><div class="glow"></div><div class="wick"></div><div class="flame"></div></div><div class="holder"></div></div>
-<div class="side"><div class="t" id="t"></div><div class="d" id="d"></div><div class="n">A day-long candle: it is relit at midnight and burns one notch per hour.</div></div></div>
+<canvas id="c"></canvas>
 <script>
-const cd=document.getElementById('cd'),FULL=78;// candle height in vh at midnight
-for(let h=0;h<=24;h+=2){const m=document.createElement('div');m.className='mark';m.style.bottom=(FULL*(1-h/24))+'vh';if(h<24)m.innerHTML=`<span>${String(h).padStart(2,'0')}:00</span>`;cd.appendChild(m)}
-function tick(){const d=new Date(),f=(d.getHours()*3600+d.getMinutes()*60+d.getSeconds())/86400,h=Math.max(FULL*(1-f),1.5);
-cd.style.height=h+'vh';[...cd.querySelectorAll('.mark')].forEach(m=>{m.style.bottom=(parseFloat(m.style.bottom)>=0?m.style.bottom:0);m.style.display=parseFloat(m.style.bottom)>h-.5?'none':''});
-document.getElementById('t').textContent=d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
-document.getElementById('d').textContent=d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
-tick();setInterval(tick,1000);
+// A day-long candle clock: marked in hours, relit at midnight, burning down one mark per hour.
+const c=document.getElementById('c'),x=c.getContext('2d');let W,H,P;
+function size(){P=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;c.width=W*P;c.height=H*P;x.setTransform(P,0,0,P,0,0)}addEventListener('resize',size);size();
+const drips=Array.from({length:7},(_,i)=>({x:(i/6-.5)*.9+(Math.random()-.5)*.1,len:.3+Math.random()*.9,w:.06+Math.random()*.05}));
+let flick=1,fx=0;
+function draw(t){const d=new Date(),f=(d.getHours()*3600+d.getMinutes()*60+d.getSeconds())/86400,port=H>W*1.05;
+const base=H*.9,cx=port?W/2:W*.38,cw=Math.min(W*(port?.2:.09),H*.1),full=H*.62,ch=Math.max(full*(1-f),cw*.4),topY=base-H*.04-ch;
+flick+=((.85+Math.random()*.3)-flick)*.25;fx+=((Math.random()-.5)*cw*.12-fx)*.1;
+const fy=topY-cw*.75;
+// wall lit by the flame
+x.fillStyle='#0c0704';x.fillRect(0,0,W,H);
+const wl=x.createRadialGradient(cx+fx,fy,0,cx+fx,fy,Math.max(W,H)*.7*flick);wl.addColorStop(0,'rgba(255,170,80,.42)');wl.addColorStop(.25,'rgba(200,110,40,.18)');wl.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=wl;x.fillRect(0,0,W,H);
+// table
+const tg=x.createLinearGradient(0,base,0,H);tg.addColorStop(0,'#3a2412');tg.addColorStop(1,'#120a04');x.fillStyle=tg;x.fillRect(0,base,W,H-base);
+const tl=x.createRadialGradient(cx,base,0,cx,base,W*.4);tl.addColorStop(0,`rgba(255,160,70,${.3*flick})`);tl.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=tl;x.fillRect(0,base,W,H-base);
+// brass holder: drip tray and cup
+const hw=cw*1.9;x.fillStyle='rgba(0,0,0,.5)';x.beginPath();x.ellipse(cx+cw*.4,base+cw*.12,hw*1.1,cw*.22,0,0,7);x.fill();
+const br=(x0,x1)=>{const g=x.createLinearGradient(x0,0,x1,0);g.addColorStop(0,'#5a3a10');g.addColorStop(.35,'#f4d27a');g.addColorStop(.5,'#c99a3a');g.addColorStop(1,'#4a2e08');return g};
+x.fillStyle=br(cx-hw,cx+hw);x.beginPath();x.ellipse(cx,base,hw,cw*.24,0,0,7);x.fill();x.fillStyle='#3a2408';x.beginPath();x.ellipse(cx,base-cw*.06,hw*.9,cw*.18,0,0,7);x.fill();
+x.fillStyle=br(cx-cw*.75,cx+cw*.75);x.beginPath();x.moveTo(cx-cw*.75,base-H*.04);x.lineTo(cx+cw*.75,base-H*.04);x.lineTo(cx+cw*.62,base-cw*.06);x.lineTo(cx-cw*.62,base-cw*.06);x.fill();
+x.strokeStyle=br(cx+hw*.7,cx+hw*1.25);x.lineWidth=cw*.12;x.beginPath();x.ellipse(cx+hw*.98,base-cw*.3,cw*.32,cw*.3,0,0,7);x.stroke();
+// candle body with subsurface glow near the top
+const cg=x.createLinearGradient(cx-cw/2,0,cx+cw/2,0);cg.addColorStop(0,'#b8a684');cg.addColorStop(.3,'#f4ead2');cg.addColorStop(.6,'#e8dcbc');cg.addColorStop(1,'#9a8a68');x.fillStyle=cg;x.fillRect(cx-cw/2,topY,cw,ch+1);
+const sub=x.createLinearGradient(0,topY,0,topY+cw*1.6);sub.addColorStop(0,`rgba(255,190,110,${.55*flick})`);sub.addColorStop(1,'rgba(255,190,110,0)');x.fillStyle=sub;x.fillRect(cx-cw/2,topY,cw,cw*1.6);
+// hour marks with numerals
+x.font=`${Math.max(10,cw*.2)}px "Palatino Linotype",serif`;x.textAlign='right';x.textBaseline='middle';
+for(let h=0;h<=24;h++){const y=base-H*.04-full*(1-h/24);if(y<topY+2)continue;x.fillStyle='rgba(120,40,20,.75)';x.fillRect(cx-cw/2,y,cw*(h%3?.25:.5),1.6);if(h%3===0){x.fillStyle='rgba(255,215,160,.55)';x.fillText(String(h).padStart(2,'0')+':00',cx-cw*.62,y)}}
+// wax drips down the sides
+drips.forEach(dp=>{const dx=cx+dp.x*cw,len=Math.min(ch-4,cw*dp.len*2);x.fillStyle='#efe3c6';x.beginPath();x.moveTo(dx-cw*dp.w,topY);x.lineTo(dx-cw*dp.w*.7,topY+len);x.arc(dx,topY+len,cw*dp.w*.8,Math.PI,0,true);x.lineTo(dx+cw*dp.w,topY);x.fill();x.fillStyle='rgba(255,255,255,.35)';x.fillRect(dx-cw*dp.w*.5,topY+2,cw*.012,len*.8)});
+// melted pool at the top
+x.fillStyle='#d9c9a2';x.beginPath();x.ellipse(cx,topY,cw/2,cw*.13,0,0,7);x.fill();x.fillStyle=`rgba(255,200,120,${.6*flick})`;x.beginPath();x.ellipse(cx,topY,cw*.36,cw*.08,0,0,7);x.fill();
+// wick
+x.strokeStyle='#1a1008';x.lineWidth=cw*.05;x.lineCap='round';x.beginPath();x.moveTo(cx,topY);x.quadraticCurveTo(cx+cw*.02,topY-cw*.2,cx+cw*.06+fx*.2,topY-cw*.28);x.stroke();x.fillStyle='#ff5a1a';x.beginPath();x.arc(cx+cw*.06+fx*.2,topY-cw*.28,cw*.03,0,7);x.fill();
+// flame: halo, outer, inner, blue base
+x.save();x.globalCompositeOperation='lighter';
+const halo=x.createRadialGradient(cx+fx,fy,0,cx+fx,fy,cw*2.4*flick);halo.addColorStop(0,'rgba(255,200,120,.45)');halo.addColorStop(1,'rgba(255,140,40,0)');x.fillStyle=halo;x.beginPath();x.arc(cx+fx,fy,cw*2.4*flick,0,7);x.fill();x.restore();
+const fl=(sc,col0,col1)=>{const fh=cw*1.3*sc*flick,fw=cw*.28*sc;const g=x.createRadialGradient(cx+fx*.6,topY-fh*.25,0,cx+fx*.6,topY-fh*.35,fh*.7);g.addColorStop(0,col0);g.addColorStop(1,col1);x.fillStyle=g;
+x.beginPath();x.moveTo(cx,topY-cw*.18);x.bezierCurveTo(cx-fw*1.1,topY-fh*.25,cx-fw*.6+fx,topY-fh*.7,cx+fx*1.6,topY-fh);x.bezierCurveTo(cx+fw*.6+fx,topY-fh*.7,cx+fw*1.1,topY-fh*.25,cx,topY-cw*.18);x.fill()};
+fl(1,'rgba(255,220,120,.95)','rgba(255,110,20,.2)');fl(.62,'rgba(255,255,235,1)','rgba(255,220,140,.6)');
+x.fillStyle='rgba(80,120,255,.55)';x.beginPath();x.ellipse(cx,topY-cw*.24,cw*.09,cw*.13,0,0,7);x.fill();
+// smoke wisp
+x.strokeStyle='rgba(200,190,180,.07)';x.lineWidth=cw*.05;x.beginPath();for(let k=0;k<40;k++){const yy=fy-cw*1.2-k*cw*.12;x.lineTo(cx+fx*2+Math.sin(t/700+k*.3)*cw*.3*(k/40),yy)}x.stroke();
+// text
+const p=n=>String(n).padStart(2,'0'),tx=port?W/2:W*.7,ty=port?H*.08:H*.42;x.textAlign='center';x.textBaseline='middle';
+x.fillStyle='#f1d9a8';x.shadowColor='rgba(255,140,40,.6)';x.shadowBlur=18;x.font=`${port?W*.12:Math.min(W*.08,H*.14)}px "Palatino Linotype",serif`;x.fillText(p(d.getHours())+':'+p(d.getMinutes()),tx,ty);x.shadowBlur=0;
+x.font=`italic ${port?W*.04:Math.min(W*.022,H*.04)}px "Palatino Linotype",serif`;x.fillStyle='rgba(241,217,168,.85)';x.fillText(d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'}),tx,ty+(port?W*.09:Math.min(W*.055,H*.095)));
+if(!port){x.font=`${Math.min(W*.014,H*.026)}px "Palatino Linotype",serif`;x.fillStyle='rgba(241,217,168,.5)';x.fillText('A day-long candle, relit at midnight, burning one mark per hour.',tx,ty+Math.min(W*.1,H*.17))}
+requestAnimationFrame(draw)}
+requestAnimationFrame(draw);
 </script></body></html>

@@ -2,39 +2,65 @@
 <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Hourglass</title>
 <style>
-html,body{margin:0;height:100%;overflow:hidden;background:linear-gradient(#e9dcc3,#cdb48a);color:#4a3418;font-family:"Book Antiqua",Palatino,serif}
-.wrap{height:100%;display:flex;align-items:center;justify-content:center;gap:6vw}
-canvas{height:88vh;width:calc(88vh*.6);max-width:46vw}
-.info{display:flex;flex-direction:column;gap:2vh}
-.t{font-size:clamp(30px,min(9vw,14vh),150px);font-variant-numeric:tabular-nums;line-height:1}
-.l{font-size:clamp(11px,2vmin,20px);letter-spacing:.3em;text-transform:uppercase;opacity:.6}
-.d{font-size:clamp(13px,3vmin,30px)}
-@media (max-aspect-ratio:1/1){.wrap{flex-direction:column;gap:2vh}canvas{height:62vh;width:calc(62vh*.6);max-width:80vw}.info{text-align:center}}
+html,body{margin:0;height:100%;overflow:hidden;font-family:"Book Antiqua",Palatino,serif;color:#4a3418}
+body{background:radial-gradient(ellipse at 40% 35%,#efe2c6,#cdb48a 65%,#a88e62)}
+canvas{position:fixed;inset:0;width:100%;height:100%}
 </style></head><body>
-<div class="wrap"><canvas id="c"></canvas>
-<div class="info"><div class="l">the sand measures this minute</div><div class="t" id="t"></div><div class="d" id="d"></div><div class="l" id="n"></div></div></div>
+<canvas id="c"></canvas>
 <script>
-const c=document.getElementById('c'),x=c.getContext('2d');let grains=[];
-function size(){const b=c.getBoundingClientRect(),p=devicePixelRatio||1;c.width=b.width*p;c.height=b.height*p}addEventListener('resize',size);size();
-function glass(W,H,top){// returns path half-width at y
-return y=>{const cy=H/2,dy=Math.abs(y-cy)/(H/2-H*.08);return W*.04+W*.38*Math.pow(Math.min(dy,1),.7)}}
-function draw(){const d=new Date(),W=c.width,H=c.height,f=(d.getSeconds()+d.getMilliseconds()/1000)/60,cx=W/2,cy=H/2,top=H*.08,bot=H*.92,hw=glass(W,H);
+// An hourglass that empties once a minute, on a wooden desk, with the time and date in a brass frame beside it.
+const c=document.getElementById('c'),x=c.getContext('2d');let W,H,P,grains=[];
+function size(){P=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;c.width=W*P;c.height=H*P;x.setTransform(P,0,0,P,0,0)}addEventListener('resize',size);size();
+const rnd=(()=>{let s=3;return()=>(s=(s*16807)%2147483647)/2147483647})();
+const speck=Array.from({length:900},()=>[rnd(),rnd(),rnd()]);
+function wood(x0,y0,w,h,vertical){const g=vertical?x.createLinearGradient(x0,0,x0+w,0):x.createLinearGradient(0,y0,0,y0+h);g.addColorStop(0,'#3a1e0c');g.addColorStop(.3,'#8a5228');g.addColorStop(.5,'#a8683a');g.addColorStop(.75,'#6a3a18');g.addColorStop(1,'#2a1406');return g}
+function draw(){const d=new Date(),f=(d.getSeconds()+d.getMilliseconds()/1000)/60,port=H>W*1.05;
+const GH=Math.min(H*.84,port?W*1.25:W*.6),GW=GH*.5,cx=port?W/2:W*.36,top=H/2-GH/2,bot=H/2+GH/2,cy=H/2,cap=GH*.07;
 x.clearRect(0,0,W,H);
-// frame
-x.fillStyle='#5b3a1a';x.fillRect(W*.05,0,W*.9,H*.05);x.fillRect(W*.05,H*.95,W*.9,H*.05);x.fillStyle='#7a5228';x.fillRect(W*.08,H*.05,W*.04,H*.9);x.fillRect(W*.88,H*.05,W*.04,H*.9);
-// glass outline path
-x.beginPath();for(let y=top;y<=bot;y+=2)x.lineTo(cx-hw(y),y);for(let y=bot;y>=top;y-=2)x.lineTo(cx+hw(y),y);x.closePath();x.fillStyle='rgba(255,255,255,.25)';x.fill();
-x.save();x.clip();x.fillStyle='#d9a441';
-// top sand: fills from neck up to level that shrinks with f
-const topLevel=top+(cy-top)*(.15+.85*f);for(let y=topLevel;y<cy;y+=1){const w=hw(y);x.fillRect(cx-w,y,w*2,1.2)}
-// bottom sand: pile height grows with f
-const pile=(bot-cy)*.85*f;for(let y=bot-pile;y<bot;y+=1){const w=hw(y)*Math.min(1,(y-(bot-pile))/(pile*.35+1)+.2);x.fillRect(cx-w,y,w*2,1.2)}
-// stream
-if(f<.995){x.fillRect(cx-W*.006,cy-2,W*.012,bot-pile-cy+2);for(let i=0;i<6;i++){x.fillRect(cx+(Math.random()-.5)*W*.03,bot-pile-Math.random()*H*.02,2,2)}}
-x.restore();x.strokeStyle='rgba(90,60,25,.5)';x.lineWidth=2;x.beginPath();for(let y=top;y<=bot;y+=2)x.lineTo(cx-hw(y),y);x.stroke();x.beginPath();for(let y=top;y<=bot;y+=2)x.lineTo(cx+hw(y),y);x.stroke();
-x.fillStyle='rgba(255,255,255,.35)';x.fillRect(cx-W*.3,H*.15,W*.02,H*.2);
-const p=n=>String(n).padStart(2,'0');document.getElementById('t').textContent=p(d.getHours())+':'+p(d.getMinutes());
-document.getElementById('n').textContent=(60-d.getSeconds())+' grains of seconds left';
-document.getElementById('d').textContent=d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'});requestAnimationFrame(draw)}
+// desk
+const dy=bot-cap*.2;const dg=x.createLinearGradient(0,dy,0,H);dg.addColorStop(0,'#6a4426');dg.addColorStop(1,'#2a1608');x.fillStyle=dg;x.fillRect(0,dy,W,H-dy);
+x.fillStyle='rgba(0,0,0,.35)';x.beginPath();x.ellipse(cx+GW*.1,dy+cap*.25,GW*.75,cap*.35,0,0,7);x.fill();
+// glass profile: half-width at height y
+const inT=top+cap,inB=bot-cap,mid=(inT+inB)/2,half=(inB-inT)/2,hw=y=>{const t=Math.abs(y-mid)/half;return GW*.035+GW*.4*Math.pow(Math.sin(Math.min(t,1)*Math.PI/2),1.6)*(t>.92?1-(t-.92)*2.2:1)};
+// back pillars
+const pil=(px)=>{x.fillStyle=wood(px-GW*.035,0,GW*.07,0,true);x.fillRect(px-GW*.035,inT,GW*.07,inB-inT);for(let y=inT+GH*.05;y<inB;y+=GH*.12){x.fillStyle='rgba(0,0,0,.25)';x.fillRect(px-GW*.045,y,GW*.09,GH*.012)}};
+pil(cx-GW*.52);
+// glass body
+const glassPath=()=>{x.beginPath();for(let y=inT;y<=inB;y+=2)x.lineTo(cx-hw(y),y);for(let y=inB;y>=inT;y-=2)x.lineTo(cx+hw(y),y);x.closePath()};
+glassPath();x.fillStyle='rgba(255,255,255,.12)';x.fill();
+x.save();glassPath();x.clip();
+// sand: top chamber level falls, bottom pile rises
+const topLevel=inT+(mid-inT)*(.12+.86*f),pileH=(inB-mid)*.78*f;
+const sand=(y0,y1,shape)=>{for(let y=y0;y<y1;y+=1){const w=hw(y)*shape(y);const g=x.createLinearGradient(cx-w,0,cx+w,0);g.addColorStop(0,'#a8762c');g.addColorStop(.4,'#e6bc6a');g.addColorStop(1,'#a06a24');x.fillStyle=g;x.fillRect(cx-w,y,w*2,1.2)}};
+if(topLevel<mid-2){sand(topLevel+GW*.04,mid,()=>1);x.fillStyle='#d9a856';x.beginPath();x.ellipse(cx,topLevel+GW*.04,hw(topLevel+GW*.04),GW*.04,0,0,Math.PI);x.fill();
+// funnel dip in the surface
+x.fillStyle='rgba(120,80,20,.35)';x.beginPath();x.ellipse(cx,topLevel+GW*.045,hw(topLevel)*.35,GW*.025,0,0,7);x.fill()}
+if(pileH>1){const py=inB-pileH;x.fillStyle='#d9a856';x.beginPath();x.moveTo(cx-hw(inB),inB);for(let k=0;k<=40;k++){const t=k/40,X=cx-hw(inB)+t*hw(inB)*2,cone=1-Math.abs(t-.5)*2;x.lineTo(X,Math.min(inB,py+(1-cone)*Math.min(pileH,GW*.22)))}x.lineTo(cx+hw(inB),inB);x.closePath();
+const pg=x.createLinearGradient(cx-GW*.4,0,cx+GW*.4,0);pg.addColorStop(0,'#a8762c');pg.addColorStop(.45,'#ecc678');pg.addColorStop(1,'#9a6420');x.fillStyle=pg;x.fill()}
+// grain speckle
+speck.forEach(([a,b,z])=>{const y=inT+b*(inB-inT);const inTop=y>topLevel+GW*.04&&y<mid,inBot=y>inB-pileH*.9;if(!inTop&&!inBot)return;const w=hw(y);x.fillStyle=z>.5?'rgba(255,240,200,.5)':'rgba(90,50,10,.4)';x.fillRect(cx-w+a*w*2,y,1.2,1.2)});
+// falling stream and bouncing grains
+if(f<.995){x.fillStyle='rgba(214,160,80,.9)';x.fillRect(cx-1.2,mid-2,2.4,inB-pileH-mid+GW*.05);for(let i=0;i<10;i++){x.fillStyle='#e6bc6a';x.fillRect(cx+(Math.random()-.5)*GW*.12,inB-pileH-Math.random()*GW*.05,1.6,1.6)}}
+x.restore();
+// glass highlights and edge
+x.strokeStyle='rgba(255,255,255,.55)';x.lineWidth=2;glassPath();x.stroke();
+x.strokeStyle='rgba(255,255,255,.7)';x.lineWidth=GW*.025;x.lineCap='round';x.beginPath();for(let y=inT+GH*.05;y<mid-GH*.08;y+=3)x.lineTo(cx-hw(y)*.72,y);x.stroke();
+x.beginPath();for(let y=mid+GH*.08;y<inB-GH*.05;y+=3)x.lineTo(cx-hw(y)*.72,y);x.stroke();
+x.strokeStyle='rgba(255,255,255,.25)';x.lineWidth=GW*.012;x.beginPath();for(let y=inT+GH*.08;y<mid-GH*.1;y+=3)x.lineTo(cx+hw(y)*.78,y);x.stroke();
+// front pillars and turned caps
+pil(cx+GW*.52);
+const capDraw=(y,flip)=>{x.fillStyle=wood(0,y,0,cap,false);x.beginPath();x.roundRect(cx-GW*.62,y,GW*1.24,cap,cap*.25);x.fill();
+x.fillStyle='rgba(255,220,170,.25)';x.fillRect(cx-GW*.6,y+(flip?cap*.75:cap*.12),GW*1.2,cap*.1);x.fillStyle='rgba(0,0,0,.3)';x.fillRect(cx-GW*.62,y+cap*.48,GW*1.24,cap*.06);
+x.fillStyle='#c9a24a';[cx-GW*.52,cx+GW*.52].forEach(px=>{x.beginPath();x.arc(px,y+cap/2,cap*.16,0,7);x.fill()})};
+capDraw(top,false);capDraw(bot-cap,true);
+// brass frame with the time
+const p=n=>String(n).padStart(2,'0');x.textAlign='center';x.textBaseline='middle';
+const tx=port?W/2:W*.72,ty=port?H*.06:H*.42,fs=port?W*.09:Math.min(W*.075,H*.14);
+if(!port){const fw=fs*3.6,fh=fs*2.6;const bg=x.createLinearGradient(tx-fw/2,ty-fh/2,tx+fw/2,ty+fh/2);bg.addColorStop(0,'#7a5a18');bg.addColorStop(.5,'#f0d68a');bg.addColorStop(1,'#7a5a18');
+x.fillStyle='rgba(0,0,0,.25)';x.fillRect(tx-fw/2+8,ty-fh/2+10,fw,fh);x.fillStyle=bg;x.fillRect(tx-fw/2,ty-fh/2,fw,fh);x.fillStyle='#f7efdc';x.fillRect(tx-fw/2+fs*.15,ty-fh/2+fs*.15,fw-fs*.3,fh-fs*.3)}
+x.fillStyle='#3a2410';x.font=`${fs}px "Book Antiqua",Palatino,serif`;x.fillText(p(d.getHours())+':'+p(d.getMinutes()),tx,ty-fs*.2);
+x.font=`italic ${fs*.24}px "Book Antiqua",Palatino,serif`;x.fillText(d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'}),tx,ty+fs*.55);
+x.font=`${fs*.18}px "Book Antiqua",Palatino,serif`;x.fillStyle='#7a5a30';x.fillText(`${60-d.getSeconds()} seconds of sand left`,tx,ty+fs*.85);
+requestAnimationFrame(draw)}
 draw();
 </script></body></html>
