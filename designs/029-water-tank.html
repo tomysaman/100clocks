@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Water Tank</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#0e2233;font-family:"Segoe UI",system-ui,sans-serif;color:#d8f1ff}
+canvas{position:fixed;inset:0;width:100%;height:100%}
+.ov{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;text-shadow:0 .3vmin 1.5vmin rgba(0,0,0,.4)}
+.h{font-size:clamp(60px,min(30vw,40vh),420px);font-weight:200;line-height:1}
+.m{font-size:clamp(14px,3.4vmin,34px);letter-spacing:.2em}
+.d{font-size:clamp(12px,2.6vmin,26px);opacity:.8;margin-top:1vh}
+</style></head><body>
+<canvas id="c"></canvas>
+<div class="ov"><div class="h" id="h"></div><div class="m" id="m"></div><div class="d" id="d"></div></div>
+<script>
+const c=document.getElementById('c'),x=c.getContext('2d');let W,H,B=[];
+function size(){W=c.width=innerWidth;H=c.height=innerHeight}addEventListener('resize',size);size();
+let lastS=-1;
+function draw(t){const d=new Date(),s=d.getSeconds(),f=(d.getMinutes()*60+s+d.getMilliseconds()/1000)/3600,level=H*(1-f);
+x.fillStyle='#0e2233';x.fillRect(0,0,W,H);
+// tick marks every 5 minutes
+x.fillStyle='rgba(216,241,255,.35)';x.font='12px Segoe UI';for(let i=0;i<=12;i++){const y=H*(1-i/12);x.fillRect(0,y-1,i%3?14:28,2);if(i%3===0&&i&&i<12)x.fillText((i*5)+' min',34,y+4)}
+for(let k=0;k<2;k++){x.beginPath();x.moveTo(0,H);for(let X=0;X<=W;X+=10){x.lineTo(X,level+Math.sin(X/120+t/700+k*2)*8+Math.sin(X/53+t/400)*4+k*6)}x.lineTo(W,H);x.closePath();
+const g=x.createLinearGradient(0,level,0,H);g.addColorStop(0,k?'rgba(40,160,230,.9)':'rgba(90,200,255,.5)');g.addColorStop(1,'rgba(10,60,120,.95)');x.fillStyle=g;x.fill()}
+if(s!==lastS){lastS=s;for(let i=0;i<4;i++)B.push({x:Math.random()*W,y:H+10,r:2+Math.random()*6,v:1+Math.random()*2})}
+x.strokeStyle='rgba(255,255,255,.5)';B.forEach(b=>{b.y-=b.v;b.x+=Math.sin(b.y/30)*.5;x.beginPath();x.arc(b.x,b.y,b.r,0,7);x.stroke()});B=B.filter(b=>b.y>level+10);
+const p=n=>String(n).padStart(2,'0');document.getElementById('h').textContent=p(d.getHours());
+document.getElementById('m').textContent=`${p(d.getMinutes())} MIN ${p(s)} SEC`;
+document.getElementById('d').textContent=d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'});requestAnimationFrame(draw)}
+requestAnimationFrame(draw);
+</script></body></html>

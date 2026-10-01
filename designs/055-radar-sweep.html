@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Radar Sweep</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#020a04;color:#39ff7a;font-family:"Consolas",monospace}
+.wrap{height:100%;display:flex;align-items:center;justify-content:center;gap:4vw}
+canvas{width:min(70vw,92vh);height:min(70vw,92vh)}
+.hud{display:flex;flex-direction:column;gap:1.6vh;font-size:clamp(11px,2vmin,20px);text-shadow:0 0 .6vmin #39ff7a}
+.hud b{font-size:2.4em;font-weight:normal}
+.hud .k{opacity:.6}
+@media (max-aspect-ratio:1/1){.wrap{flex-direction:column;gap:2vh}canvas{width:92vw;height:92vw}.hud{align-items:center}}
+</style></head><body>
+<div class="wrap"><canvas id="c"></canvas><div class="hud"><span class="k">CONTACTS</span><span>▲ HR <span id="h"></span></span><span>● MN <span id="m"></span></span><b id="t"></b><span id="d"></span><span class="k" id="sw"></span></div></div>
+<script>
+const c=document.getElementById('c'),x=c.getContext('2d');
+function size(){const b=c.getBoundingClientRect(),p=devicePixelRatio||1;c.width=b.width*p;c.height=b.height*p}addEventListener('resize',size);size();
+let trail=document.createElement('canvas'),tx=trail.getContext('2d');
+function draw(){const d=new Date(),W=c.width,R=W/2*.94,cx=W/2,s=d.getSeconds()+d.getMilliseconds()/1000,m=d.getMinutes()+s/60,h=d.getHours()%12+m/60;
+if(trail.width!==W){trail.width=trail.height=W}
+tx.fillStyle='rgba(2,10,4,.015)';tx.fillRect(0,0,W,W);
+const a=s/60*Math.PI*2-Math.PI/2;
+// sweep wedge
+tx.save();tx.translate(cx,cx);
+tx.fillStyle='rgba(57,255,122,.25)';tx.beginPath();tx.moveTo(0,0);tx.arc(0,0,R,a-.05,a);tx.closePath();tx.fill();tx.restore();
+// blips: hour (inner) & minute (outer) — painted bright when the sweep passes
+const blip=(ang,r,size)=>{const diff=((a-ang)%(Math.PI*2)+Math.PI*2)%(Math.PI*2);if(diff<.06){tx.fillStyle='#b8ffd0';tx.beginPath();tx.arc(cx+Math.cos(ang)*r,cx+Math.sin(ang)*r,size,0,7);tx.fill()}};
+const ha=h/12*Math.PI*2-Math.PI/2,ma=m/60*Math.PI*2-Math.PI/2;blip(ha,R*.45,W*.018);blip(ma,R*.78,W*.013);
+x.clearRect(0,0,W,W);x.fillStyle='#031208';x.beginPath();x.arc(cx,cx,R,0,7);x.fill();x.drawImage(trail,0,0);
+x.strokeStyle='rgba(57,255,122,.35)';x.lineWidth=1;for(let i=1;i<=4;i++){x.beginPath();x.arc(cx,cx,R*i/4,0,7);x.stroke()}
+x.beginPath();x.moveTo(cx-R,cx);x.lineTo(cx+R,cx);x.moveTo(cx,cx-R);x.lineTo(cx,cx+R);x.stroke();
+x.fillStyle='rgba(57,255,122,.7)';x.font=`${W*.028}px Consolas`;x.textAlign='center';x.textBaseline='middle';
+for(let i=0;i<12;i++){const an=i/12*Math.PI*2-Math.PI/2;x.fillText(i||12,cx+Math.cos(an)*R*.87,cx+Math.sin(an)*R*.87)}
+for(let i=0;i<60;i++){const an=i/60*Math.PI*2;x.beginPath();x.moveTo(cx+Math.cos(an)*R,cx+Math.sin(an)*R);x.lineTo(cx+Math.cos(an)*R*(i%5?.98:.95),cx+Math.sin(an)*R*(i%5?.98:.95));x.stroke()}
+x.strokeStyle='rgba(184,255,208,.5)';x.lineWidth=1.5;x.beginPath();x.arc(cx+Math.cos(ha)*R*.45,cx+Math.sin(ha)*R*.45,W*.028,0,7);x.stroke();x.beginPath();x.arc(cx+Math.cos(ma)*R*.78,cx+Math.sin(ma)*R*.78,W*.022,0,7);x.stroke();x.strokeStyle='#39ff7a';x.lineWidth=W*.004;x.shadowColor='#39ff7a';x.shadowBlur=W*.02;x.beginPath();x.moveTo(cx,cx);x.lineTo(cx+Math.cos(a)*R,cx+Math.sin(a)*R);x.stroke();x.shadowBlur=0;
+const p=n=>String(n).padStart(2,'0');document.getElementById('t').textContent=p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds());
+document.getElementById('h').textContent=`BRG ${(h*30).toFixed(0).padStart(3,'0')}°`;document.getElementById('m').textContent=`BRG ${(m*6).toFixed(0).padStart(3,'0')}°`;
+document.getElementById('d').textContent=d.toLocaleDateString('en-GB',{weekday:'short',day:'2-digit',month:'short',year:'numeric'}).toUpperCase();
+document.getElementById('sw').textContent='SWEEP 60 s · RANGE 12 H';requestAnimationFrame(draw)}
+draw();
+</script></body></html>

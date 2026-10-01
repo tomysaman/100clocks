@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kanji Vertical</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#f3ede0;color:#1d1a16;font-family:"Yu Mincho","YuMincho","Hiragino Mincho ProN","MS Mincho",serif}
+body{background:#f3ede0 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.5' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='.05'/%3E%3C/svg%3E")}
+.wrap{height:100%;display:flex;flex-direction:row-reverse;align-items:center;justify-content:center;gap:5vw}
+.v{writing-mode:vertical-rl;text-orientation:upright;line-height:1.1}
+.time{font-size:min(9vw,10.5vh);letter-spacing:.06em}
+.time .s{color:#b3261e}
+.date{font-size:min(3.6vw,4.4vh);letter-spacing:.2em;color:#4a4238}
+.seal{width:min(9vw,11vh);aspect-ratio:1;border:.5vmin solid #b3261e;color:#b3261e;border-radius:.6vmin;display:flex;align-items:center;justify-content:center;font-size:min(3.6vw,4.4vh);writing-mode:vertical-rl;transform:rotate(-4deg);align-self:flex-end;margin-bottom:12vh}
+.lat{position:fixed;left:3vmin;bottom:3vmin;font-family:"Segoe UI",sans-serif;font-size:clamp(10px,1.8vmin,18px);color:#8a7f70}
+</style></head><body>
+<div class="wrap"><div class="v time" id="t"></div><div class="v date" id="d"></div><div class="seal" id="se"></div></div>
+<div class="lat" id="l"></div>
+<script>
+const D='〇一二三四五六七八九';
+function kn(n){if(n===0)return '零';if(n<10)return D[n];const t=Math.floor(n/10),u=n%10;return (t>1?D[t]:'')+'十'+(u?D[u]:'')}
+function kyear(n){return String(n).split('').map(c=>D[+c]).join('')}
+const WD='日月火水木金土';
+function tick(){const d=new Date(),h=d.getHours();
+document.getElementById('t').innerHTML=`${h<12?"午前":"午後"}${kn(h%12||12)}時<br>${kn(d.getMinutes())}分<br><span class="s">${kn(d.getSeconds())}秒</span>`;
+document.getElementById('d').textContent=`${kyear(d.getFullYear())}年${kn(d.getMonth()+1)}月${kn(d.getDate())}日 ${WD[d.getDay()]}曜日`;
+document.getElementById('se').textContent=WD[d.getDay()]+'曜';
+document.getElementById('l').textContent=d.toLocaleString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit'})}
+tick();setInterval(tick,500);
+</script></body></html>

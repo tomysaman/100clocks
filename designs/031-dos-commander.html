@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DOS Commander</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#000}
+.wrap{position:fixed;left:50%;top:50%;width:0;height:0}
+pre{position:absolute;left:0;top:0;font-size:16px;transform-origin:0 0}
+pre{margin:0;font-family:"Perfect DOS VGA 437","Lucida Console",Consolas,monospace;line-height:1.15;white-space:pre}
+.b{background:#0000aa}.c{background:#00aaaa;color:#000}.k{background:#000;color:#00aaaa}
+.w{color:#ffffff}.y{color:#ffff55}.a{color:#55ffff}.g{color:#aaaaaa}.h{background:#00aaaa;color:#000}
+</style></head><body>
+<div class="wrap"><pre id="s"></pre></div>
+<script>
+const COLS=80,ROWS=25,s=document.getElementById('s');
+const F={'0':[7,5,5,5,7],'1':[2,6,2,2,7],'2':[7,1,7,4,7],'3':[7,1,7,1,7],'4':[5,5,7,1,1],'5':[7,4,7,1,7],'6':[7,4,7,5,7],'7':[7,1,1,1,1],'8':[7,5,7,5,7],'9':[7,5,7,1,7],':':[0,2,0,2,0]};
+function fit(){s.style.transform="none";const r=s.getBoundingClientRect(),k=Math.min(innerWidth*.98/r.width,innerHeight*.98/r.height);s.style.transform=`scale(${k}) translate(-50%,-50%)`}addEventListener("resize",fit);
+function render(){const d=new Date(),p=n=>String(n).padStart(2,'0');
+// grid of [char, class]
+const G=Array.from({length:ROWS},()=>Array.from({length:COLS},()=>[' ','b a']));
+const put=(r,c,str,cl)=>{[...str].forEach((ch,i)=>{if(c+i<COLS&&r<ROWS)G[r][c+i]=[ch,cl]})};
+const box=(r,c,h,w,title)=>{put(r,c,'╔'+'═'.repeat(w-2)+'╗','b a');for(let i=1;i<h-1;i++){put(r+i,c,'║','b a');put(r+i,c+w-1,'║','b a')}put(r+h-1,c,'╚'+'═'.repeat(w-2)+'╝','b a');if(title)put(r,c+Math.floor((w-title.length-2)/2),' '+title+' ','h')};
+put(0,0,' '.repeat(80),'c');put(0,2,'Left     Files     Commands     Options     Right','c');put(0,72,p(d.getHours())+':'+p(d.getMinutes()),'c');
+box(1,0,22,40,'C:\\CLOCK');box(1,40,22,40,'CALENDAR');
+// big clock in left panel
+const t=p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds());let cx=3;
+for(const ch of t){const g=F[ch],w=ch===':'?3:3;for(let r=0;r<5;r++)for(let k=0;k<3;k++)if(g[r]>>(2-k)&1)put(4+r,cx+k,'█','b y');cx+=ch===':'?3:4}
+put(11,2,'─'.repeat(36),'b a');
+const rows=[['Name','Value'],['DATE.SYS',d.toLocaleDateString('en-GB')],['DAY.EXE',d.toLocaleDateString('en',{weekday:'long'})],['MONTH.TXT',d.toLocaleDateString('en',{month:'long'})],['YEAR.DAT',String(d.getFullYear())],['WEEK.BAT','Week '+week(d)],['DOY.COM','Day '+doy(d)+' of '+(leap(d.getFullYear())?366:365)],['TZ.INI',Intl.DateTimeFormat().resolvedOptions().timeZone.slice(0,22)]];
+rows.forEach((r,i)=>{put(12+i,3,r[0].padEnd(12),i?'b w':'b y');put(12+i,16,r[1].padEnd(22).slice(0,22),i?'b a':'b y')});
+put(21,2,' '+(d.getHours()<12?'AM':'PM')+'  '+t+' ','k');
+// calendar right
+const y=d.getFullYear(),m=d.getMonth(),first=new Date(y,m,1).getDay(),dim=new Date(y,m+1,0).getDate();
+const head=d.toLocaleDateString('en',{month:'long',year:'numeric'});put(3,40+Math.floor((40-head.length)/2),head,'b w');
+put(5,46,'Su  Mo  Tu  We  Th  Fr  Sa','b y');
+for(let i=1;i<=dim;i++){const pos=first+i-1,r=7+Math.floor(pos/7)*2,c=45+(pos%7)*4;put(r,c,String(i).padStart(3),i===d.getDate()?'h':'b w')}
+put(20,43,'Today: '+d.toLocaleDateString('en',{weekday:'short',day:'numeric',month:'short'}),'b a');
+put(23,0,'C:\\CLOCK>'.padEnd(80),'k');put(23,9,'time /t','k');
+const fk=['Help','Menu','View','Edit','Copy','RenMov','Mkdir','Delete','PullDn','Quit'];put(24,0,' '.repeat(80),'k');
+fk.forEach((f,i)=>{put(24,i*8,String(i+1),'k');put(24,i*8+(i==9?2:1),f.padEnd(i==9?5:6).slice(0,i==9?5:6),'c')});
+let html='';for(const row of G){let cur=null,buf='';for(const [ch,cl] of row){if(cl!==cur){if(cur!==null)html+=`<span class="${cur}">${buf}</span>`;cur=cl;buf=''}buf+=ch==='<'?'&lt;':ch}html+=`<span class="${cur}">${buf}</span>\n`}s.innerHTML=html}
+function doy(d){return Math.floor((new Date(d.getFullYear(),d.getMonth(),d.getDate())-new Date(d.getFullYear(),0,0))/864e5)}
+function leap(y){return y%4==0&&(y%100!=0||y%400==0)}
+function week(d){const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())),n=t.getUTCDay()||7;t.setUTCDate(t.getUTCDate()+4-n);return Math.ceil(((t-Date.UTC(t.getUTCFullYear(),0,1))/864e5+1)/7)}
+render();fit();setInterval(render,500);
+</script></body></html>

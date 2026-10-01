@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Stained Glass</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#1a1612;font-family:"Palatino Linotype",Palatino,Georgia,serif}
+svg{position:fixed;inset:0;width:100%;height:100%}
+</style></head><body>
+<svg viewBox="-150 -150 300 320" preserveAspectRatio="xMidYMid meet">
+<defs>
+<filter id="stone" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".6" numOctaves="3" seed="2" result="n"/><feColorMatrix in="n" values="0 0 0 0 .1 0 0 0 0 .08 0 0 0 0 .06 0 0 0 .9 -.25" result="g"/><feComposite in="g" in2="SourceGraphic" operator="in" result="gc"/><feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="gc"/></feMerge></filter>
+<filter id="glassTex" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".18" numOctaves="2" seed="7" result="n"/><feColorMatrix in="n" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .35 -.1" result="g"/><feComposite in="g" in2="SourceGraphic" operator="in" result="gc"/><feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="gc"/></feMerge></filter>
+<filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="6"/></filter>
+<radialGradient id="wall" cx="50%" cy="45%" r="70%"><stop offset="0" stop-color="#8a7a64"/><stop offset="1" stop-color="#3a3026"/></radialGradient>
+<linearGradient id="beam" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff2c8" stop-opacity=".18"/><stop offset="1" stop-color="#fff2c8" stop-opacity="0"/></linearGradient>
+</defs>
+<rect x="-600" y="-500" width="1200" height="1000" fill="url(#wall)" filter="url(#stone)"/>
+<g id="blocks" stroke="#2a2018" stroke-opacity=".22" fill="none" stroke-width=".8"></g>
+<!-- carved stone frame -->
+<circle r="128" fill="#a89878" filter="url(#stone)"/><circle r="128" fill="none" stroke="#5a4a36" stroke-width="2"/>
+<g id="voussoirs" stroke="#5a4a36" stroke-width="1"></g>
+<circle r="116" fill="#6a5a44"/><circle r="114" fill="#141018"/>
+<!-- glass -->
+<g id="glass" filter="url(#glassTex)"></g>
+<!-- lead came drawn on top -->
+<g id="lead" fill="none" stroke="#1a1614" stroke-linejoin="round"></g>
+<g id="hands"></g>
+<!-- light pooling on the floor -->
+<path id="floor" d="M-140 165 L140 165 L170 170 L-170 170Z" fill="url(#beam)"/>
+<text id="t" y="152" text-anchor="middle" font-size="13" fill="#f4e6c4" letter-spacing="3"></text>
+<text id="d" y="164" text-anchor="middle" font-size="6.5" fill="#d8c8a4" font-style="italic"></text>
+</svg>
+<script>
+// A gothic rose window. The 12 petals are the hours (the current hour glows as sunlight passes through it),
+// the 60 outer panes are the minutes (filled up to now), and the centre roundel holds a leaded clock hand.
+const NS="http://www.w3.org/2000/svg",$=id=>document.getElementById(id);
+const el=(t,a,p)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);p.appendChild(e);return e};
+const P=(r,a)=>[Math.sin(a)*r,-Math.cos(a)*r],T=Math.PI*2;
+// wall blocks and frame voussoirs
+for(let y=-500;y<500;y+=24)for(let x0=-600+(Math.abs(Math.round(y/24))%2?20:0);x0<600;x0+=40)el('rect',{x:x0,y,width:40,height:24},$('blocks'));
+for(let i=0;i<24;i++){const a=i/24*T,[x1,y1]=P(116,a),[x2,y2]=P(128,a);el('line',{x1,y1,x2,y2},$('voussoirs'))}
+const PET=['#a8142a','#1a3a9a','#c89a10','#1a7a3a','#7a1a8a','#c8541a','#a8142a','#1a3a9a','#c89a10','#1a7a3a','#7a1a8a','#c8541a'];
+const G=$('glass'),L=$('lead'),hourPanes=[],minPanes=[];
+// minute ring: 60 trapezoid panes between r 92 and 112
+for(let i=0;i<60;i++){const a0=i/60*T,a1=(i+1)/60*T,p=[P(92,a0),P(112,a0),P(112,a1),P(92,a1)];
+const e=el('path',{d:'M'+p.map(q=>q.join(' ')).join(' L')+'Z',fill:i%5===0?'#e8c860':'#3a6aa8'},G);minPanes.push(e)}
+// petals: pointed lancets between r 34 and 90, each with an inner trefoil
+for(let i=0;i<12;i++){const a=i/12*T,w=T/12*.44;const [bx1,by1]=P(36,a-w*.9),[bx2,by2]=P(36,a+w*.9),[sx1,sy1]=P(78,a-w),[sx2,sy2]=P(78,a+w),[tx,ty]=P(90,a);
+const d=`M${bx1} ${by1} L${sx1} ${sy1} Q${P(88,a-w*.55).join(' ')} ${tx} ${ty} Q${P(88,a+w*.55).join(' ')} ${sx2} ${sy2} L${bx2} ${by2} Z`;
+const e=el('path',{d,fill:PET[i]},G);hourPanes.push(e);el('path',{d,'stroke-width':2.6},L);
+const [cx,cy]=P(66,a);el('circle',{cx,cy,r:7,fill:'#f0d890',opacity:.9},G);el('circle',{cx,cy,r:7,'stroke-width':1.6},L);
+const [nx,ny]=P(50,a);const tx2=el('text',{x:nx,y:ny+3,'text-anchor':'middle','font-size':8,fill:'#f8f0d8',stroke:'#1a1614','stroke-width':.4,transform:`rotate(${i*30} ${nx} ${ny})`},G);tx2.textContent=['XII','I','II','III','IV','V','VI','VII','VIII','IX','X','XI'][i]}
+// gaps between petals: small blue and green quarries
+for(let i=0;i<12;i++){const a=(i+.5)/12*T,[cx,cy]=P(84,a);el('circle',{cx,cy,r:5.5,fill:i%2?'#2a8a6a':'#4a2a8a'},G);el('circle',{cx,cy,r:5.5,'stroke-width':1.6},L)}
+// centre roundel
+el('circle',{r:34,fill:'#e8d8a0'},G);el('circle',{r:30,fill:'#f4ecd0'},G);
+for(let i=0;i<8;i++){const a=i/8*T;el('path',{d:`M0 0 L${P(30,a-.2).join(' ')} A30 30 0 0 1 ${P(30,a+.2).join(' ')}Z`,fill:i%2?'#c89a10':'#a8142a',opacity:.35},G)}
+el('circle',{r:34,'stroke-width':3},L);el('circle',{r:92,'stroke-width':2.6},L);el('circle',{r:112,'stroke-width':3},L);
+for(let i=0;i<60;i++){const a=i/60*T,[x1,y1]=P(92,a),[x2,y2]=P(112,a);el('line',{x1,y1,x2,y2,'stroke-width':i%5?1:2},L)}
+// hands as leaded glass
+const H=$('hands');const hh=el('g',{},H);el('path',{d:'M-3.2 6 L-2 -20 L0 -26 L2 -20 L3.2 6Z',fill:'#5a1a10',stroke:'#1a1614','stroke-width':1.2},hh);
+const mh=el('g',{},H);el('path',{d:'M-2.2 7 L-1.2 -28 L0 -32 L1.2 -28 L2.2 7Z',fill:'#1a2a5a',stroke:'#1a1614','stroke-width':1.2},mh);el('circle',{r:3.5,fill:'#c89a10',stroke:'#1a1614'},H);
+const glowLayer=el('g',{},G);
+function tick(){const d=new Date(),m=d.getMinutes(),s=d.getSeconds(),h=d.getHours(),hf=h%12+m/60,day=h>=7&&h<19,sun=Math.max(.25,Math.sin(Math.max(0,Math.min(1,(h+m/60-6)/13))*Math.PI));
+const bright=day?.55+.5*sun:.35;G.style.filter=`brightness(${bright}) saturate(${day?1.15:.8})`;
+hourPanes.forEach((e,i)=>e.setAttribute('opacity',i===h%12?1:.62));
+glowLayer.innerHTML='';const a=(h%12)/12*T,[gx,gy]=P(62,a);el('circle',{cx:gx,cy:gy,r:26,fill:'#fff6d0',opacity:day?.45:.25,filter:'url(#glow)'},glowLayer);
+minPanes.forEach((e,i)=>e.setAttribute('opacity',i<=m?(i===m?1:.95):.28));
+hh.setAttribute('transform',`rotate(${hf*30})`);mh.setAttribute('transform',`rotate(${(m+s/60)*6})`);
+$('floor').setAttribute('opacity',day?sun:.2);
+const p=n=>String(n).padStart(2,'0');$('t').textContent=p(h)+':'+p(m)+':'+p(s);
+$('d').textContent=d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
+tick();setInterval(tick,1000);
+</script></body></html>

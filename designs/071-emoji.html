@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Emoji Clock</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#fff7e6;font-family:"Segoe UI","Apple Color Emoji","Segoe UI Emoji",sans-serif;color:#333;transition:background 2s}
+body.night{background:#1c1f3a;color:#eee}
+.wrap{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2.5vh;text-align:center}
+.face{font-size:min(30vw,34vh);line-height:1}
+.t{font-size:clamp(28px,min(9vw,10vh),110px);font-weight:700}
+.d{font-size:clamp(13px,3vmin,30px)}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:.4vmin;font-size:min(4.4vw,4vh)}
+.cap{font-size:clamp(10px,1.8vmin,18px);opacity:.6}
+</style></head><body>
+<div class="wrap"><div class="face" id="f"></div><div class="t" id="t"></div><div class="d" id="d"></div><div class="grid" id="g"></div><div class="cap">today, one square per hour</div></div>
+<script>
+const FACES=['🕛','🕧','🕐','🕜','🕑','🕝','🕒','🕞','🕓','🕟','🕔','🕠','🕕','🕡','🕖','🕢','🕗','🕣','🕘','🕤','🕙','🕥','🕚','🕦'];
+const DAY=['🌙','🌙','🌙','🌙','🌙','🌅','🌅','☀️','☀️','☀️','☀️','☀️','🌞','☀️','☀️','☀️','☀️','🌇','🌇','🌆','🌙','🌙','🌙','🌙'];
+const MON=['⛄','💘','🌱','🌷','🌼','🍓','🏖️','🍉','🍂','🎃','🍁','🎄'];
+const WK=['🛌','💼','💼','💼','💼','🎉','🥳'];
+function tick(){const d=new Date(),h=d.getHours(),m=d.getMinutes(),idx=((h%12)*2+(m>=45?2:m>=15?1:0))%24;
+document.getElementById('f').textContent=FACES[idx];document.body.classList.toggle('night',h<6||h>=20);
+const p=n=>String(n).padStart(2,'0');document.getElementById('t').textContent=`${DAY[h]} ${p(h)}:${p(m)}:${p(d.getSeconds())}`;
+document.getElementById('d').textContent=`${WK[d.getDay()]} ${d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'})} ${MON[d.getMonth()]}`;
+document.getElementById('g').innerHTML=Array.from({length:24},(_,i)=>i<h?'🟩':i===h?'🟨':'⬜').map(e=>`<span>${e}</span>`).join('')}
+tick();setInterval(tick,1000);
+</script></body></html>

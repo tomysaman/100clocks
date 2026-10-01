@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Binary LEDs</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#0c1014;color:#7fd3ff;font-family:Consolas,monospace}
+.wrap{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3vmin}
+.rows{display:grid;grid-template-columns:auto repeat(6,1fr) auto;gap:1.6vmin 2vmin;align-items:center}
+.lab{font-size:clamp(11px,2.4vmin,24px);opacity:.6;text-align:right}
+.val{font-size:clamp(14px,4vmin,40px);min-width:2.5ch;text-align:left;padding-left:2vmin}
+.led{width:min(9vw,12vh);aspect-ratio:1;border-radius:50%;background:#16212b;box-shadow:inset 0 .3vmin .6vmin #000;transition:all .25s}
+.led.on{background:radial-gradient(circle at 35% 35%,#d9f3ff,#2fb4ff 55%,#0a6fb0);box-shadow:0 0 2vmin #2fb4ff}
+.w{font-size:clamp(10px,1.8vmin,18px);text-align:center;opacity:.4}
+.date{font-size:clamp(12px,2.6vmin,26px);opacity:.75;letter-spacing:.2em}
+.date b{color:#fff;font-weight:normal}
+</style></head><body>
+<div class="wrap"><div class="rows" id="r"></div><div class="date" id="d"></div></div>
+<script>
+const r=document.getElementById('r'),rows={};
+r.innerHTML='<span></span>'+[32,16,8,4,2,1].map(v=>`<span class="w">${v}</span>`).join('')+'<span></span>';
+['HOURS','MINUTES','SECONDS'].forEach(k=>{const l=document.createElement('span');l.className='lab';l.textContent=k;r.appendChild(l);rows[k]=[];
+for(let i=0;i<6;i++){const e=document.createElement('div');e.className='led';r.appendChild(e);rows[k].push(e)}const v=document.createElement('span');v.className='val';r.appendChild(v);rows[k].v=v});
+const bin=(n,w)=>n.toString(2).padStart(w,'0');
+function tick(){const d=new Date(),vals={HOURS:d.getHours(),MINUTES:d.getMinutes(),SECONDS:d.getSeconds()};
+for(const k in rows){const b=bin(vals[k],6);rows[k].forEach((e,i)=>e.classList.toggle('on',b[i]==='1'));rows[k].v.textContent=String(vals[k]).padStart(2,'0')}
+document.getElementById('d').innerHTML=`${d.toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short',year:'numeric'})} &nbsp;·&nbsp; <b>${bin(d.getDate(),5)}</b>/<b>${bin(d.getMonth()+1,4)}</b>`}
+tick();setInterval(tick,200);
+</script></body></html>

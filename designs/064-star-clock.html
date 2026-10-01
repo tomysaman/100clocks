@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Star Clock</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#02040b;color:#c9d6ff;font-family:Georgia,serif}
+canvas{position:fixed;inset:0;width:100%;height:100%}
+.ov{position:fixed;left:3vmin;bottom:3vmin;font-size:clamp(11px,1.9vmin,18px);line-height:1.6;opacity:.8;max-width:46vw;z-index:2}
+.tt{position:fixed;right:3vmin;top:3vmin;text-align:right;z-index:2}
+.tt b{display:block;font-weight:normal;font-size:clamp(28px,7vmin,72px);color:#fff;text-shadow:0 0 2vmin rgba(150,180,255,.4)}
+.tt span{font-size:clamp(11px,2.2vmin,22px);font-style:italic;opacity:.8}
+</style></head><body>
+<canvas id="c"></canvas>
+<div class="tt"><b id="t"></b><span id="d"></span></div>
+<div class="ov">The pointer stars of the Big Dipper sweep around Polaris once a day, like the hour hand of a 24-hour dial. Cassiopeia turns opposite.</div>
+<script>
+// A night sky turning around Polaris. The whole sky (Milky Way, stars, constellations) rotates once per 24 h;
+// the Big Dipper's pointer stars mark the hour on the ring. A pine-forest horizon sits in front.
+const c=document.getElementById('c'),x=c.getContext('2d');let W,H,P,sky=null,trees=null;
+function size(){P=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;c.width=W*P;c.height=H*P;x.setTransform(P,0,0,P,0,0);build()}addEventListener('resize',size);
+const rnd=(()=>{let s=11;return()=>(s=(s*16807)%2147483647)/2147483647})();
+const STARCOL=['#ffffff','#cfe0ff','#aac8ff','#fff4dc','#ffe0b0','#ffc9a0'];
+let stars=[];
+function build(){// sky texture: Milky Way band + faint stars, drawn once on a square bigger than the screen so it can rotate
+const S=Math.ceil(Math.hypot(W,H)*1.05);sky=document.createElement('canvas');sky.width=sky.height=S;const g=sky.getContext('2d');
+for(let i=0;i<220;i++){const t=rnd(),bx=S*t,by=S*.5+Math.sin(t*5)*S*.12+(rnd()-.5)*S*.08,r=S*(.03+rnd()*.08);const gr=g.createRadialGradient(bx,by,0,bx,by,r);gr.addColorStop(0,`rgba(${170+rnd()*50},${170+rnd()*40},${210+rnd()*40},${.03+rnd()*.035})`);gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(bx-r,by-r,r*2,r*2)}
+for(let i=0;i<60;i++){const t=rnd(),bx=S*t,by=S*.5+Math.sin(t*5)*S*.12+(rnd()-.5)*S*.03,r=S*(.01+rnd()*.03);const gr=g.createRadialGradient(bx,by,0,bx,by,r);gr.addColorStop(0,'rgba(10,8,20,.5)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(bx-r,by-r,r*2,r*2)}
+for(let i=0;i<2600;i++){const t=rnd(),inBand=rnd()<.5,bx=S*(inBand?t:rnd()),by=inBand?S*.5+Math.sin(t*5)*S*.12+(rnd()-.5)*S*.14:S*rnd();g.fillStyle=`rgba(255,255,255,${.15+rnd()*.5})`;g.fillRect(bx,by,rnd()<.9?.8:1.4,rnd()<.9?.8:1.4)}
+stars=Array.from({length:180},()=>({a:rnd()*Math.PI*2,r:Math.sqrt(rnd())*Math.hypot(W,H)*.55,s:.6+rnd()*1.8,c:STARCOL[rnd()*STARCOL.length|0],ph:rnd()*6}));
+// pine-tree horizon
+trees=document.createElement('canvas');trees.width=W*P;trees.height=H*P;const tg=trees.getContext('2d');tg.setTransform(P,0,0,P,0,0);
+const hy=H*.9;tg.fillStyle='#03050a';tg.beginPath();tg.moveTo(0,H);for(let X=0;X<=W;X+=6)tg.lineTo(X,hy+Math.sin(X/W*7)*H*.02+Math.sin(X/W*19)*H*.008);tg.lineTo(W,H);tg.fill();
+for(let X=-20;X<W+20;X+=8+rnd()*22){const th=H*(.03+rnd()*.07),base=hy+Math.sin(X/W*7)*H*.02;tg.beginPath();tg.moveTo(X,base-th);for(let k=0;k<6;k++){const yy=base-th+th*(k+1)/6,ww=th*.09*(k+1)*.7;tg.lineTo(X+ww,yy);tg.lineTo(X+ww*.45,yy)}for(let k=5;k>=0;k--){const yy=base-th+th*(k+1)/6,ww=th*.09*(k+1)*.7;tg.lineTo(X-ww*.45,yy);tg.lineTo(X-ww,yy)}tg.closePath();tg.fill()}
+// a little cabin with a lit window
+const cxh=W*.18,cyh=hy+H*.01;tg.fillRect(cxh-24,cyh-26,48,26);tg.beginPath();tg.moveTo(cxh-30,cyh-26);tg.lineTo(cxh,cyh-46);tg.lineTo(cxh+30,cyh-26);tg.fill();tg.fillStyle='#ffc86a';tg.fillRect(cxh-8,cyh-18,10,9)}
+size();
+const DIP=[[0,.48],[.13,.5],[.22,.55],[.33,.55],[.43,.62],[.45,.74],[.33,.72]],CAS=[[-.42,-.38],[-.3,-.46],[-.2,-.38],[-.08,-.48],[.02,-.4]];
+function rot(p,a){return [p[0]*Math.cos(a)-p[1]*Math.sin(a),p[0]*Math.sin(a)+p[1]*Math.cos(a)]}
+let meteor=null;
+function star(px,py,r,col){const g=x.createRadialGradient(px,py,0,px,py,r*4);g.addColorStop(0,'#fff');g.addColorStop(.18,col);g.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=g;x.beginPath();x.arc(px,py,r*4,0,7);x.fill()}
+function draw(t){const d=new Date(),h=d.getHours()+d.getMinutes()/60+d.getSeconds()/3600,cx=W/2,cy=H*.42,R=Math.min(W*.36,H*.3),ha=h/24*Math.PI*2;
+const bg=x.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#02040c');bg.addColorStop(.7,'#08122a');bg.addColorStop(1,'#14223e');x.fillStyle=bg;x.fillRect(0,0,W,H);
+x.save();x.translate(cx,cy);x.rotate(ha+.6);x.drawImage(sky,-sky.width/2,-sky.height/2);x.restore();
+stars.forEach(s=>{const a=s.a+ha,px=cx+Math.cos(a)*s.r,py=cy+Math.sin(a)*s.r,tw=.6+.4*Math.sin(t/400+s.ph*7);x.globalAlpha=tw;star(px,py,s.s*.6,s.c)});x.globalAlpha=1;
+// hour ring
+x.strokeStyle='rgba(180,200,255,.22)';x.lineWidth=1;x.beginPath();x.arc(cx,cy,R,0,7);x.stroke();x.beginPath();x.arc(cx,cy,R*1.07,0,7);x.stroke();
+x.fillStyle='rgba(200,215,255,.7)';x.font=`${R*.055}px Georgia`;x.textAlign='center';x.textBaseline='middle';
+for(let i=0;i<24;i++){const an=i/24*Math.PI*2-Math.PI/2;x.fillText(String(i),cx+Math.cos(an)*R*1.16,cy+Math.sin(an)*R*1.16);x.beginPath();x.moveTo(cx+Math.cos(an)*R,cy+Math.sin(an)*R);x.lineTo(cx+Math.cos(an)*R*1.07,cy+Math.sin(an)*R*1.07);x.stroke()}
+for(let i=0;i<96;i++){const an=i/96*Math.PI*2;x.beginPath();x.moveTo(cx+Math.cos(an)*R*1.035,cy+Math.sin(an)*R*1.035);x.lineTo(cx+Math.cos(an)*R*1.07,cy+Math.sin(an)*R*1.07);x.stroke()}
+// constellations
+const con=(pts,close,col)=>{const q=pts.map(p=>{const r=rot([p[0]*R,-p[1]*R],ha);return [cx+r[0],cy+r[1]]});x.strokeStyle=col;x.lineWidth=1.2;x.beginPath();q.forEach((p,i)=>i?x.lineTo(p[0],p[1]):x.moveTo(p[0],p[1]));if(close)x.lineTo(q[3][0],q[3][1]);x.stroke();q.forEach(p=>star(p[0],p[1],2.2,'rgba(210,225,255,.9)'));return q};
+const dp=con(DIP,true,'rgba(160,190,255,.45)');con(CAS,false,'rgba(160,190,255,.3)');
+x.fillStyle='rgba(200,215,255,.5)';x.font=`italic ${R*.04}px Georgia`;const lbl=rot([.3*R,-.82*R],ha);x.fillText('Ursa Major',cx+lbl[0],cy+lbl[1]);const lc=rot([-.2*R,.62*R],ha);x.fillText('Cassiopeia',cx+lc[0],cy+lc[1]);
+// pointer line from Polaris through the hour
+const pa=ha-Math.PI/2;x.setLineDash([4,6]);x.strokeStyle='rgba(255,220,140,.6)';x.beginPath();x.moveTo(cx,cy);x.lineTo(cx+Math.cos(pa)*R,cy+Math.sin(pa)*R);x.stroke();x.setLineDash([]);
+star(cx,cy,4,'rgba(255,233,176,.9)');x.fillStyle='rgba(255,230,170,.8)';x.font=`italic ${R*.045}px Georgia`;x.fillText('Polaris',cx,cy+R*.1);
+// occasional meteor
+if(!meteor&&Math.random()<.004)meteor={x:Math.random()*W,y:Math.random()*H*.4,vx:-(4+Math.random()*4),vy:2+Math.random()*2,l:1};
+if(meteor){const m=meteor,g=x.createLinearGradient(m.x,m.y,m.x-m.vx*14,m.y-m.vy*14);g.addColorStop(0,`rgba(255,255,255,${m.l})`);g.addColorStop(1,'rgba(255,255,255,0)');x.strokeStyle=g;x.lineWidth=2;x.beginPath();x.moveTo(m.x,m.y);x.lineTo(m.x-m.vx*14,m.y-m.vy*14);x.stroke();m.x+=m.vx;m.y+=m.vy;m.l-=.02;if(m.l<=0)meteor=null}
+x.drawImage(trees,0,0,W,H);
+document.getElementById('t').textContent=d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+document.getElementById('d').textContent=d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'});requestAnimationFrame(draw)}
+requestAnimationFrame(draw);
+</script></body></html>

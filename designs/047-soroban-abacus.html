@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Soroban Abacus</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;font-family:"Yu Mincho","Hiragino Mincho ProN",Georgia,serif;color:#3a2412}
+body{background:radial-gradient(ellipse at 50% 35%,#efe4cf,#d8c7a6 70%,#c2ae88)}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.35;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)' opacity='.25'/%3E%3C/svg%3E")}
+.wrap{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5vh}
+svg{width:min(96vw,165vh);height:auto;max-height:80vh}
+.cap{display:flex;align-items:baseline;gap:4vw;font-size:clamp(13px,2.8vmin,28px)}
+.cap b{font-weight:normal;font-size:1.7em;letter-spacing:.06em;font-variant-numeric:tabular-nums}
+.cap span{opacity:.75}
+.bead{transition:transform .38s cubic-bezier(.25,1.35,.5,1)}
+</style></head><body>
+<div class="wrap">
+<svg id="s" viewBox="0 0 1300 560">
+<defs>
+<!-- wood -->
+<filter id="grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".004 .09" numOctaves="3" seed="3" result="t"/>
+<feColorMatrix in="t" values="0 0 0 0 .25  0 0 0 0 .12  0 0 0 0 .04  0 0 0 .55 0" result="g"/><feComposite in="g" in2="SourceGraphic" operator="in" result="gc"/><feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="gc"/></feMerge></filter>
+<linearGradient id="frameV" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8a4a22"/><stop offset=".12" stop-color="#6a3416"/><stop offset=".88" stop-color="#4a220c"/><stop offset="1" stop-color="#2e1406"/></linearGradient>
+<linearGradient id="beamG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7a3e1a"/><stop offset=".45" stop-color="#5a2a10"/><stop offset="1" stop-color="#341706"/></linearGradient>
+<linearGradient id="tray" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a1a10"/><stop offset=".08" stop-color="#3c2616"/><stop offset="1" stop-color="#2e1c10"/></linearGradient>
+<!-- bamboo rod -->
+<linearGradient id="rodG" x1="0" x2="1"><stop offset="0" stop-color="#8a7448"/><stop offset=".35" stop-color="#e9d9a6"/><stop offset=".6" stop-color="#c9b27a"/><stop offset="1" stop-color="#6e5a32"/></linearGradient>
+<!-- beads: dark lacquered wood with a sharp equator, lit from the upper left -->
+<linearGradient id="beadTop" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b0683a"/><stop offset=".55" stop-color="#7a3a16"/><stop offset="1" stop-color="#5a2a0e"/></linearGradient>
+<linearGradient id="beadBot" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3e1c08"/><stop offset=".6" stop-color="#2a1205"/><stop offset="1" stop-color="#4a250e"/></linearGradient>
+<radialGradient id="spec" cx="38%" cy="30%" r="40%"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+<filter id="bsh" x="-20%" y="-30%" width="140%" height="180%"><feDropShadow dx="2" dy="5" stdDeviation="3" flood-color="#000" flood-opacity=".55"/></filter>
+<filter id="fsh" x="-5%" y="-5%" width="110%" height="120%"><feDropShadow dx="0" dy="14" stdDeviation="12" flood-color="#2a1608" flood-opacity=".45"/></filter>
+<g id="bead"><path d="M-40 0 C-33 -6 -16 -21 0 -21 C16 -21 33 -6 40 0 Z" fill="url(#beadTop)"/><path d="M-40 0 C-33 6 -16 21 0 21 C16 21 33 6 40 0 Z" fill="url(#beadBot)"/>
+<path d="M-40 0 H40" stroke="#c88a58" stroke-opacity=".5" stroke-width="1.2"/><ellipse cx="-12" cy="-11" rx="22" ry="7" fill="url(#spec)"/></g>
+</defs>
+<g filter="url(#fsh)">
+<rect x="10" y="10" width="1280" height="500" rx="18" fill="url(#frameV)" filter="url(#grain)"/>
+<rect x="44" y="44" width="1212" height="432" rx="4" fill="url(#tray)"/>
+<!-- inner bevel -->
+<rect x="44" y="44" width="1212" height="432" rx="4" fill="none" stroke="#1c0e04" stroke-width="3"/>
+<rect x="10" y="10" width="1280" height="500" rx="18" fill="none" stroke="#a8643a" stroke-opacity=".5" stroke-width="2"/>
+</g>
+<g id="rods"></g>
+<g id="beads"></g>
+<!-- reckoning bar -->
+<rect x="44" y="150" width="1212" height="30" fill="url(#beamG)" filter="url(#grain)"/>
+<rect x="44" y="150" width="1212" height="2" fill="#a0603a" opacity=".6"/>
+<g id="dots"></g>
+<!-- brass corner caps -->
+<g fill="#c9a24a" stroke="#7a5a1a" stroke-width="1.5"><circle cx="27" cy="27" r="6"/><circle cx="1273" cy="27" r="6"/><circle cx="27" cy="493" r="6"/><circle cx="1273" cy="493" r="6"/></g>
+<g id="labels" font-size="17" fill="#e9d2a8" text-anchor="middle" letter-spacing="3" font-family="Georgia,serif"></g>
+</svg>
+<div class="cap"><span id="wd"></span><b id="t"></b><span id="d"></span></div>
+</div>
+<script>
+// 13-rod soroban. Rods (left→right): blank, day×2, month×2, blank, hour×2, minute×2, second×2, blank.
+// Each rod: one heaven bead worth 5 above the bar, four earth beads worth 1 below. A bead counts when pushed against the bar.
+const NS="http://www.w3.org/2000/svg",$=id=>document.getElementById(id);
+const el=(t,a,p)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);p.appendChild(e);return e};
+const N=13,X0=44,W=1212,step=W/N,cx=i=>X0+step*(i+.5);
+const TOP=44,BAR=150,BAR_B=180,BOT=476,BH=44;// bead height
+const roles=[null,'D','D','M','M',null,'h','h','m','m','s','s',null];
+for(let i=0;i<N;i++)el('rect',{x:cx(i)-4,y:TOP,width:8,height:BOT-TOP,fill:'url(#rodG)'},$('rods'));
+// unit dots on every third rod, as on a real soroban
+for(let i=1;i<N;i+=3)el('circle',{cx:cx(i),cy:165,r:4.2,fill:'#f4ead2',stroke:'#2a1406','stroke-width':1},$('dots'));
+[['DAY',1.5],['MONTH',3.5],['HOUR',6.5],['MIN',8.5],['SEC',10.5]].forEach(([t,i])=>el('text',{x:X0+step*(i+.5),y:500},$('labels')).textContent=t);
+const rods=[];
+for(let i=0;i<N;i++){const g=el('g',{},$('beads')),bs=[];
+for(let k=0;k<5;k++){const b=el('g',{class:'bead',filter:'url(#bsh)'},g);el('use',{href:'#bead',x:cx(i),y:0},b);b.style.transform=`translateY(${0}px)`;bs.push(b)}rods.push(bs)}
+// resting positions: heaven bead up at the frame (TOP+BH/2) or down on the bar (BAR-BH/2);
+// earth beads stacked at the bottom, or pushed up against the bar.
+function setRod(bs,v){const five=v>=5,ones=v%5;
+bs[0].style.transform=`translateY(${five?BAR-BH/2:TOP+BH/2+1}px)`;
+for(let k=0;k<4;k++){const up=k<ones,y=up?BAR_B+BH/2+k*BH:BOT-BH/2-(3-k)*BH;bs[k+1].style.transform=`translateY(${y}px)`}}
+rods.forEach(bs=>setRod(bs,0));
+function tick(){const d=new Date(),p=n=>String(n).padStart(2,'0'),v={D:p(d.getDate()),M:p(d.getMonth()+1),h:p(d.getHours()),m:p(d.getMinutes()),s:p(d.getSeconds())},seen={};
+roles.forEach((r,i)=>{let dig=0;if(r){seen[r]=(seen[r]||0);dig=+v[r][seen[r]++]}setRod(rods[i],dig)});
+$('t').textContent=`${v.h}:${v.m}:${v.s}`;$('wd').textContent=d.toLocaleDateString(undefined,{weekday:'long'});
+$('d').textContent=d.toLocaleDateString(undefined,{day:'numeric',month:'long',year:'numeric'})}
+tick();setInterval(tick,250);
+</script></body></html>

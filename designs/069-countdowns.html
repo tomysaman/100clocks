@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Countdowns</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#0e0e10;color:#f2f2f2;font-family:"Segoe UI",system-ui,sans-serif}
+.wrap{height:100%;display:flex;flex-direction:column;justify-content:center;width:min(92vw,1100px);margin:0 auto;gap:2.4vh}
+.now{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:1vh 3vw;border-bottom:1px solid #333;padding-bottom:2vh}
+.now b{font-size:clamp(36px,min(11vw,15vh),170px);font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums;line-height:1}
+.now span{font-size:clamp(13px,2.8vmin,28px);color:#aaa}
+.r{display:grid;grid-template-columns:1fr auto;align-items:baseline;gap:2vw;font-size:clamp(12px,2.6vmin,26px)}
+.r span{color:#999}
+.r b{font-variant-numeric:tabular-nums;font-weight:500}
+.r b em{font-style:normal;color:#666;font-size:.7em;margin:0 .3em 0 .1em}
+.hl b{color:#ffcc33}
+</style></head><body>
+<div class="wrap"><div class="now"><b id="t"></b><span id="d"></span></div><div id="rows" style="display:flex;flex-direction:column;gap:1.6vh"></div></div>
+<script>
+const rows=document.getElementById('rows');
+function targets(d){const y=d.getFullYear(),m=d.getMonth(),day=d.getDate(),wd=d.getDay();
+const nextDow=(dow,h)=>{const t=new Date(y,m,day+((dow-wd+7)%7),h);if(t<=d)t.setDate(t.getDate()+7);return t};
+const xmas=new Date(y,11,25)>d?new Date(y,11,25):new Date(y+1,11,25);
+return [['Next minute',new Date(y,m,day,d.getHours(),d.getMinutes()+1)],['Next hour',new Date(y,m,day,d.getHours()+1)],['Midnight',new Date(y,m,day+1)],
+['Friday 17:00',nextDow(5,17)],['Weekend (Sat 00:00)',nextDow(6,0)],['First of next month',new Date(y,m+1,1)],['Christmas',xmas],['New Year '+(y+1),new Date(y+1,0,1)]]}
+function fmt(ms){let s=Math.floor(ms/1000);const D=Math.floor(s/86400);s%=86400;const H=Math.floor(s/3600);s%=3600;const M=Math.floor(s/60);s%=60;const p=n=>String(n).padStart(2,'0');
+return (D?`${D}<em>d</em>`:'')+`${p(H)}<em>h</em>${p(M)}<em>m</em>${p(s)}<em>s</em>`}
+function tick(){const d=new Date();document.getElementById('t').textContent=d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+document.getElementById('d').textContent=d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+rows.innerHTML=targets(d).map(([n,t],i)=>`<div class="r${i===2?' hl':''}"><span>${n}</span><b>${fmt(t-d)}</b></div>`).join('')}
+tick();setInterval(tick,250);
+</script></body></html>

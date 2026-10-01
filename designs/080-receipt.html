@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Time Receipt</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#3d4a52;font-family:"Courier New",Consolas,monospace;color:#222}
+.wrap{height:100%;display:flex;justify-content:center;align-items:flex-start}
+.slot{position:fixed;top:0;left:50%;transform:translateX(-50%);width:min(66vw,62vh);height:2.4vh;background:#111;border-radius:0 0 1vh 1vh;z-index:2}
+.paper{width:min(60vw,56vh);background:#fbfaf6;padding:4vh 3.5vmin 3vh;box-sizing:border-box;font-size:clamp(10px,min(2vw,2vh),20px);line-height:1.5;box-shadow:0 1vh 3vh rgba(0,0,0,.4);position:relative;animation:print .9s steps(12) both}
+.paper::after{content:"";position:absolute;left:0;right:0;bottom:-1.2vh;height:1.2vh;background:linear-gradient(-45deg,transparent .6vh,#fbfaf6 0) 0 0/1.2vh 1.2vh,linear-gradient(45deg,transparent .6vh,#fbfaf6 0) 0 0/1.2vh 1.2vh}
+@keyframes print{from{transform:translateY(-100%)}to{transform:translateY(0)}}
+.c{text-align:center}.r{display:flex;justify-content:space-between}
+hr{border:0;border-top:1px dashed #555;margin:1vh 0}
+.tot{font-size:2.1em;font-weight:bold;text-align:center;margin:.6vh 0}
+.bc{height:5vh;margin:1vh auto 0;width:80%;background:repeating-linear-gradient(90deg,#222 0 2px,transparent 2px 4px,#222 4px 5px,transparent 5px 8px,#222 8px 11px,transparent 11px 12px)}
+</style></head><body>
+<div class="slot"></div>
+<div class="wrap"><div class="paper" id="p"></div></div>
+<script>
+let lastM=-1;
+function render(d){const p=n=>String(n).padStart(2,'0'),h=d.getHours(),m=d.getMinutes(),s=d.getSeconds();
+document.getElementById('p').innerHTML=`<div class="c"><b>TIME MART</b><br>42 Clockwork Lane<br>TEL 000-TICK-TOCK</div><hr>
+<div class="r"><span>${d.toLocaleDateString('en-GB')}</span><span>${p(h)}:${p(m)}</span></div><div class="r"><span>${d.toLocaleDateString('en',{weekday:'long'}).toUpperCase()}</span><span>#${String(Math.floor(d/1000)%100000).padStart(5,'0')}</span></div><hr>
+<div class="r"><span>HOURS        x ${p(h)}</span><span>${(h*60).toFixed(2)}</span></div>
+<div class="r"><span>MINUTES      x ${p(m)}</span><span>${m.toFixed(2)}</span></div>
+<div class="r"><span>SECONDS      x <span id="ss">${p(s)}</span></span><span id="sv">${(s/60).toFixed(2)}</span></div>
+<div class="r"><span>DAY OF MONTH</span><span>${d.getDate()}</span></div>
+<div class="r"><span>MONTH</span><span>${d.toLocaleDateString('en',{month:'short'}).toUpperCase()}</span></div>
+<div class="r"><span>YEAR</span><span>${d.getFullYear()}</span></div><hr>
+<div class="r"><span>SUBTOTAL (MIN)</span><span id="st">${(h*60+m+s/60).toFixed(2)}</span></div><div class="r"><span>TAX (LEAP SEC)</span><span>0.00</span></div><hr>
+<div class="c">TOTAL TIME</div><div class="tot" id="tt">${p(h)}:${p(m)}:${p(s)}</div><hr>
+<div class="c">${d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'})}<br>THANK YOU FOR SPENDING<br>YOUR TIME WITH US</div><div class="bc"></div>`}
+function tick(){const d=new Date(),p=n=>String(n).padStart(2,'0');if(d.getMinutes()!==lastM){lastM=d.getMinutes();const el=document.getElementById('p');render(d);el.style.animation='none';void el.offsetWidth;el.style.animation=''}
+else{document.getElementById('ss').textContent=p(d.getSeconds());document.getElementById('sv').textContent=(d.getSeconds()/60).toFixed(2);document.getElementById('st').textContent=(d.getHours()*60+d.getMinutes()+d.getSeconds()/60).toFixed(2);document.getElementById('tt').textContent=p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds())}}
+tick();setInterval(tick,500);
+</script></body></html>

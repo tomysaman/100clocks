@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Handheld Console</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:radial-gradient(ellipse at 50% 40%,#7a7e88,#3a3c44 75%);font-family:"Arial Rounded MT Bold","Segoe UI",Arial,sans-serif}
+svg{position:fixed;inset:0;width:100%;height:100%}
+.b{cursor:pointer}
+foreignObject canvas{width:100%;height:100%;image-rendering:pixelated;display:block}
+</style></head><body>
+<svg viewBox="0 0 400 640" preserveAspectRatio="xMidYMid meet">
+<defs>
+<linearGradient id="shell" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d6d3cc"/><stop offset=".5" stop-color="#c7c3bb"/><stop offset="1" stop-color="#aaa59c"/></linearGradient>
+<filter id="plastic" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="1.4" numOctaves="2" seed="2" result="t"/><feColorMatrix in="t" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .07 0" result="g"/><feComposite in="g" in2="SourceGraphic" operator="in" result="gc"/><feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="gc"/></feMerge></filter>
+<linearGradient id="bezel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6e7180"/><stop offset="1" stop-color="#4c4f5c"/></linearGradient>
+<radialGradient id="abtn" cx="38%" cy="32%"><stop offset="0" stop-color="#d0457e"/><stop offset=".6" stop-color="#9a1f52"/><stop offset="1" stop-color="#6a0f36"/></radialGradient>
+<linearGradient id="dpad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3a3a3e"/><stop offset="1" stop-color="#121214"/></linearGradient>
+<linearGradient id="lens" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".18"/><stop offset=".3" stop-color="#fff" stop-opacity=".02"/><stop offset=".6" stop-color="#fff" stop-opacity="0"/></linearGradient>
+<filter id="ds" x="-20%" y="-10%" width="140%" height="130%"><feDropShadow dx="8" dy="16" stdDeviation="14" flood-color="#000" flood-opacity=".5"/></filter>
+<filter id="bs" x="-40%" y="-40%" width="180%" height="180%"><feDropShadow dx="1.5" dy="3" stdDeviation="1.6" flood-color="#000" flood-opacity=".45"/></filter>
+<filter id="inner"><feOffset dx="0" dy="2"/><feGaussianBlur stdDeviation="2" result="o"/><feComposite in="SourceGraphic" in2="o" operator="arithmetic" k2="-1" k3="1" result="i"/><feFlood flood-color="#000" flood-opacity=".6"/><feComposite in2="i" operator="in"/><feComposite in2="SourceGraphic" operator="over"/></filter>
+</defs>
+<g filter="url(#ds)"><path d="M30 20 H370 Q380 20 380 30 V560 Q380 620 320 620 H40 Q30 620 30 610 V30 Q30 20 40 20Z" fill="url(#shell)" filter="url(#plastic)"/></g>
+<path d="M30 52 H380" stroke="#9a968e" stroke-width="1.4"/><path d="M60 20 V52 M340 20 V52" stroke="#9a968e" stroke-width="1.4"/>
+<text x="70" y="40" font-size="8" fill="#8a867e">◂ OFF · ON ▸</text>
+<!-- screen bezel -->
+<path d="M52 72 H348 Q356 72 356 80 V300 Q356 330 326 330 H60 Q52 330 52 322 V80 Q52 72 60 72Z" fill="url(#bezel)"/>
+<text x="200" y="88" text-anchor="middle" font-size="7.5" fill="#b8bac6" letter-spacing="1">DOT MATRIX WITH STEREO SOUND</text>
+<path d="M68 82 H112 M288 82 H332" stroke="#8a1f4a" stroke-width="1.6"/><path d="M68 86 H112 M288 86 H332" stroke="#2a3a8a" stroke-width="1.6"/>
+<circle cx="74" cy="170" r="5" fill="#2a0a0a"/><circle id="led" cx="74" cy="170" r="4" fill="#ff2a2a"/><text x="74" y="188" text-anchor="middle" font-size="6" fill="#b8bac6">BATTERY</text>
+<rect x="96" y="98" width="208" height="188" rx="2" fill="#38402a" filter="url(#inner)"/>
+<foreignObject x="100" y="102" width="200" height="180"><canvas xmlns="http://www.w3.org/1999/xhtml" id="c" width="160" height="144"></canvas></foreignObject>
+<rect x="96" y="98" width="208" height="188" fill="url(#lens)"/>
+<text x="60" y="360" font-size="20" font-style="italic" font-weight="bold" fill="#2a3a8a">Clock<tspan font-size="13" font-style="normal">Boy</tspan></text>
+<!-- d-pad -->
+<g transform="translate(96 440)" filter="url(#bs)"><circle r="44" fill="#b8b4ac" opacity=".5"/><path d="M-12 -38 H12 V-12 H38 V12 H12 V38 H-12 V12 H-38 V-12 H-12Z" fill="url(#dpad)"/>
+<circle r="6" fill="#0a0a0c" opacity=".6"/><g fill="#55555a"><path d="M0 -32 l-5 8 h10z"/><path d="M0 32 l-5 -8 h10z"/><path d="M-32 0 l8 -5 v10z"/><path d="M32 0 l-8 -5 v10z"/></g></g>
+<!-- A / B -->
+<g transform="translate(300 430) rotate(-25)"><rect x="-58" y="-24" width="116" height="48" rx="24" fill="#b0aca4" opacity=".6"/>
+<g class="b" id="bB" filter="url(#bs)"><circle cx="-30" r="18" fill="url(#abtn)"/></g><g class="b" id="bA" filter="url(#bs)"><circle cx="30" r="18" fill="url(#abtn)"/></g></g>
+<text x="268" y="482" font-size="11" fill="#2a3a8a" font-weight="bold">B</text><text x="322" y="456" font-size="11" fill="#2a3a8a" font-weight="bold">A</text>
+<!-- select / start -->
+<g transform="translate(200 520) rotate(-25)"><g filter="url(#bs)"><rect x="-44" y="-6" width="30" height="10" rx="5" fill="#7a7a80"/><rect x="14" y="-6" width="30" height="10" rx="5" fill="#7a7a80"/></g>
+<text x="-29" y="18" text-anchor="middle" font-size="7" fill="#2a3a8a" letter-spacing="1">SELECT</text><text x="29" y="18" text-anchor="middle" font-size="7" fill="#2a3a8a" letter-spacing="1">START</text></g>
+<!-- speaker slots -->
+<g id="spk"></g>
+<text x="200" y="608" text-anchor="middle" font-size="8" fill="#8a867e">A / B : change palette</text>
+</svg>
+<script>
+const NS="http://www.w3.org/2000/svg",$=id=>document.getElementById(id);
+for(let i=0;i<6;i++){const r=document.createElementNS(NS,'rect');r.setAttribute("x",262+i*14);r.setAttribute("y",528);r.setAttribute("width",6);r.setAttribute("height",44);r.setAttribute('rx',3);r.setAttribute('fill','#5a5650');r.setAttribute('transform',`rotate(-25 ${265+i*14} 550)`);$('spk').appendChild(r)}
+const PAL=[['#9bbc0f','#8bac0f','#306230','#0f380f'],['#e0f8d0','#88c070','#346856','#081820'],['#fff6d3','#f9a875','#eb6b6f','#7c3f58'],['#c4f0c2','#5ab9a8','#1e606e','#2d1b00']];
+let pi=0;try{pi=+localStorage.getItem('gbpal')||0}catch(e){}
+const setP=v=>{pi=(v+PAL.length)%PAL.length;try{localStorage.setItem('gbpal',pi)}catch(e){}};$('bA').onclick=()=>setP(pi+1);$('bB').onclick=()=>setP(pi-1);
+const F={'0':[14,17,19,21,25,17,14],'1':[4,12,4,4,4,4,14],'2':[14,17,1,2,4,8,31],'3':[31,2,4,2,1,17,14],'4':[2,6,10,18,31,2,2],'5':[31,16,30,1,1,17,14],'6':[6,8,16,30,17,17,14],'7':[31,1,2,4,8,8,8],'8':[14,17,17,14,17,17,14],'9':[14,17,17,15,1,2,12],':':[0,12,12,0,12,12,0],' ':[0,0,0,0,0,0,0],
+A:[14,17,17,31,17,17,17],B:[30,17,17,30,17,17,30],C:[14,17,16,16,16,17,14],D:[28,18,17,17,17,18,28],E:[31,16,16,30,16,16,31],F:[31,16,16,30,16,16,16],G:[14,17,16,23,17,17,15],H:[17,17,17,31,17,17,17],I:[14,4,4,4,4,4,14],J:[7,2,2,2,2,18,12],L:[16,16,16,16,16,16,31],M:[17,27,21,21,17,17,17],N:[17,17,25,21,19,17,17],O:[14,17,17,17,17,17,14],P:[30,17,17,30,16,16,16],R:[30,17,17,30,20,18,17],S:[15,16,16,14,1,1,30],T:[31,4,4,4,4,4,4],U:[17,17,17,17,17,17,14],V:[17,17,17,17,17,10,4],W:[17,17,17,21,21,21,10],Y:[17,17,10,4,4,4,4]};
+const c=$('c'),x=c.getContext('2d'),buf=document.createElement('canvas');buf.width=160;buf.height=144;const b=buf.getContext('2d');
+function txt(s,X,Y,sc,col){b.fillStyle=col;[...s].forEach((ch,i)=>{const g=F[ch]||F[' '];for(let r=0;r<7;r++)for(let k=0;k<5;k++)if(g[r]>>(4-k)&1)b.fillRect(X+(i*6+k)*sc,Y+r*sc,sc,sc)})}
+const HERO=['..XXXX..','.XXXXXX.','.X.XX.X.','.XXXXXX.','..XXXX..','.XXXXXX.','X.XXXX.X','..X..X..'],HERO2=['..XXXX..','.XXXXXX.','.X.XX.X.','.XXXXXX.','..XXXX..','.XXXXXX.','X.XXXX.X','.X....X.'];
+let prev=null;
+function draw(){const d=new Date(),P=PAL[pi],p=n=>String(n).padStart(2,'0');b.fillStyle=P[0];b.fillRect(0,0,160,144);
+// hills and clouds
+b.fillStyle=P[1];for(let X=0;X<160;X++){const h=96+Math.round(Math.sin(X/18)*5+Math.sin(X/7)*2);b.fillRect(X,h,1,22)}
+const cl=(d.getTime()/200)%200;b.fillStyle=P[1];[[cl-20,10],[cl+60,18]].forEach(([cx,cy])=>{cx=((cx%200)+200)%200-20;b.fillRect(cx,cy,16,3);b.fillRect(cx+3,cy-2,9,2)});
+const hm=p(d.getHours())+':'+p(d.getMinutes()),w=hm.length*6*3-3;txt(hm,(160-w)/2,26,3,P[3]);txt(p(d.getSeconds()),(160-11*2)/2,52,2,P[2]);
+const days=['SUN','MON','TUE','WED','THU','FRI','SAT'],mons=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+const dl=days[d.getDay()]+' '+p(d.getDate())+' '+mons[d.getMonth()];txt(dl,(160-dl.length*6+1)/2,72,1,P[3]);txt(String(d.getFullYear()),(160-23)/2,82,1,P[2]);
+b.fillStyle=P[2];b.fillRect(0,118,160,26);b.fillStyle=P[3];for(let i=0;i<160;i+=8)b.fillRect(i+(i/8%2)*4,118,4,2);
+const hx=Math.floor((d.getSeconds()+d.getMilliseconds()/1000)/60*150),fr=Math.floor(d.getMilliseconds()/250)%2?HERO:HERO2;b.fillStyle=P[3];fr.forEach((row,r)=>[...row].forEach((ch,k)=>{if(ch==='X')b.fillRect(hx+k,110+r,1,1)}));
+b.fillStyle=P[3];b.fillRect(151,104,2,14);b.fillRect(153,104,6,4);
+// LCD response: blend with the previous frame (ghosting), then draw a subtle pixel grid
+x.globalAlpha=1;x.drawImage(buf,0,0);if(prev){x.globalAlpha=.35;x.drawImage(prev,0,0);x.globalAlpha=1}
+prev=prev||document.createElement('canvas');prev.width=160;prev.height=144;prev.getContext('2d').drawImage(buf,0,0);
+x.fillStyle='rgba(0,0,0,.08)';for(let i=0;i<160;i++)x.fillRect(i,0,.12,144);for(let j=0;j<144;j++)x.fillRect(0,j,160,.12);
+$('led').setAttribute('opacity',.85+.15*Math.sin(Date.now()/300));requestAnimationFrame(draw)}
+draw();
+</script></body></html>

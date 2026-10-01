@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LCD Wristwatch</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:radial-gradient(ellipse at 40% 35%,#ece7dc,#b4ad9f 75%,#8e8778);font-family:Arial,Helvetica,sans-serif}
+svg{position:fixed;inset:0;width:100%;height:100%}
+.btn{cursor:pointer}
+.tip{position:fixed;left:12px;bottom:10px;font:12px system-ui;color:#4a463e}
+</style></head><body>
+<svg viewBox="22 30 556 460" preserveAspectRatio="xMidYMid meet">
+<defs>
+<filter id="resinTex" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="4" result="n"/><feColorMatrix in="n" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .06 0" result="g"/><feComposite in="g" in2="SourceGraphic" operator="in" result="gc"/><feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="gc"/></feMerge></filter>
+<filter id="brushed" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".004 1.2" numOctaves="2" seed="8" result="n"/><feColorMatrix in="n" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .1 0" result="g"/><feComposite in="g" in2="SourceGraphic" operator="in" result="gc"/><feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="gc"/></feMerge></filter>
+<linearGradient id="resin" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#47474a"/><stop offset=".08" stop-color="#2a2a2c"/><stop offset=".55" stop-color="#18181a"/><stop offset=".92" stop-color="#0e0e0f"/><stop offset="1" stop-color="#040405"/></linearGradient>
+<linearGradient id="resinSide" x1="0" x2="1"><stop offset="0" stop-color="#000" stop-opacity=".6"/><stop offset=".07" stop-color="#000" stop-opacity="0"/><stop offset=".93" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".65"/></linearGradient>
+<linearGradient id="bezel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2c2c2f"/><stop offset="1" stop-color="#121214"/></linearGradient>
+<linearGradient id="strap" x1="0" x2="1"><stop offset="0" stop-color="#070708"/><stop offset=".2" stop-color="#1c1c1e"/><stop offset=".5" stop-color="#2a2a2c"/><stop offset=".8" stop-color="#1c1c1e"/><stop offset="1" stop-color="#070708"/></linearGradient>
+<linearGradient id="plate" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5a5d64"/><stop offset=".35" stop-color="#34363b"/><stop offset=".7" stop-color="#26282c"/><stop offset="1" stop-color="#3a3c42"/></linearGradient>
+<linearGradient id="lcdG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#cdd2bc"/><stop offset=".55" stop-color="#bcc3a8"/><stop offset="1" stop-color="#a9b096"/></linearGradient>
+<linearGradient id="lcdLit" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c4f6bc"/><stop offset="1" stop-color="#84de94"/></linearGradient>
+<linearGradient id="crystal" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".34"/><stop offset=".25" stop-color="#fff" stop-opacity=".06"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/><stop offset=".9" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#fff" stop-opacity=".08"/></linearGradient>
+<linearGradient id="btnG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6a6e76"/><stop offset=".3" stop-color="#d8dce0"/><stop offset=".55" stop-color="#f6f8fa"/><stop offset="1" stop-color="#4a4e56"/></linearGradient>
+<radialGradient id="screw" cx="35%" cy="30%"><stop offset="0" stop-color="#f4f6f8"/><stop offset=".6" stop-color="#9aa0a8"/><stop offset="1" stop-color="#4a4e56"/></radialGradient>
+<filter id="ds" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="10" dy="18" stdDeviation="16" flood-color="#2a2418" flood-opacity=".5"/></filter>
+<filter id="inner"><feOffset dx="0" dy="3"/><feGaussianBlur stdDeviation="3" result="o"/><feComposite in="SourceGraphic" in2="o" operator="arithmetic" k2="-1" k3="1" result="i"/><feFlood flood-color="#000" flood-opacity=".7"/><feComposite in2="i" operator="in"/><feComposite in2="SourceGraphic" operator="over"/></filter>
+<filter id="segsh" x="-10%" y="-10%" width="120%" height="130%"><feDropShadow dx="1.6" dy="2.2" stdDeviation=".8" flood-color="#2e3620" flood-opacity=".42"/></filter>
+<pattern id="lcdGrain" width="3" height="3" patternUnits="userSpaceOnUse"><rect width="3" height="3" fill="none"/><rect width="1" height="1" fill="#000" opacity=".025"/></pattern>
+<clipPath id="lcdClip"><rect x="128" y="190" width="344" height="160" rx="5"/></clipPath>
+<path id="CASE" d="M120 64 H480 Q520 64 530 100 L552 176 V344 L530 420 Q520 456 480 456 H120 Q80 456 70 420 L48 344 V176 L70 100 Q80 64 120 64Z"/>
+</defs>
+<!-- strap stubs with keeper ridges, just visible beyond the case -->
+<g filter="url(#ds)">
+<path d="M188 0 H412 L406 74 H194 Z" fill="url(#strap)"/><path d="M194 446 H406 L412 520 H188 Z" fill="url(#strap)"/>
+<use href="#CASE" fill="url(#resin)"/>
+</g>
+<g id="ridges"></g>
+<use href="#CASE" fill="url(#resin)" filter="url(#resinTex)"/>
+<use href="#CASE" fill="url(#resinSide)"/>
+<!-- moulded step around the case and highlights -->
+<path d="M126 74 H474 Q508 74 518 104 L538 178 V342 L518 416 Q508 446 474 446 H126 Q92 446 82 416 L62 342 V178 L82 104 Q92 74 126 74Z" fill="none" stroke="#000" stroke-opacity=".5" stroke-width="2"/>
+<path d="M126 75 H474 Q508 75 518 105" fill="none" stroke="#fff" stroke-opacity=".18" stroke-width="1.4"/>
+<path d="M122 66 H478 Q514 66 524 98" fill="none" stroke="#fff" stroke-opacity=".3" stroke-width="2.2" stroke-linecap="round"/>
+<path d="M60 186 V334" stroke="#fff" stroke-opacity=".08" stroke-width="3"/>
+<!-- button guards and stainless push buttons -->
+<g id="guards" fill="#1a1a1c" stroke="#000" stroke-opacity=".4"><path d="M44 290 h10 v62 h-10 q-6 -31 0 -62z"/><path d="M556 172 h-10 v62 h10 q6 -31 0 -62z"/><path d="M556 290 h-10 v62 h10 q6 -31 0 -62z"/></g>
+<g class="btn" id="bLight"><rect x="30" y="303" width="22" height="36" rx="4" fill="url(#btnG)"/><path d="M33 309 h16 M33 315 h16 M33 321 h16 M33 327 h16 M33 333 h16" stroke="#5a5e66" stroke-width=".8"/></g>
+<g class="btn" id="bMode"><rect x="548" y="185" width="22" height="36" rx="4" fill="url(#btnG)"/><path d="M551 191 h16 M551 197 h16 M551 203 h16 M551 209 h16 M551 215 h16" stroke="#5a5e66" stroke-width=".8"/></g>
+<g><rect x="548" y="303" width="22" height="36" rx="4" fill="url(#btnG)"/><path d="M551 309 h16 M551 315 h16 M551 321 h16 M551 327 h16 M551 333 h16" stroke="#5a5e66" stroke-width=".8"/></g>
+<!-- bezel with four screws -->
+<rect x="88" y="86" width="424" height="348" rx="28" fill="url(#bezel)"/>
+<rect x="88" y="86" width="424" height="348" rx="28" fill="none" stroke="#000" stroke-opacity=".6" stroke-width="1.6"/>
+<g id="screws"></g>
+<!-- brushed metal face plate -->
+<rect x="104" y="100" width="392" height="320" rx="18" fill="url(#plate)" filter="url(#brushed)"/>
+<rect x="104" y="100" width="392" height="320" rx="18" fill="none" stroke="#7a7e86" stroke-width="1.2"/>
+<rect x="105" y="101" width="390" height="318" rx="17" fill="none" stroke="#000" stroke-opacity=".5" stroke-width=".8" transform="translate(0 1.5)"/>
+<!-- printed text -->
+<text x="124" y="134" font-size="22" font-weight="bold" fill="#f6f6f8" letter-spacing="5">CHRONO</text>
+<text x="476" y="122" text-anchor="end" font-size="9.5" fill="#d8dadf" letter-spacing="1">ALARM CHRONOGRAPH</text>
+<text x="476" y="135" text-anchor="end" font-size="8" fill="#9aa0a8" letter-spacing="1.2">LITHIUM · 7 YEAR</text>
+<rect x="124" y="146" width="352" height="2.4" fill="#2a6ad8"/><rect x="124" y="150.5" width="352" height="2.4" fill="#d0302a"/>
+<text x="124" y="174" font-size="10" fill="#c8ccd2">◂ MODE</text><text x="476" y="174" text-anchor="end" font-size="10" fill="#c8ccd2">12/24 ▸</text>
+<text x="300" y="174" text-anchor="middle" font-size="8.5" fill="#8a8e96" letter-spacing="2.5">DAILY ALARM · HOURLY SIGNAL</text>
+<text x="300" y="380" text-anchor="middle" font-size="12.5" fill="#f0f0f2" letter-spacing="4">WATER <tspan font-weight="bold">WR</tspan> RESIST</text>
+<text x="124" y="404" font-size="10" fill="#c8ccd2">◂ LIGHT</text><text x="476" y="404" text-anchor="end" font-size="10" fill="#c8ccd2">START/STOP ▸</text>
+<text x="300" y="404" text-anchor="middle" font-size="8.5" fill="#8a8e96" letter-spacing="2.5">LCD · ILLUMINATOR</text>
+<!-- LCD window: dark surround, polariser, segments, crystal -->
+<rect x="118" y="182" width="364" height="176" rx="10" fill="#08090a" filter="url(#inner)"/>
+<g clip-path="url(#lcdClip)"><rect id="lcdBg" x="128" y="190" width="344" height="160" fill="url(#lcdG)"/><rect x="128" y="190" width="344" height="160" fill="url(#lcdGrain)"/>
+<g id="segs" filter="url(#segsh)"></g>
+<rect x="128" y="190" width="344" height="10" fill="#000" opacity=".12"/>
+<rect x="128" y="190" width="344" height="160" fill="url(#crystal)"/>
+<path d="M128 190 L250 190 L180 350 L128 350Z" fill="#fff" opacity=".05"/></g>
+<rect x="118" y="182" width="364" height="176" rx="10" fill="none" stroke="#3a3c42" stroke-width="1"/>
+</svg>
+<div class="tip">LIGHT (left button): backlight · upper right button: 12/24 h</div>
+<script>
+const NS="http://www.w3.org/2000/svg",$=id=>document.getElementById(id);
+const el=(t,a,p)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);p.appendChild(e);return e};
+// strap keeper ridges
+for(const [y0,y1] of [[0,74],[446,520]])for(let y=y0+6;y<y1;y+=9){el('line',{x1:196,x2:404,y1:y,y2:y,stroke:'#000','stroke-opacity':.55,'stroke-width':2},$('ridges'));el('line',{x1:196,x2:404,y1:y+1.6,y2:y+1.6,stroke:'#fff','stroke-opacity':.06,'stroke-width':1},$('ridges'))}
+// bezel screws
+for(const [sx,sy,r] of [[104,102,20],[496,102,70],[104,418,140],[496,418,200]]){const g=el('g',{transform:`translate(${sx} ${sy})`},$('screws'));el('circle',{r:5.6,fill:'#0a0a0b'},g);el('circle',{r:4.6,fill:'url(#screw)'},g);el('line',{x1:-3.2,x2:3.2,stroke:'#3a3e44','stroke-width':1.2,transform:`rotate(${r})`},g)}
+const SEG={0:'abcdef',1:'bc',2:'abged',3:'abgcd',4:'fgbc',5:'afgcd',6:'afgedc',7:'abc',8:'abcdefg',9:'abcdfg','-':'g',' ':''};
+const S=$('segs'),ON='#1a2210',OFF='rgba(26,34,16,.065)';
+function digit(x0,y0,w,h,t){const g=el('g',{transform:`translate(${x0} ${y0}) skewX(-7)`},S),k=t*.55,P={
+a:[[k,0],[w-k,0],[w-t,t],[t,t]],d:[[t,h-t],[w-t,h-t],[w-k,h],[k,h]],g:[[k,h/2],[t,h/2-t/2],[w-t,h/2-t/2],[w-k,h/2],[w-t,h/2+t/2],[t,h/2+t/2]],
+f:[[0,k],[t,t],[t,h/2-t/2],[0,h/2-t*.3]],b:[[w,k],[w,h/2-t*.3],[w-t,h/2-t/2],[w-t,t]],e:[[0,h/2+t*.3],[t,h/2+t/2],[t,h-t],[0,h-k]],c:[[w,h/2+t*.3],[w,h-k],[w-t,h-t],[w-t,h/2+t/2]]},o={};
+for(const s in P)o[s]=el('polygon',{points:P[s].map(p=>p.join(',')).join(' ')},g);return o}
+function set(d,ch){for(const s in d)d[s].setAttribute('fill',(SEG[ch]||'').includes(s)?ON:OFF)}
+// indicator flags along the top edge of the LCD
+const flags=['ALM','SIG','LAP','SPL','PM'].map((t,i)=>{const e=el('text',{x:140+i*30,y:204,'font-size':7.5,'font-weight':'bold',fill:OFF},S);e.textContent=t;return e});
+const wd=el('text',{x:144,y:248,'font-size':34,'font-weight':'bold','font-style':'italic',fill:ON,'letter-spacing':2},S);
+const ghostWd=el('text',{x:144,y:248,'font-size':34,'font-weight':'bold','font-style':'italic',fill:OFF,'letter-spacing':2},S);ghostWd.textContent='88';S.insertBefore(ghostWd,wd);
+const pm=el('text',{x:146,y:284,'font-size':12,'font-weight':'bold',fill:ON},S);
+const Dd=[digit(330,210,22,38,5.5),digit(358,210,22,38,5.5),digit(396,210,22,38,5.5),digit(424,210,22,38,5.5)];
+el('rect',{x:385,y:228,width:6,height:4,fill:ON},S);
+const T=[digit(150,272,52,66,10),digit(212,272,52,66,10),digit(290,272,52,66,10),digit(352,272,52,66,10),digit(414,296,24,42,5.5),digit(442,296,24,42,5.5)];
+const colon=[el('rect',{x:272,y:288,width:9,height:9,fill:ON},S),el('rect',{x:268,y:314,width:9,height:9,fill:ON},S)];
+// alarm-on bell icon
+el('path',{d:'M418 280 q0 -10 7 -10 q7 0 7 10 l2 4 h-18z M423 286 h4',fill:ON,opacity:.85},S);
+let h12=false;try{h12=localStorage.getItem('lcd-h12')==='1'}catch(e){}
+$('bMode').onclick=()=>{h12=!h12;try{localStorage.setItem('lcd-h12',h12?'1':'0')}catch(e){}tick()};
+let lt;$('bLight').onclick=()=>{$('lcdBg').setAttribute('fill','url(#lcdLit)');clearTimeout(lt);lt=setTimeout(()=>$('lcdBg').setAttribute('fill','url(#lcdG)'),3000)};
+function tick(){const d=new Date(),p=n=>String(n).padStart(2,'0');let h=d.getHours();pm.textContent=h12?'':'24H';if(h12)h=h%12||12;
+const s=(h12?String(h).padStart(2,' '):p(h))+p(d.getMinutes())+p(d.getSeconds());T.forEach((t,i)=>set(t,s[i]));
+colon.forEach(c=>c.setAttribute('opacity',d.getMilliseconds()<500?1:0));
+const ds=String(d.getMonth()+1).padStart(2,' ')+String(d.getDate()).padStart(2,' ');Dd.forEach((t,i)=>set(t,ds[i]));
+wd.textContent=['SU','MO','TU','WE','TH','FR','SA'][d.getDay()];
+flags.forEach((f,i)=>f.setAttribute('fill',(i===0||i===1||(i===4&&h12&&d.getHours()>=12))?ON:OFF))}
+tick();setInterval(tick,100);
+</script></body></html>

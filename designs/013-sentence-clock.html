@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sentence Clock</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#f4efe6;color:#2b2620;font-family:Georgia,"Times New Roman",serif}
+.wrap{height:100%;display:flex;flex-direction:column;justify-content:center;padding:0 8vw;box-sizing:border-box}
+p{margin:0;font-size:clamp(22px,min(7vw,9vh),110px);line-height:1.15;font-weight:normal}
+p em{font-style:italic;color:#b5441b}
+.sub{margin-top:5vh;font-size:clamp(14px,3vmin,30px);color:#7a6f60;font-style:italic}
+</style></head><body>
+<div class="wrap"><p id="t"></p><div class="sub" id="d"></div></div>
+<script>
+const N=['twelve','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen'];
+const T=['','','twenty','thirty','forty','fifty'];
+const num=n=>n<20?N[n]:T[Math.floor(n/10)]+(n%10?'-'+N[n%10]:'');
+function part(h){return h<5?'in the small hours':h<12?'in the morning':h<17?'in the afternoon':h<21?'in the evening':'at night'}
+function phrase(d){const m=d.getMinutes(),H=d.getHours();let h=H%12;const next=N[(h+1)%12],cur=N[h];
+if(m===0)return `It is <em>${cur} o’clock</em> ${part(H)}.`;
+if(m===15)return `It is <em>quarter past ${cur}</em> ${part(H)}.`;
+if(m===30)return `It is <em>half past ${cur}</em> ${part(H)}.`;
+if(m===45)return `It is <em>quarter to ${next}</em>.`;
+if(m<30)return `It is <em>${num(m)} minute${m>1?'s':''} past ${cur}</em> ${part(H)}.`;
+return `It is <em>${num(60-m)} minute${60-m>1?'s':''} to ${next}</em>.`}
+function ord(n){const s=['th','st','nd','rd'],v=n%100;return n+(s[(v-20)%10]||s[v]||s[0])}
+function tick(){const d=new Date();document.getElementById('t').innerHTML=phrase(d);
+const wd=d.toLocaleDateString('en',{weekday:'long'}),mo=d.toLocaleDateString('en',{month:'long'});
+document.getElementById('d').textContent=`${wd}, the ${ord(d.getDate())} of ${mo}, ${d.getFullYear()} — and ${d.getSeconds()?num(d.getSeconds()):'no'} second${d.getSeconds()===1?' has':'s have'} passed this minute.`}
+tick();setInterval(tick,1000);
+</script></body></html>

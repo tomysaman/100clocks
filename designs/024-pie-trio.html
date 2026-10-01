@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pie Trio</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#264653;color:#fff;font-family:"Trebuchet MS",sans-serif}
+.wrap{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5vh}
+.pies{display:flex;gap:4vw;align-items:center}
+.pie{display:flex;flex-direction:column;align-items:center;gap:1.5vh}
+.disc{width:min(26vw,48vh);aspect-ratio:1;border-radius:50%;position:relative;display:flex;align-items:center;justify-content:center;box-shadow:0 1.5vmin 3vmin rgba(0,0,0,.25)}
+.disc b{position:relative;font-size:min(8vw,14vh);font-weight:bold;text-shadow:0 .4vmin 1vmin rgba(0,0,0,.35)}
+.pie span{letter-spacing:.3em;font-size:clamp(11px,2vmin,20px);opacity:.8}
+.date{font-size:clamp(14px,3.4vmin,34px);letter-spacing:.1em}
+@media (max-aspect-ratio:1/1){.pies{flex-direction:column;gap:2vh}.disc{width:min(50vw,22vh)}.disc b{font-size:min(14vw,7vh)}}
+</style></head><body>
+<div class="wrap"><div class="pies">
+<div class="pie"><div class="disc" id="h"><b></b></div><span>HOURS</span></div>
+<div class="pie"><div class="disc" id="m"><b></b></div><span>MINUTES</span></div>
+<div class="pie"><div class="disc" id="s"><b></b></div><span>SECONDS</span></div>
+</div><div class="date" id="d"></div></div>
+<script>
+const P=[['h','#e76f51',24],['m','#f4a261',60],['s','#2a9d8f',60]].map(([id,c,max])=>({el:document.getElementById(id),c,max}));
+function tick(){const d=new Date(),ms=d.getMilliseconds(),s=d.getSeconds()+ms/1000,m=d.getMinutes()+s/60,h=d.getHours()+m/60,v=[h,m,s],iv=[d.getHours(),d.getMinutes(),d.getSeconds()];
+P.forEach((p,i)=>{const a=v[i]/p.max*360;p.el.style.background=`conic-gradient(${p.c} ${a}deg, rgba(255,255,255,.12) ${a}deg)`;p.el.firstChild.textContent=String(iv[i]).padStart(2,'0')});
+document.getElementById('d').textContent=d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'});requestAnimationFrame(tick)}
+tick();
+</script></body></html>

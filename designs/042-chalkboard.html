@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Chalkboard</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#cbbfae}
+canvas{position:fixed;inset:0;width:100%;height:100%}
+</style></head><body>
+<canvas id="c"></canvas>
+<script>
+// A classroom chalkboard. Each minute the board is redrawn in chalk: an analog clock, the time and the date.
+// Chalk strokes are textured by knocking out random grains, over a slate with old eraser smears.
+const c=document.getElementById('c'),x=c.getContext('2d');let W,H,P,board,grainMask,last='';
+function size(){P=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;c.width=W*P;c.height=H*P;x.setTransform(P,0,0,P,0,0);last='';build()}
+addEventListener('resize',size);
+function seeded(n){let s=n;return()=>((s=(s*16807)%2147483647)/2147483647)}
+function build(){// slate texture + smears, frame and tray, drawn once per size
+board=document.createElement('canvas');board.width=W*P;board.height=H*P;const b=board.getContext('2d');b.setTransform(P,0,0,P,0,0);
+const F=Math.min(W,H)*.045,bx=F,by=F,bw=W-F*2,bh=H-F*3.6,r=seeded(7);
+// wall
+b.fillStyle='#cbbfae';b.fillRect(0,0,W,H);
+// slate
+const sg=b.createRadialGradient(bx+bw*.4,by+bh*.4,0,bx+bw/2,by+bh/2,Math.max(bw,bh)*.75);sg.addColorStop(0,'#3e5446');sg.addColorStop(1,'#25342a');b.fillStyle=sg;b.fillRect(bx,by,bw,bh);
+const id=b.getImageData(bx*P,by*P,bw*P,bh*P);for(let i=0;i<id.data.length;i+=4){const n=(Math.random()-.5)*14;id.data[i]+=n;id.data[i+1]+=n;id.data[i+2]+=n}b.putImageData(id,bx*P,by*P);
+// eraser smears: wide translucent arcs
+for(let k=0;k<26;k++){const cx=bx+r()*bw,cy=by+r()*bh,w=bw*(.12+r()*.25),h=bh*(.06+r()*.1);b.save();b.translate(cx,cy);b.rotate((r()-.5)*.6);
+const g=b.createLinearGradient(-w/2,0,w/2,0);g.addColorStop(0,'rgba(255,255,255,0)');g.addColorStop(.5,`rgba(255,255,255,${.025+r()*.04})`);g.addColorStop(1,'rgba(255,255,255,0)');b.fillStyle=g;b.beginPath();b.ellipse(0,0,w/2,h/2,0,0,7);b.fill();b.restore()}
+// faint ghost writing
+b.globalAlpha=.035;b.fillStyle='#fff';b.font=`${bh*.06}px "Segoe Print","Comic Sans MS",cursive`;['a² + b² = c²','E = mc²','Homework p.42','x = (-b ± √Δ) / 2a'].forEach((t,i)=>b.fillText(t,bx+bw*(.08+r()*.6),by+bh*(.15+i*.22)));b.globalAlpha=1;
+// inner shadow
+const is=b.createLinearGradient(0,by,0,by+bh*.08);is.addColorStop(0,'rgba(0,0,0,.45)');is.addColorStop(1,'rgba(0,0,0,0)');b.fillStyle=is;b.fillRect(bx,by,bw,bh*.08);
+// wooden frame
+const wood=(x0,y0,w,h,vertical)=>{const g=vertical?b.createLinearGradient(x0,0,x0+w,0):b.createLinearGradient(0,y0,0,y0+h);g.addColorStop(0,'#5a3418');g.addColorStop(.35,'#a06a38');g.addColorStop(.6,'#8a5428');g.addColorStop(1,'#4a2810');b.fillStyle=g;b.fillRect(x0,y0,w,h);
+b.strokeStyle='rgba(50,25,8,.35)';b.lineWidth=1;for(let k=0;k<(vertical?w:h);k+=2.5){b.beginPath();if(vertical){b.moveTo(x0+k,y0);for(let yy=y0;yy<y0+h;yy+=30)b.lineTo(x0+k+Math.sin(yy/60+k)*1.2,yy)}else{b.moveTo(x0,y0+k);for(let xx=x0;xx<x0+w;xx+=30)b.lineTo(xx,y0+k+Math.sin(xx/80+k)*1.2)}b.stroke()}};
+wood(0,0,W,F,false);wood(0,by+bh,W,F,false);wood(0,0,F,by+bh+F,true);wood(W-F,0,F,by+bh+F,true);
+b.strokeStyle='rgba(0,0,0,.4)';b.lineWidth=2;b.strokeRect(bx,by,bw,bh);
+// chalk tray
+const ty=by+bh+F*.6;wood(F*.4,ty,W-F*.8,F*.9,false);b.fillStyle='rgba(0,0,0,.25)';b.fillRect(F*.4,ty+F*.9,W-F*.8,F*.3);
+b.fillStyle='rgba(240,240,235,.35)';for(let k=0;k<160;k++)b.fillRect(F+r()*(W-F*2),ty+r()*F*.3,1.5,1.5);
+const chalk=(x0,col,len)=>{const g=b.createLinearGradient(0,ty-F*.12,0,ty+F*.2);g.addColorStop(0,'#fff');g.addColorStop(1,col);b.fillStyle=g;b.beginPath();b.roundRect(x0,ty-F*.1,len,F*.28,F*.12);b.fill()};
+chalk(W*.62,'#d9d6cc',F*1.8);chalk(W*.67,'#f2b8c6',F*1.2);chalk(W*.705,'#f5e39a',F*.9);
+// felt eraser
+const ex=W*.76,ew=F*3.6;b.fillStyle='#7a4a24';b.beginPath();b.roundRect(ex,ty-F*.55,ew,F*.55,F*.1);b.fill();b.fillStyle='#4a4a52';b.fillRect(ex,ty-F*.12,ew,F*.16);b.fillStyle='rgba(255,255,255,.35)';b.fillRect(ex,ty+F*.02,ew,F*.03);
+grainMask=document.createElement('canvas');grainMask.width=W*P;grainMask.height=H*P;const gm=grainMask.getContext('2d'),gi=gm.createImageData(W*P,H*P);for(let i=0;i<gi.data.length;i+=4){if(Math.random()<.32)gi.data[i+3]=255}gm.putImageData(gi,0,0);
+board.geom={bx,by,bw,bh}}
+size();
+const chalkC=document.createElement('canvas'),cx2=chalkC.getContext('2d');
+function chalkLine(g,x1,y1,x2,y2,w,r){for(let k=0;k<2;k++){g.globalAlpha=.6+.3*r();g.lineWidth=w*(.8+.4*r());g.beginPath();g.moveTo(x1+(r()-.5)*w*.6,y1+(r()-.5)*w*.6);g.lineTo(x2+(r()-.5)*w*.6,y2+(r()-.5)*w*.6);g.stroke()}g.globalAlpha=1}
+function draw(){const d=new Date(),p=n=>String(n).padStart(2,'0'),key=p(d.getHours())+p(d.getMinutes());
+if(key!==last){last=key;const r=seeded(d.getHours()*60+d.getMinutes()+1),{bx,by,bw,bh}=board.geom,port=bh>bw;
+chalkC.width=W*P;chalkC.height=H*P;const g=cx2;g.setTransform(P,0,0,P,0,0);g.strokeStyle=g.fillStyle='#f4f2ea';g.lineCap='round';
+const R=port?Math.min(bw*.36,bh*.2):Math.min(bw*.2,bh*.38),cx=port?bx+bw/2:bx+bw*.3,cy=port?by+bh*.28:by+bh*.5,m=d.getMinutes(),h=d.getHours()%12+m/60,font='"Segoe Print","Comic Sans MS",cursive';
+for(let i=0;i<72;i++){const a1=i/72*Math.PI*2,a2=(i+1.15)/72*Math.PI*2;chalkLine(g,cx+Math.cos(a1)*R,cy+Math.sin(a1)*R,cx+Math.cos(a2)*R,cy+Math.sin(a2)*R,R*.035,r)}
+for(let i=0;i<12;i++){const a=i/12*Math.PI*2;chalkLine(g,cx+Math.sin(a)*R*.92,cy-Math.cos(a)*R*.92,cx+Math.sin(a)*R*.84,cy-Math.cos(a)*R*.84,R*.025,r);g.font=`${R*.15}px ${font}`;g.textAlign='center';g.textBaseline='middle';g.fillText(String(i||12),cx+Math.sin(a)*R*.7,cy-Math.cos(a)*R*.7)}
+const ha=h/12*Math.PI*2,ma=m/60*Math.PI*2;chalkLine(g,cx,cy,cx+Math.sin(ha)*R*.48,cy-Math.cos(ha)*R*.48,R*.06,r);chalkLine(g,cx,cy,cx+Math.sin(ma)*R*.74,cy-Math.cos(ma)*R*.74,R*.04,r);
+const tx=port?bx+bw/2:bx+bw*.7,ty0=port?by+bh*.62:by+bh*.38,big=Math.min(port?bw*.24:bw*.12,bh*.2);g.textAlign='center';g.textBaseline='middle';
+g.font=`${big}px ${font}`;g.fillText(p(d.getHours())+':'+p(d.getMinutes()),tx,ty0);
+g.font=`${big*.36}px ${font}`;g.fillStyle='#f5e39a';g.fillText(d.toLocaleDateString(undefined,{weekday:'long'}),tx,ty0+big*.85);
+g.fillStyle='#f4f2ea';g.font=`${big*.3}px ${font}`;g.fillText(d.toLocaleDateString(undefined,{day:'numeric',month:'long',year:'numeric'}),tx,ty0+big*1.32);
+g.strokeStyle='#f2b8c6';chalkLine(g,tx-big*1.3,ty0+big*1.58,tx+big*1.3,ty0+big*1.62,big*.035,r);chalkLine(g,tx-big*1.25,ty0+big*1.66,tx+big*1.2,ty0+big*1.69,big*.025,r);
+// grain: punch holes in the chalk, then a faint dust halo
+g.setTransform(1,0,0,1,0,0);g.globalCompositeOperation='destination-out';g.drawImage(grainMask,0,0);g.globalCompositeOperation='source-over'}
+x.drawImage(board,0,0,W,H);x.save();x.shadowColor='rgba(255,255,255,.35)';x.shadowBlur=3;x.drawImage(chalkC,0,0,W,H);x.restore();
+// seconds: a chalk dot moving around the clock face
+const {bx,by,bw,bh}=board.geom,port=bh>bw,R=port?Math.min(bw*.36,bh*.2):Math.min(bw*.2,bh*.38),cx=port?bx+bw/2:bx+bw*.3,cy=port?by+bh*.28:by+bh*.5,sa=d.getSeconds()/60*Math.PI*2;
+x.fillStyle='#f2b8c6';x.beginPath();x.arc(cx+Math.sin(sa)*R*1.08,cy-Math.cos(sa)*R*1.08,R*.03,0,7);x.fill();
+setTimeout(draw,1000-d.getMilliseconds())}
+draw();
+</script></body></html>

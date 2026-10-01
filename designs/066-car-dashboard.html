@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Car Dashboard</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#0b0c0f;font-family:"Segoe UI",system-ui,sans-serif}
+svg{position:fixed;inset:0;width:100%;height:100%}
+</style></head><body>
+<svg viewBox="0 0 1200 640" preserveAspectRatio="xMidYMid meet">
+<defs>
+<linearGradient id="dash" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a2c31"/><stop offset=".5" stop-color="#17181c"/><stop offset="1" stop-color="#0c0d10"/></linearGradient>
+<pattern id="leather" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="#1b1c20"/><circle cx="2" cy="2" r=".9" fill="#24252a"/><circle cx="6" cy="6" r=".9" fill="#141518"/></pattern>
+<radialGradient id="face" cx="50%" cy="40%" r="60%"><stop offset="0" stop-color="#1c2230"/><stop offset=".8" stop-color="#0a0d14"/><stop offset="1" stop-color="#05070b"/></radialGradient>
+<linearGradient id="chrome" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f4f6f8"/><stop offset=".3" stop-color="#8a9098"/><stop offset=".5" stop-color="#e2e6ea"/><stop offset=".75" stop-color="#4a4f56"/><stop offset="1" stop-color="#c9ced4"/></linearGradient>
+<linearGradient id="tft" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0e1a2a"/><stop offset="1" stop-color="#05090f"/></linearGradient>
+<linearGradient id="wheel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a3b40"/><stop offset=".4" stop-color="#1c1d21"/><stop offset="1" stop-color="#0a0a0c"/></linearGradient>
+<linearGradient id="glass" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".09"/><stop offset=".4" stop-color="#fff" stop-opacity="0"/></linearGradient>
+<linearGradient id="road" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7aa6cf"/><stop offset=".55" stop-color="#c8d8e4"/><stop offset=".56" stop-color="#5a5f63"/><stop offset="1" stop-color="#3a3d40"/></linearGradient>
+<filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+<filter id="blur8"><feGaussianBlur stdDeviation="8"/></filter>
+<filter id="ds" x="-10%" y="-10%" width="120%" height="140%"><feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#000" flood-opacity=".8"/></filter>
+</defs>
+<!-- windscreen view, out of focus -->
+<g filter="url(#blur8)"><rect x="-400" y="-100" width="2000" height="260" fill="url(#road)"/><path d="M560 160 L640 160 L1000 160 L200 160Z" fill="#555"/><path d="M590 160 L610 160 L700 260 L500 260Z" fill="#e8e8e0" opacity=".6"/></g>
+<!-- dashboard body -->
+<path d="M-400 150 Q600 90 1600 150 L1600 760 L-400 760 Z" fill="url(#dash)"/>
+<path d="M-400 150 Q600 90 1600 150 L1600 760 L-400 760 Z" fill="url(#leather)" opacity=".55"/>
+<path d="M-400 162 Q600 102 1600 162" fill="none" stroke="#5a5c62" stroke-width="1.2" stroke-dasharray="6 4" opacity=".7"/>
+<!-- binnacle hood -->
+<g filter="url(#ds)"><path d="M110 540 L110 230 Q110 150 230 138 Q600 104 970 138 Q1090 150 1090 230 L1090 540 Z" fill="#101114"/></g>
+<path d="M110 540 L110 230 Q110 150 230 138 Q600 104 970 138 Q1090 150 1090 230 L1090 540 Z" fill="url(#leather)" opacity=".6"/>
+<path d="M130 230 Q130 166 236 157 Q600 124 964 157 Q1070 166 1070 230" fill="none" stroke="#3a3c42" stroke-width="1.2" stroke-dasharray="5 4"/>
+<rect x="150" y="190" width="900" height="330" rx="44" fill="#06070a"/>
+<!-- gauges -->
+<g id="tach" transform="translate(318 350)"></g>
+<g id="spd" transform="translate(882 350)"></g>
+<!-- centre TFT -->
+<g transform="translate(600 350)">
+<rect x="-110" y="-120" width="220" height="230" rx="16" fill="url(#tft)" stroke="#2a3446" stroke-width="2"/>
+<text id="ampm" y="-74" text-anchor="middle" font-size="40" font-weight="300" fill="#7fd4ff" filter="url(#glow)"></text>
+<text y="-50" text-anchor="middle" font-size="10" fill="#6a7a90" letter-spacing="3">CLOCK MODE</text>
+<line x1="-90" x2="90" y1="-36" y2="-36" stroke="#22304a"/>
+<text id="clk" y="0" text-anchor="middle" font-size="34" fill="#e8f1ff" font-family="Consolas,monospace"></text>
+<text id="dd" y="26" text-anchor="middle" font-size="14" fill="#9fb6d6" letter-spacing="1"></text>
+<line x1="-90" x2="90" y1="40" y2="40" stroke="#22304a"/>
+<text x="-90" y="62" font-size="11" fill="#6a7a90">ODO</text><text id="odo" x="90" y="62" text-anchor="end" font-size="12" fill="#c9d6ea" font-family="Consolas,monospace"></text>
+<text x="-90" y="82" font-size="11" fill="#6a7a90">DAY OF YEAR</text><text id="doy" x="90" y="82" text-anchor="end" font-size="12" fill="#c9d6ea" font-family="Consolas,monospace"></text>
+<text x="-90" y="100" font-size="11" fill="#6a7a90">WEEK</text><text id="wk" x="90" y="100" text-anchor="end" font-size="12" fill="#c9d6ea" font-family="Consolas,monospace"></text>
+</g>
+<!-- indicators -->
+<path id="tl" d="M520 210 l-16 10 l16 10 v-6 h14 v-8 h-14z" fill="#123a1c"/><path id="tr" d="M680 210 l16 10 l-16 10 v-6 h-14 v-8 h14z" fill="#123a1c"/>
+<g transform="translate(600 482)" font-size="16" text-anchor="middle"><text x="-60" fill="#3a2a10">⛽</text><text x="-20" fill="#3a1a1a">⚠</text><text x="20" fill="#1a2a3a">❄</text><text id="hb" x="60" fill="#10203a">≣D</text></g>
+<!-- glass reflection over the cluster -->
+<rect x="150" y="190" width="900" height="330" rx="44" fill="url(#glass)"/>
+<!-- steering wheel in the foreground -->
+<g transform="translate(600 1075)"><circle r="470" fill="none" stroke="url(#wheel)" stroke-width="58"/><circle r="470" fill="none" stroke="#55565c" stroke-width="2" opacity=".5" transform="translate(0 -26)"/>
+<path d="M-60 -440 l120 0" stroke="#8a1a1a" stroke-width="58" opacity=".0"/></g>
+</svg>
+<script>
+const NS="http://www.w3.org/2000/svg",$=id=>document.getElementById(id);
+function gauge(g,max,step,label,unit,red,small){const R=138,a0=-135,a1=135;let s=`<circle r="${R+14}" fill="url(#chrome)"/><circle r="${R+6}" fill="#0b0c10"/><circle r="${R}" fill="url(#face)"/>`;
+const n=Math.round(max/step)*5;for(let k=0;k<=n;k++){const v=k*step/5,f=v/max,a=(a0+(a1-a0)*f)*Math.PI/180,big=k%5===0,mid=k%5===0?0:k%5===2.5,r1=R-(big?22:10),col=v>=red?'#ff3b3b':'#e9eef6';
+s+=`<line x1="${Math.sin(a)*(R-6)}" y1="${-Math.cos(a)*(R-6)}" x2="${Math.sin(a)*r1}" y2="${-Math.cos(a)*r1}" stroke="${col}" stroke-width="${big?3:1.2}"/>`;
+if(big)s+=`<text x="${Math.sin(a)*(R-44)}" y="${-Math.cos(a)*(R-44)+8}" font-size="24" text-anchor="middle" fill="${col}" font-weight="300">${v}</text>`}
+const ar=(a0+(a1-a0)*red/max)*Math.PI/180,ae=a1*Math.PI/180;s+=`<path d="M${Math.sin(ar)*(R-4)} ${-Math.cos(ar)*(R-4)} A${R-4} ${R-4} 0 0 1 ${Math.sin(ae)*(R-4)} ${-Math.cos(ae)*(R-4)}" fill="none" stroke="#ff3b3b" stroke-width="5" opacity=".8"/>`;
+s+=`<text y="52" text-anchor="middle" font-size="15" fill="#8a96a8" letter-spacing="3">${label}</text><text class="v" y="96" text-anchor="middle" font-size="40" fill="#fff" font-weight="300"></text><text y="116" text-anchor="middle" font-size="11" fill="#6a7686">${unit}</text>`;
+// small sub-gauge
+s+=`<g transform="translate(0 0)"><path d="M-60 120 A120 120 0 0 1 60 120" fill="none" stroke="none"/></g>`;
+s+=`<g class="n" filter="url(#glow)"><path d="M-3 18 L-1.2 ${-R+16} L1.2 ${-R+16} L3 18Z" fill="#ff6a1a"/></g><circle r="20" fill="url(#chrome)"/><circle r="15" fill="#15171c"/>`;
+g.innerHTML=s;return [g.querySelector('.n'),g.querySelector('.v')]}
+const [TN,TV]=gauge($('tach'),24,3,'HOURS','× 1 h',21),[SN,SV]=gauge($('spd'),60,10,'MINUTES','min/h',55);
+let th=0,tm=0;
+function tick(){const d=new Date(),s=d.getSeconds()+d.getMilliseconds()/1000,m=d.getMinutes()+s/60,h=d.getHours()+m/60,p=v=>String(v).padStart(2,'0');
+th+=(h-th)*.06;tm+=(m-tm)*.06;TN.setAttribute('transform',`rotate(${-135+270*th/24})`);SN.setAttribute('transform',`rotate(${-135+270*tm/60})`);
+TV.textContent=p(d.getHours());SV.textContent=p(d.getMinutes());
+$('ampm').textContent=d.getHours()<12?'AM':'PM';$('clk').textContent=`${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+$('dd').textContent=d.toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+$('odo').textContent=String(Math.floor(Date.now()/1000)%10000000).padStart(7,'0')+' s';
+const doy=Math.floor((new Date(d.getFullYear(),d.getMonth(),d.getDate())-new Date(d.getFullYear(),0,0))/864e5);$('doy').textContent=doy;
+const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())),n=t.getUTCDay()||7;t.setUTCDate(t.getUTCDate()+4-n);$('wk').textContent=Math.ceil(((t-Date.UTC(t.getUTCFullYear(),0,1))/864e5+1)/7);
+// indicators blink on alternate seconds like a turn signal
+const on=d.getMilliseconds()<500,left=d.getSeconds()%2===0;$('tl').setAttribute('fill',on&&left?'#3dff6a':'#123a1c');$('tr').setAttribute('fill',on&&!left?'#3dff6a':'#123a1c');
+$('tl').setAttribute('filter',on&&left?'url(#glow)':'');$('tr').setAttribute('filter',on&&!left?'url(#glow)':'');
+requestAnimationFrame(tick)}
+tick();
+</script></body></html>

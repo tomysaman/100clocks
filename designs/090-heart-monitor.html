@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Heart Monitor</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#030806;color:#3dff8a;font-family:"Consolas",monospace}
+.wrap{position:fixed;inset:2vmin;display:grid;grid-template-columns:1fr min(30vw,40vh);grid-template-rows:1fr 1fr;gap:1.5vmin}
+.p{border:1px solid #0f3a22;border-radius:.6vmin;padding:1.2vmin;position:relative;min-width:0;min-height:0;overflow:hidden}
+canvas{position:absolute;inset:0;width:100%;height:100%}
+.lab{position:absolute;left:1.2vmin;top:.8vmin;font-size:clamp(10px,1.8vmin,18px);z-index:1}
+.num{display:flex;flex-direction:column;justify-content:center;align-items:flex-end}
+.num b{font-size:clamp(30px,min(9vw,14vh),140px);font-weight:normal;line-height:1}
+.num span{font-size:clamp(10px,1.9vmin,18px);opacity:.75}
+.y{color:#ffe14a}.c{color:#4ad8ff}
+@media (max-aspect-ratio:1/1){.wrap{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr 1fr}.wv{grid-column:1/3}}
+</style></head><body>
+<div class="wrap">
+<div class="p wv"><span class="lab">II · ECG · 1 beat per second</span><canvas id="ecg"></canvas></div>
+<div class="p num"><span>TIME</span><b id="t"></b><span id="s"></span></div>
+<div class="p wv"><span class="lab c">PLETH · SpO₂</span><canvas id="pl"></canvas></div>
+<div class="p num y"><span>DATE</span><b id="dd" style="font-size:clamp(24px,min(6vw,10vh),100px)"></b><span id="d"></span></div>
+</div>
+<script>
+function setup(id){const c=document.getElementById(id),x=c.getContext('2d');function s(){const b=c.getBoundingClientRect();c.width=b.width;c.height=b.height}addEventListener('resize',s);s();return [c,x]}
+const [ce,xe]=setup('ecg'),[cp,xp]=setup('pl');
+function ecg(t){t=t%1;// PQRST shape over one second
+const g=(m,s,a)=>a*Math.exp(-((t-m)**2)/(2*s*s));return g(.15,.025,.12)-g(.27,.008,.15)+g(.3,.01,1)-g(.33,.01,.25)+g(.55,.04,.3)}
+function pleth(t){t=t%1;return Math.max(0,Math.sin(Math.min(t/.35,1)*Math.PI/2))*(1-Math.max(0,t-.35)/.65)+.15*Math.exp(-((t-.5)**2)/.002)}
+let px=0,last=performance.now();
+function draw(now){const dt=(now-last)/1000;last=now;const sp=ce.width/4;// 4 seconds across
+for(const [c,x,f,col,amp] of [[ce,xe,ecg,'#3dff8a',.6],[cp,xp,pleth,'#4ad8ff',.55]]){const W=c.width,H=c.height,steps=Math.max(1,Math.round(dt*sp));
+for(let i=0;i<steps;i++){const X=(px+i)%W;x.fillStyle='#030806';x.fillRect(X,0,14,H);const tt=(Date.now()/1000)-(steps-i)/sp,y=H*.72-f(tt)*H*amp,y0=H*.72-f(tt-1/sp)*H*amp;
+x.strokeStyle=col;x.lineWidth=2;x.beginPath();x.moveTo(X-1,y0);x.lineTo(X,y);x.stroke()}}
+px=(px+Math.max(1,Math.round(dt*sp)))%ce.width;
+const d=new Date(),p=n=>String(n).padStart(2,'0');document.getElementById('t').textContent=p(d.getHours())+':'+p(d.getMinutes());document.getElementById('s').textContent=`${p(d.getSeconds())} s · ♥ 60 bpm`;
+document.getElementById('dd').textContent=p(d.getDate())+'/'+p(d.getMonth()+1);document.getElementById('d').textContent=d.toLocaleDateString(undefined,{weekday:'long',year:'numeric'});
+requestAnimationFrame(draw)}
+requestAnimationFrame(draw);
+</script></body></html>

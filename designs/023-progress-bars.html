@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Progress Bars</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#fafaf7;color:#222;font-family:"Segoe UI",system-ui,sans-serif}
+.wrap{height:100%;display:flex;flex-direction:column;justify-content:center;width:min(90vw,1100px);margin:0 auto;gap:2.4vh}
+.time{font-size:clamp(36px,min(12vw,16vh),180px);font-weight:700;letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums}
+.date{font-size:clamp(13px,2.8vmin,28px);color:#777;margin-bottom:2vh}
+.r{display:grid;grid-template-columns:min(18vw,160px) 1fr 4.5em;align-items:center;gap:2vw;font-size:clamp(11px,2.2vmin,20px)}
+.r span:first-child{color:#555}
+.bar{height:clamp(8px,2.4vh,26px);background:#ececea;border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:99px}
+.pct{text-align:right;font-variant-numeric:tabular-nums;color:#444}
+</style></head><body>
+<div class="wrap"><div class="time" id="t"></div><div class="date" id="d"></div><div id="rows"></div></div>
+<script>
+const C=['#f94144','#f8961e','#f9c74f','#90be6d','#43aa8b','#577590'],N=['This year','This month','This week','Today','This hour','This minute'];
+const rows=document.getElementById('rows');rows.style.cssText='display:flex;flex-direction:column;gap:1.8vh';
+const bars=N.map((n,i)=>{const r=document.createElement('div');r.className='r';r.innerHTML=`<span>${n}</span><div class="bar"><i style="background:${C[i]}"></i></div><span class="pct"></span>`;rows.appendChild(r);return [r.querySelector('i'),r.querySelector('.pct')]});
+function tick(){const d=new Date(),y=d.getFullYear(),t=d.getTime();
+const sy=new Date(y,0,1),ey=new Date(y+1,0,1),sm=new Date(y,d.getMonth(),1),em=new Date(y,d.getMonth()+1,1);
+const wd=(d.getDay()+6)%7,sw=new Date(y,d.getMonth(),d.getDate()-wd),sd=new Date(y,d.getMonth(),d.getDate());
+const f=[(t-sy)/(ey-sy),(t-sm)/(em-sm),(t-sw)/(7*864e5),(t-sd)/864e5,(d.getMinutes()*60+d.getSeconds()+d.getMilliseconds()/1000)/3600,(d.getSeconds()+d.getMilliseconds()/1000)/60];
+bars.forEach(([b,p],i)=>{b.style.width=(f[i]*100)+'%';p.textContent=(f[i]*100).toFixed(i<2?3:i<4?2:1)+'%'});
+document.getElementById('t').textContent=d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+document.getElementById('d').textContent=d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'});requestAnimationFrame(tick)}
+tick();
+</script></body></html>

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pip Dice</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:radial-gradient(#1f6e43,#0c3a22);font-family:Georgia,serif;color:#e8f3ea}
+body::before{content:"";position:fixed;inset:0;background:repeating-radial-gradient(circle at 50% 50%,rgba(0,0,0,.03) 0 2px,transparent 2px 4px)}
+.wrap{position:relative;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5vh}
+.row{display:flex;gap:min(2vw,3vh);align-items:center;perspective:80vmin}
+.die{width:min(12vw,20vh);aspect-ratio:1;border-radius:18%;background:linear-gradient(145deg,#fff,#e6e3dc);box-shadow:inset -.6vmin -.6vmin 1.2vmin rgba(0,0,0,.15),0 1.2vmin 2vmin rgba(0,0,0,.4);display:grid;grid-template:repeat(3,1fr)/repeat(3,1fr);padding:10%;box-sizing:border-box;transition:transform .5s;grid-template:repeat(3,minmax(0,1fr))/repeat(3,minmax(0,1fr))}
+.die.red{background:linear-gradient(145deg,#e83b3b,#a81b1b)}
+.die.red i.on{background:radial-gradient(circle at 35% 35%,#fff,#ddd)}
+.die i{border-radius:50%;width:calc(min(12vw,20vh)*.17);height:calc(min(12vw,20vh)*.17);place-self:center;background:transparent}
+.die i.on{background:radial-gradient(circle at 35% 35%,#444,#000)}
+.die i.z{box-shadow:inset 0 0 0 .3vmin rgba(0,0,0,.25)}.die.red i.z{box-shadow:inset 0 0 0 .3vmin rgba(255,255,255,.5)}
+.die.roll{transform:rotateX(360deg) rotateZ(90deg)}
+.gap{width:min(3vw,4vh)}
+.sm .die{width:min(6vw,10vh)}.sm .die i{width:calc(min(6vw,10vh)*.17);height:calc(min(6vw,10vh)*.17)}
+.date{font-size:clamp(13px,3vmin,30px);letter-spacing:.2em;text-transform:uppercase}
+.note{position:fixed;bottom:12px;left:0;right:0;text-align:center;font-size:12px;opacity:.5}
+</style></head><body>
+<div class="wrap"><div class="row" id="t"></div><div class="row sm" id="s"></div><div class="date" id="d"></div></div>
+<div class="note">nine-pip faces show 0–9 · red dice are seconds</div>
+<script>
+// pip positions on a 3x3 grid (0..8) for digits 0-9
+const P={0:[],1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8],7:[0,2,3,4,5,6,8],8:[0,1,2,3,5,6,7,8],9:[0,1,2,3,4,5,6,7,8]};
+function die(red){const d=document.createElement('div');d.className='die'+(red?' red':'');for(let i=0;i<9;i++)d.appendChild(document.createElement('i'));d.v=-1;return d}
+const T=document.getElementById('t'),S=document.getElementById('s'),D=[die(),die(),die(),die()],SD=[die(1),die(1)];
+const g=document.createElement('div');g.className='gap';T.append(D[0],D[1],g,D[2],D[3]);S.append(...SD);
+function set(d,v){if(d.v===v)return;d.v=v;d.classList.add('roll');setTimeout(()=>{[...d.children].forEach((p,i)=>{p.classList.toggle('on',P[v].includes(i));p.classList.toggle('z',v===0&&i===4)});d.classList.remove('roll')},250)}
+function tick(){const n=new Date(),p=x=>String(x).padStart(2,'0'),s=p(n.getHours())+p(n.getMinutes()),ss=p(n.getSeconds());D.forEach((d,i)=>set(d,+s[i]));SD.forEach((d,i)=>set(d,+ss[i]));
+document.getElementById('d').textContent=n.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
+tick();setInterval(tick,250);
+</script></body></html>

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cassette Tape</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:radial-gradient(ellipse at 40% 35%,#3a3440,#141218 75%);font-family:"Segoe UI",Arial,sans-serif}
+svg{position:fixed;inset:0;width:100%;height:100%}
+</style></head><body>
+<svg viewBox="0 0 1000 680" preserveAspectRatio="xMidYMid meet">
+<defs>
+<linearGradient id="shell" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a3a40" stop-opacity=".92"/><stop offset=".5" stop-color="#22222a" stop-opacity=".9"/><stop offset="1" stop-color="#16161c" stop-opacity=".95"/></linearGradient>
+<linearGradient id="shellHi" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset=".3" stop-color="#fff" stop-opacity=".03"/><stop offset=".7" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#fff" stop-opacity=".08"/></linearGradient>
+<linearGradient id="label" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fbf6e8"/><stop offset="1" stop-color="#ece4d0"/></linearGradient>
+<linearGradient id="stripe" x1="0" x2="1"><stop offset="0" stop-color="#e8452c"/><stop offset=".33" stop-color="#f4a03a"/><stop offset=".66" stop-color="#f4d23a"/><stop offset="1" stop-color="#3ab0c8"/></linearGradient>
+<radialGradient id="tape" cx="50%" cy="50%"><stop offset=".3" stop-color="#6a4428"/><stop offset=".8" stop-color="#9a6a42"/><stop offset=".95" stop-color="#b8845a"/><stop offset="1" stop-color="#4a2e1a"/></radialGradient>
+<radialGradient id="hub" cx="40%" cy="35%"><stop offset="0" stop-color="#ffffff"/><stop offset=".6" stop-color="#d0d4da"/><stop offset="1" stop-color="#8a9098"/></radialGradient>
+<linearGradient id="window" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1a1a20" stop-opacity=".55"/><stop offset="1" stop-color="#0a0a10" stop-opacity=".75"/></linearGradient>
+<linearGradient id="metal" x1="0" x2="1"><stop offset="0" stop-color="#7a7e86"/><stop offset=".5" stop-color="#e8eaee"/><stop offset="1" stop-color="#6a6e76"/></linearGradient>
+<filter id="ds" x="-10%" y="-10%" width="120%" height="130%"><feDropShadow dx="10" dy="18" stdDeviation="16" flood-color="#000" flood-opacity=".6"/></filter>
+<filter id="paper" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".8" numOctaves="2" seed="4" result="n"/><feColorMatrix in="n" values="0 0 0 0 .4 0 0 0 0 .3 0 0 0 0 .2 0 0 0 .1 0" result="g"/><feComposite in="g" in2="SourceGraphic" operator="in" result="gc"/><feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="gc"/></feMerge></filter>
+<clipPath id="win"><rect x="330" y="246" width="340" height="104" rx="10"/></clipPath>
+</defs>
+<g filter="url(#ds)"><path d="M110 90 H890 Q920 90 920 120 V560 Q920 590 890 590 H110 Q80 590 80 560 V120 Q80 90 110 90Z" fill="url(#shell)"/></g>
+<!-- write-protect tabs on the top edge and grip ribs -->
+<g fill="#0c0c10"><rect x="148" y="90" width="34" height="14" rx="2"/><rect x="818" y="90" width="34" height="14" rx="2"/></g>
+<g stroke="#000" stroke-opacity=".35" stroke-width="2"><path d="M96 200 V480 M104 200 V480 M896 200 V480 M904 200 V480"/></g>
+<path d="M84 124 Q84 94 112 94 H888 Q916 94 916 124" fill="none" stroke="#fff" stroke-opacity=".22" stroke-width="2"/>
+<path d="M84 556 Q84 586 112 586 H888 Q916 586 916 556" fill="none" stroke="#000" stroke-opacity=".5" stroke-width="2"/>
+<text x="128" y="512" font-size="13" fill="#6a6a76" letter-spacing="3">◀◀ REW</text><text x="872" y="512" text-anchor="end" font-size="13" fill="#6a6a76" letter-spacing="3">FF ▶▶</text>
+<!-- moulded inner screw posts seen through the smoked shell -->
+<g fill="#000" opacity=".35"><circle cx="128" cy="138" r="14"/><circle cx="872" cy="138" r="14"/><circle cx="128" cy="542" r="14"/><circle cx="872" cy="542" r="14"/><circle cx="500" cy="550" r="14"/></g>
+<g id="screws"></g>
+<!-- bottom trapezoid head area -->
+<path d="M250 590 L284 504 H716 L750 590Z" fill="#1c1c22" stroke="#4a4a54" stroke-width="1.5"/>
+<g fill="#0a0a0e"><circle cx="330" cy="550" r="12"/><circle cx="670" cy="550" r="12"/><rect x="470" y="520" width="60" height="40" rx="4"/><rect x="395" y="530" width="26" height="30" rx="3"/><rect x="579" y="530" width="26" height="30" rx="3"/></g>
+<rect x="476" y="528" width="48" height="10" fill="url(#metal)"/><rect x="484" y="518" width="32" height="10" fill="#c8a07a"/><rect x="480" y="514" width="40" height="4" fill="url(#metal)"/>
+<g fill="url(#hub)"><circle cx="330" cy="550" r="8"/><circle cx="670" cy="550" r="8"/></g><g fill="#2a2a32"><circle cx="330" cy="550" r="3"/><circle cx="670" cy="550" r="3"/></g>
+<path id="tapePath" d="M0 0" stroke="#4a2e1a" stroke-width="3" fill="none"/>
+<!-- label -->
+<rect x="140" y="130" width="720" height="330" rx="14" fill="url(#label)" filter="url(#paper)"/>
+<rect x="140" y="130" width="720" height="58" fill="#fff" opacity=".35"/>
+<g id="lines" stroke="#8aa0c8" stroke-width="1" opacity=".55"></g><g id="tracks" font-family="'Segoe Print','Comic Sans MS',cursive" font-size="12.5" fill="#2a3a7a"></g>
+<rect x="140" y="392" width="720" height="44" fill="url(#stripe)"/>
+<text x="168" y="172" font-size="28" font-family="'Segoe Print','Comic Sans MS',cursive" fill="#1a2a6a" id="side">A</text>
+<text id="title" x="210" y="172" font-size="26" font-family="'Segoe Print','Comic Sans MS',cursive" fill="#1a2a6a"></text>
+<text x="832" y="166" text-anchor="end" font-size="16" fill="#5a5448" letter-spacing="2">C-1440</text><text x="832" y="182" text-anchor="end" font-size="9" fill="#8a8478" letter-spacing="1.5">24 HOURS · 2×720 MIN</text>
+<text x="820" y="422" text-anchor="end" font-size="15" fill="#fff" font-weight="bold" letter-spacing="4">HIGH BIAS · TYPE II</text>
+<text x="168" y="422" font-size="15" fill="#fff" font-weight="bold" letter-spacing="3">CHR</text>
+<!-- window cut-out with reels -->
+<rect x="322" y="238" width="356" height="120" rx="14" fill="#2a2a32"/>
+<rect x="330" y="246" width="340" height="104" rx="10" fill="#0e0e14"/>
+<g clip-path="url(#win)"><g id="reels"></g><rect x="330" y="246" width="340" height="104" fill="url(#window)"/>
+<g id="ticksWin" stroke="#fff" stroke-opacity=".5"></g></g>
+<rect x="330" y="246" width="340" height="104" rx="10" fill="none" stroke="#5a5a64" stroke-width="2"/>
+<!-- time counter written in the window area -->
+<g transform="translate(500 488)"><rect x="-84" y="-20" width="168" height="32" rx="5" fill="#0a0a0e" stroke="#4a4a54"/>
+<text id="ctr" y="4" text-anchor="middle" font-size="22" fill="#e8e8ea" font-family="Consolas,monospace" letter-spacing="3"></text></g>
+<!-- smoked-shell gloss over everything -->
+<path d="M110 90 H890 Q920 90 920 120 V560 Q920 590 890 590 H110 Q80 590 80 560 V120 Q80 90 110 90Z" fill="url(#shellHi)"/>
+<path d="M112 96 H888" stroke="#fff" stroke-opacity=".3" stroke-width="2"/>
+<text id="date" x="500" y="640" text-anchor="middle" font-size="20" fill="#d8d2e8" letter-spacing="2"></text>
+</svg>
+<script>
+const NS="http://www.w3.org/2000/svg",$=id=>document.getElementById(id);
+const el=(t,a,p)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);p.appendChild(e);return e};
+for(const [sx,sy] of [[128,138],[872,138],[128,542],[872,542],[500,550]]){const g=el('g',{transform:`translate(${sx} ${sy})`},$('screws'));el('circle',{r:7,fill:'url(#metal)'},g);el('path',{d:'M-4 0 H4 M0 -4 V4',stroke:'#3a3e44','stroke-width':1.6},g)}
+for(let y=226;y<390;y+=22){if(y>236&&y<362){el('line',{x1:168,x2:316,y1:y,y2:y},$('lines'));el('line',{x1:684,x2:832,y1:y,y2:y},$('lines'))}else el('line',{x1:168,x2:832,y1:y,y2:y},$('lines'))}
+// reels: tape pack radius shrinks on the left and grows on the right as the day passes
+const L=[408,298],R=[592,298],RMIN=26,RMAX=82,reels=[L,R].map(([cx,cy])=>{const g=el('g',{},$('reels'));const pack=el('circle',{cx,cy,r:RMIN,fill:'url(#tape)'},g);
+const rings=el('g',{},g);const hub=el('g',{transform:`translate(${cx} ${cy})`},g);el('circle',{r:24,fill:'url(#hub)'},hub);el('circle',{r:14,fill:'#1a1a20'},hub);
+for(let i=0;i<6;i++)el('rect',{x:-3,y:-15,width:6,height:6,fill:'#e8eaee',transform:`rotate(${i*60})`},hub);for(let i=0;i<3;i++)el('rect',{x:-2,y:-24,width:4,height:10,fill:'#9aa0a8',transform:`rotate(${i*120})`},hub);
+return {pack,rings,hub,cx,cy}});
+const TR=[['side A — 00:00 to 06:00','night'],['06:00 · morning','sunrise'],['12:00 · afternoon','noon'],['18:00 · evening','sunset']];
+[[176,248],[176,270],[694,248],[694,270]].forEach(([tx0,ty0],i)=>{const e=el('text',{x:tx0,y:ty0},$('tracks'));e.textContent=(i+1)+'. '+TR[i][0].replace('side A — ','')});
+for(let x=345;x<660;x+=12)el('line',{x1:x,x2:x,y1:338,y2:346},$('ticksWin'));
+function tick(){const d=new Date(),secs=d.getHours()*3600+d.getMinutes()*60+d.getSeconds()+d.getMilliseconds()/1000,f=secs/86400;
+// conserve tape area: rL² + rR² = const
+const tot=RMAX*RMAX+RMIN*RMIN,rL=Math.sqrt(RMAX*RMAX-(RMAX*RMAX-RMIN*RMIN)*f),rR=Math.sqrt(tot-rL*rL);
+const [A,B]=reels;A.pack.setAttribute('r',rL);B.pack.setAttribute('r',rR);
+// rotation: tape moves at constant speed, so angular speed depends on radius; spin fast enough to see
+const sp=Date.now()/1000*60;A.hub.setAttribute('transform',`translate(${A.cx} ${A.cy}) rotate(${sp*(26/rL)})`);B.hub.setAttribute('transform',`translate(${B.cx} ${B.cy}) rotate(${sp*(26/rR)})`);
+[A,B].forEach((r,i)=>{const rad=i?rR:rL;r.rings.innerHTML='';el('circle',{cx:r.cx,cy:r.cy,r:rad,fill:'none',stroke:'#2a1a0e','stroke-width':1.5},r.rings);el('path',{d:`M${r.cx-rad*.7} ${r.cy-rad*.7} A${rad} ${rad} 0 0 1 ${r.cx+rad*.2} ${r.cy-rad*.98}`,fill:'none',stroke:'#fff','stroke-opacity':.22,'stroke-width':rad*.12},r.rings);for(let k=RMIN+6;k<rad;k+=7)el('circle',{cx:r.cx,cy:r.cy,r:k,fill:'none',stroke:"#4a2e1a","stroke-opacity":.3},r.rings)});
+// tape path from the reels down past the heads
+$('tapePath').setAttribute('d',`M${A.cx-rL} ${A.cy} L330 550 L670 550 L${B.cx+rR} ${B.cy}`);
+const p=n=>String(n).padStart(2,'0');$('ctr').textContent=`${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+[...$('tracks').children].forEach((e,i)=>{const on=Math.floor(d.getHours()/6)===i;e.setAttribute('fill',on?'#c62828':'#2a3a7a');e.setAttribute('font-weight',on?'bold':'normal')});
+$('side').textContent=d.getHours()<12?'A':'B';
+$('title').textContent=d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+$('date').textContent=`${(f*100).toFixed(1)}% of today's tape played`;requestAnimationFrame(tick)}
+tick();
+</script></body></html>

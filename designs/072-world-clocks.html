@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>World Clocks</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#f2f2f0;font-family:"Segoe UI",system-ui,sans-serif;color:#222}
+.wrap{position:fixed;inset:0;display:flex;flex-direction:column;padding:3vmin;box-sizing:border-box;gap:2vmin}
+.top{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:1vmin}
+.top b{font-size:clamp(28px,min(7vw,10vh),90px);font-weight:600}
+.top span{font-size:clamp(12px,2.4vmin,24px);color:#666}
+.grid{flex:1;display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:1fr;gap:2vmin;min-height:0}
+.c{background:#fff;border-radius:1.4vmin;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.6vh;min-height:0;overflow:hidden;box-shadow:0 .3vmin 1vmin rgba(0,0,0,.06)}
+.c.n{background:#1e2230;color:#eee}
+.c svg{height:58%;aspect-ratio:1}
+.c .nm{font-weight:600;font-size:clamp(11px,2vmin,20px)}
+.c .tm{font-size:clamp(10px,1.7vmin,17px);opacity:.7}
+#cfg{position:fixed;top:12px;right:12px;border:0;background:#222;color:#fff;border-radius:16px;padding:5px 12px;cursor:pointer;font:12px system-ui;z-index:3}
+#pan{position:fixed;top:44px;right:12px;background:#fff;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,.2);padding:10px;display:none;grid-template-columns:repeat(2,auto);gap:4px 14px;font:13px system-ui;z-index:3;max-height:80vh;overflow:auto}
+#pan.o{display:grid}
+@media (max-aspect-ratio:1/1){.grid{grid-template-columns:repeat(2,1fr)}}
+</style></head><body>
+<button id="cfg">Cities</button><div id="pan"></div>
+<div class="wrap"><div class="top"><b id="t"></b><span id="d"></span></div><div class="grid" id="g"></div></div>
+<script>
+const ALL=[['London','Europe/London'],['New York','America/New_York'],['Tokyo','Asia/Tokyo'],['Sydney','Australia/Sydney'],['Paris','Europe/Paris'],['Los Angeles','America/Los_Angeles'],['Dubai','Asia/Dubai'],['Singapore','Asia/Singapore'],['São Paulo','America/Sao_Paulo'],['Mumbai','Asia/Kolkata'],['Johannesburg','Africa/Johannesburg'],['Moscow','Europe/Moscow'],['Hong Kong','Asia/Hong_Kong'],['Jakarta','Asia/Jakarta'],['Auckland','Pacific/Auckland'],['Chicago','America/Chicago'],['Cairo','Africa/Cairo'],['Reykjavík','Atlantic/Reykjavik'],['Honolulu','Pacific/Honolulu'],['Mexico City','America/Mexico_City']];
+let sel=['London','New York','Tokyo','Sydney','Paris','Los Angeles','Dubai','Singapore'];try{const s=JSON.parse(localStorage.getItem('wc-cities'));if(Array.isArray(s)&&s.length)sel=s}catch(e){}
+const pan=document.getElementById('pan');document.getElementById('cfg').onclick=()=>pan.classList.toggle('o');
+function buildPanel(){pan.innerHTML=ALL.map(([n])=>`<label><input type="checkbox" value="${n}" ${sel.includes(n)?'checked':''}> ${n}</label>`).join('');
+pan.querySelectorAll('input').forEach(i=>i.onchange=()=>{sel=[...pan.querySelectorAll('input:checked')].map(x=>x.value).slice(0,12);try{localStorage.setItem('wc-cities',JSON.stringify(sel))}catch(e){}build()})}
+const face=`<svg viewBox="-50 -50 100 100"><circle r="47" fill="none" stroke="currentColor" stroke-width="2.5"/>${Array.from({length:12},(_,i)=>`<line y1="-42" y2="-36" stroke="currentColor" stroke-width="${i%3?1.5:3}" transform="rotate(${i*30})"/>`).join('')}<line class="h" y1="4" y2="-22" stroke="currentColor" stroke-width="4" stroke-linecap="round"/><line class="m" y1="5" y2="-34" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><line class="s" y1="8" y2="-38" stroke="#e8452c" stroke-width="1.2"/><circle r="2.5" fill="#e8452c"/></svg>`;
+let cards=[];
+function build(){const g=document.getElementById('g');const n=Math.max(sel.length,1),cols=innerWidth>innerHeight?Math.min(4,Math.ceil(Math.sqrt(n*1.6))):Math.min(2,n);g.style.gridTemplateColumns=`repeat(${cols},1fr)`;
+g.innerHTML='';cards=sel.map(nm=>{const tz=ALL.find(a=>a[0]===nm)[1],c=document.createElement('div');c.className='c';c.innerHTML=face+`<div class="nm">${nm}</div><div class="tm"></div>`;g.appendChild(c);return {c,tz}});tick()}
+function parts(d,tz){const f=new Intl.DateTimeFormat('en-GB',{timeZone:tz,hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23',weekday:'short',day:'numeric',month:'short'}).formatToParts(d),o={};f.forEach(p=>o[p.type]=p.value);return o}
+function tick(){const d=new Date(),here=d.getFullYear()*1e4+(d.getMonth()+1)*100+d.getDate();
+cards.forEach(({c,tz})=>{const o=parts(d,tz),h=+o.hour,m=+o.minute,s=+o.second;
+c.querySelector('.h').setAttribute('transform',`rotate(${(h%12+m/60)*30})`);c.querySelector('.m').setAttribute('transform',`rotate(${m*6})`);c.querySelector('.s').setAttribute('transform',`rotate(${s*6})`);
+c.classList.toggle('n',h<6||h>=19);c.querySelector('.tm').textContent=`${o.hour}:${o.minute} · ${o.weekday} ${o.day} ${o.month}`});
+document.getElementById('t').textContent=d.toLocaleTimeString();document.getElementById('d').textContent=d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'})+' · '+Intl.DateTimeFormat().resolvedOptions().timeZone}
+buildPanel();build();setInterval(tick,1000);addEventListener('resize',build);
+</script></body></html>

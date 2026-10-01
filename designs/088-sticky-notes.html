@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sticky Notes</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#5b3b22;font-family:"Ink Free","Segoe Print","Bradley Hand","Comic Sans MS",cursive;color:#222}
+/* wooden frame around a cork board */
+.frame{position:fixed;inset:1.6vmin;border-radius:.8vmin;padding:2.2vmin;box-sizing:border-box;
+background:linear-gradient(90deg,rgba(0,0,0,.25),transparent 3%,transparent 97%,rgba(0,0,0,.25)),repeating-linear-gradient(0deg,#7a4e2c 0 3px,#6e4526 3px 7px,#835532 7px 9px),#6e4526;box-shadow:inset 0 0 0 .3vmin #3e2412,0 1vmin 3vmin rgba(0,0,0,.5)}
+.cork{position:relative;width:100%;height:100%;border-radius:.3vmin;box-shadow:inset 0 0 2.5vmin rgba(60,30,10,.65);overflow:hidden;
+background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='a'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.55' numOctaves='3' seed='2'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .28 0 0 0 0 .12 0 0 0 1.4 -.35'/%3E%3C/filter%3E%3Cfilter id='b'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.09' numOctaves='2' seed='9'/%3E%3CfeColorMatrix values='0 0 0 0 .95 0 0 0 0 .78 0 0 0 0 .55 0 0 0 .9 -.3'/%3E%3C/filter%3E%3Crect width='220' height='220' fill='%23c8975e'/%3E%3Crect width='220' height='220' filter='url(%23b)' opacity='.5'/%3E%3Crect width='220' height='220' filter='url(%23a)'/%3E%3C/svg%3E")}
+.n{position:absolute;padding:5% 6%;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;
+background:linear-gradient(170deg,rgba(255,255,255,.35),rgba(255,255,255,0) 30%),linear-gradient(to bottom right,transparent 70%,rgba(0,0,0,.08)),var(--c);
+filter:drop-shadow(0 .3vmin .4vmin rgba(0,0,0,.3)) drop-shadow(.6vmin 1.1vmin 1.1vmin rgba(40,20,5,.35));border-bottom-right-radius:60% 6%}
+.n::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.25;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='.35'/%3E%3C/svg%3E")}
+.pin{position:absolute;left:50%;top:-1.4vmin;width:3.4vmin;height:3.4vmin;margin-left:-1.7vmin;border-radius:50%;z-index:3;
+background:radial-gradient(circle at 35% 30%,#fff 0 8%,var(--p) 30%,color-mix(in srgb,var(--p) 55%,#000) 90%);box-shadow:.8vmin 1vmin 1vmin rgba(0,0,0,.4)}
+.pin::after{content:"";position:absolute;left:55%;top:70%;width:.35vmin;height:1.8vmin;background:linear-gradient(#ddd,#888);transform:rotate(-35deg);transform-origin:top;z-index:-1}
+.tape{position:absolute;top:-1.6vmin;width:24%;height:4.2vmin;background:rgba(245,240,220,.55);box-shadow:0 .1vmin .3vmin rgba(0,0,0,.15);z-index:3;border-left:1px dashed rgba(0,0,0,.08);border-right:1px dashed rgba(0,0,0,.08)}
+.y{--c:#fdf07a;left:4%;top:7%;width:50%;height:62%;transform:rotate(-2deg)}
+.p{--c:#ffb3c8;left:60%;top:6%;width:34%;height:34%;transform:rotate(3deg)}
+.g{--c:#c8eaa0;left:58%;top:48%;width:30%;height:46%;transform:rotate(-1.5deg)}
+.b{--c:#fbfaf4;left:6%;top:70%;width:25%;height:26%;transform:rotate(3deg);background:repeating-linear-gradient(transparent 0 calc(1.3em - 1px),rgba(80,120,200,.25) calc(1.3em - 1px) 1.3em),#fbfaf4;padding-top:3%}
+.b::after{content:"";position:absolute;left:12%;top:0;bottom:0;width:1px;background:rgba(220,60,60,.45)}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:.1em;font-family:"Segoe UI",sans-serif;font-size:clamp(7px,min(1.1vw,1.6vh),14px);text-align:center;color:#334;padding-left:8%}
+.cal b{font-weight:600;color:#889}.cal .td{position:relative;color:#c00;font-weight:bold}.cal .td::before{content:"";position:absolute;inset:-.2em -.1em;border:2px solid #d22;border-radius:50% 45% 55% 40%;transform:rotate(-8deg)}
+.ring{position:absolute;left:44%;top:38%;width:11vmin;height:11vmin;border-radius:50%;border:1.2vmin solid rgba(110,60,20,.22);filter:blur(.4px);transform:scaleY(.9)}
+.big{font-size:min(13vw,26vh);line-height:1;text-align:center;letter-spacing:-.02em;color:#1d2a6b}
+.mid{font-size:min(4.2vw,6.4vh);text-align:center;line-height:1.15;color:#3a1020}
+.sm{font-size:clamp(10px,min(1.75vw,2.7vh),24px);line-height:1.45;color:#1d3a10;white-space:nowrap}
+.sm s{opacity:.55;text-decoration-thickness:2px}
+.lbl{font-size:clamp(10px,min(1.8vw,2.6vh),22px);opacity:.75}
+.polaroid{position:absolute;left:34%;top:70%;width:min(17vw,22vh);background:#fbfbf7;padding:1vmin 1vmin 3.6vmin;box-sizing:border-box;transform:rotate(-6deg);box-shadow:.6vmin 1vmin 1.4vmin rgba(0,0,0,.4)}
+.polaroid .ph{aspect-ratio:1;background:linear-gradient(#7ec3ef,#cfe9f8 55%,#7bb06a 56%,#4e8a46);position:relative;overflow:hidden}
+.polaroid .ph::before{content:"";position:absolute;width:24%;height:24%;border-radius:50%;background:#fff3b0;box-shadow:0 0 2vmin #ffe680;left:62%;top:14%}
+.polaroid .ph::after{content:"";position:absolute;left:-10%;right:-10%;bottom:28%;height:30%;background:radial-gradient(ellipse at 30% 100%,#5a8a50 40%,transparent 41%),radial-gradient(ellipse at 75% 100%,#4a7a44 45%,transparent 46%)}
+.polaroid span{position:absolute;bottom:.7vmin;left:0;right:0;text-align:center;font-size:clamp(10px,1.8vmin,18px);color:#444}
+.clip{position:absolute;right:12%;top:-2.4vmin;width:2.2vmin;height:7vmin;border:.4vmin solid #9aa0a8;border-radius:1.2vmin;z-index:4;box-shadow:.3vmin .3vmin .4vmin rgba(0,0,0,.3)}
+.clip::after{content:"";position:absolute;left:.35vmin;top:1vmin;width:.6vmin;height:4.2vmin;border:.35vmin solid #b8bec6;border-radius:.8vmin}
+@media (max-aspect-ratio:1/1){.y{left:5%;top:5%;width:90%;height:36%}.p{left:6%;top:46%;width:44%;height:22%}.g{left:54%;top:45%;width:41%;height:36%}.b{left:6%;top:72%;width:44%;height:22%}.polaroid{left:52%;top:84%;width:24vw}.big{font-size:min(26vw,17vh)}.mid{font-size:min(6vw,4vh)}}
+</style></head><body>
+<div class="frame"><div class="cork"><div class="ring"></div>
+<div class="n y"><div class="pin" style="--p:#e63946"></div><div class="lbl">now it's…</div><div class="big" id="t"></div><div class="lbl" style="text-align:right" id="s"></div></div>
+<div class="n p"><div class="tape" style="left:38%;transform:rotate(-3deg)"></div><div class="mid" id="wd"></div><div class="mid" id="d"></div></div>
+<div class="n g"><div class="clip"></div><div class="sm" id="todo"></div></div>
+<div class="n b"><div class="pin" style="--p:#2a9d8f"></div><div class="lbl" style="padding-left:8%;white-space:nowrap"><span id="mo"></span> · week <span id="wk"></span></div><div class="cal" id="cal"></div></div>
+<div class="polaroid"><div class="pin" style="--p:#f4a261"></div><div class="ph"></div><span id="pc"></span></div>
+</div></div>
+<script>
+function tick(){const d=new Date(),p=n=>String(n).padStart(2,'0'),h=d.getHours();
+document.getElementById('t').textContent=p(h)+':'+p(d.getMinutes());document.getElementById('s').textContent=`…and ${d.getSeconds()} seconds`;
+document.getElementById('wd').textContent=d.toLocaleDateString(undefined,{weekday:'long'});document.getElementById('d').textContent=d.toLocaleDateString(undefined,{day:'numeric',month:'long',year:'numeric'});
+const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())),n=t.getUTCDay()||7;t.setUTCDate(t.getUTCDate()+4-n);document.getElementById('wk').textContent=Math.ceil(((t-Date.UTC(t.getUTCFullYear(),0,1))/864e5+1)/7);
+
+const y=d.getFullYear(),mo=d.getMonth(),first=(new Date(y,mo,1).getDay()+6)%7,dim=new Date(y,mo+1,0).getDate();let cal='MTWTFSS'.split('').map(c=>'<b>'+c+'</b>').join('');for(let i=0;i<first;i++)cal+='<span></span>';for(let k=1;k<=dim;k++)cal+=`<span class="${k===d.getDate()?'td':''}">${k}</span>`;document.getElementById('cal').innerHTML=cal;document.getElementById('mo').textContent=d.toLocaleDateString(undefined,{month:'long'});
+document.getElementById('pc').textContent=d.toLocaleDateString(undefined,{month:'short',year:'numeric'});
+const items=[['wake up',7],['coffee ☕',8],['lunch 🥪',12],['afternoon tea',15],['go home',18],['dinner',19],['sleep 😴',23]];
+document.getElementById('todo').innerHTML='<b>TO DO today</b><br>'+items.map(([x,hh])=>hh<=h?`✔ <s>${x}</s>`:`☐ ${x} <span style="opacity:.6">${hh}:00</span>`).join('<br>')}
+tick();setInterval(tick,1000);
+</script></body></html>

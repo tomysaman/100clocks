@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vinyl Record</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;font-family:"Futura","Century Gothic","Segoe UI",sans-serif}
+body{background:radial-gradient(ellipse at 40% 30%,#e8dcc6,#c8b694 60%,#a8956f)}
+svg{position:fixed;inset:0;width:100%;height:100%}
+</style></head><body>
+<svg viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid meet">
+<defs>
+<filter id="wood" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".003 .12" numOctaves="3" seed="11" result="t"/>
+<feColorMatrix in="t" values="0 0 0 0 .22  0 0 0 0 .1  0 0 0 0 .03  0 0 0 .7 0" result="g"/><feComposite in="g" in2="SourceGraphic" operator="in" result="gc"/><feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="gc"/></feMerge></filter>
+<linearGradient id="walnut" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7a4a26"/><stop offset="1" stop-color="#4e2c14"/></linearGradient>
+<linearGradient id="alu" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f4f5f6"/><stop offset=".3" stop-color="#b8bcc2"/><stop offset=".55" stop-color="#e6e8ea"/><stop offset=".8" stop-color="#8e939a"/><stop offset="1" stop-color="#d0d3d7"/></linearGradient>
+<linearGradient id="armG" x1="0" x2="1"><stop offset="0" stop-color="#7a7f86"/><stop offset=".45" stop-color="#ffffff"/><stop offset="1" stop-color="#6a6f76"/></linearGradient>
+<radialGradient id="mat" cx="50%" cy="50%"><stop offset="0" stop-color="#2a2a2c"/><stop offset="1" stop-color="#151516"/></radialGradient>
+<radialGradient id="vinyl" cx="50%" cy="50%"><stop offset=".3" stop-color="#1a1a1c"/><stop offset=".9" stop-color="#0d0d0e"/><stop offset="1" stop-color="#222"/></radialGradient>
+<radialGradient id="label" cx="42%" cy="38%"><stop offset="0" stop-color="#f05a3c"/><stop offset="1" stop-color="#b8321c"/></radialGradient>
+<linearGradient id="sheen" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".16"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+<filter id="ds" x="-10%" y="-10%" width="120%" height="130%"><feDropShadow dx="0" dy="14" stdDeviation="14" flood-color="#2a1a08" flood-opacity=".55"/></filter>
+<filter id="as" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="10" dy="12" stdDeviation="5" flood-color="#000" flood-opacity=".5"/></filter>
+<filter id="glow"><feGaussianBlur stdDeviation="2"/></filter>
+<clipPath id="recClip"><circle cx="390" cy="360" r="252"/></clipPath>
+</defs>
+<!-- plinth -->
+<g filter="url(#ds)"><rect x="40" y="50" width="920" height="610" rx="22" fill="url(#walnut)" filter="url(#wood)"/></g>
+<rect x="40" y="50" width="920" height="610" rx="22" fill="none" stroke="#2a1608" stroke-width="2"/>
+<rect x="52" y="62" width="896" height="586" rx="14" fill="none" stroke="#a87048" stroke-opacity=".35" stroke-width="2"/>
+<!-- dust cover hinges -->
+<g fill="url(#alu)"><rect x="180" y="40" width="60" height="18" rx="3"/><rect x="760" y="40" width="60" height="18" rx="3"/></g>
+<!-- platter rim with strobe dots -->
+<circle cx="390" cy="360" r="272" fill="url(#alu)"/>
+<g id="strobeRot"><g id="strobe"></g></g>
+<circle cx="390" cy="360" r="258" fill="url(#mat)"/>
+<!-- the record (rotates) -->
+<g id="rec">
+<circle cx="390" cy="360" r="250" fill="url(#vinyl)"/>
+<g id="grooves" fill="none"></g>
+<circle cx="390" cy="360" r="86" fill="url(#label)"/>
+<circle cx="390" cy="360" r="86" fill="none" stroke="#7a1a0a" stroke-width="1"/>
+<text x="390" y="306" text-anchor="middle" font-size="11" fill="#ffe8d8" letter-spacing="3">CHRONO RECORDS</text>
+<text id="lt" x="390" y="350" text-anchor="middle" font-size="34" fill="#fff5ec" font-weight="bold"></text>
+<text id="lw" x="390" y="378" text-anchor="middle" font-size="13" fill="#ffe8d8" letter-spacing="2"></text>
+<text id="ld" x="390" y="398" text-anchor="middle" font-size="11" fill="#ffe8d8"></text>
+<text x="390" y="426" text-anchor="middle" font-size="9" fill="#ffd8c8" letter-spacing="2">SIDE A · 33⅓ RPM · STEREO</text>
+</g>
+<!-- fixed light reflections on the vinyl -->
+<g clip-path="url(#recClip)" pointer-events="none">
+<path d="M390 360 L130 160 A330 330 0 0 1 260 80 Z" fill="url(#sheen)"/>
+<path d="M390 360 L650 560 A330 330 0 0 1 520 640 Z" fill="url(#sheen)"/>
+<circle cx="390" cy="360" r="86" fill="#000" opacity="0"/>
+</g>
+<!-- spindle -->
+<circle cx="390" cy="360" r="7" fill="url(#alu)"/><circle cx="390" cy="360" r="2.5" fill="#888"/>
+<!-- controls -->
+<g transform="translate(90 600)"><circle r="20" fill="url(#alu)"/><circle r="15" fill="#222"/><text y="4" text-anchor="middle" font-size="8" fill="#ddd">START</text></g>
+<g transform="translate(150 610)" font-size="9" fill="#e9dcc8" text-anchor="middle"><rect x="0" y="-14" width="34" height="18" rx="3" fill="#ddd"/><text x="17" y="-2" fill="#222">33</text><rect x="40" y="-14" width="34" height="18" rx="3" fill="#888"/><text x="57" y="-2" fill="#222">45</text>
+<circle cx="17" cy="14" r="2.5" fill="#ff5a3a" filter="url(#glow)"/><circle cx="17" cy="14" r="1.6" fill="#ffb09a"/></g>
+<!-- pitch slider -->
+<g transform="translate(900 360)"><rect x="-8" y="-120" width="16" height="240" rx="4" fill="#1e1e20"/><g fill="#e9dcc8" font-size="8" text-anchor="end">
+<text x="-14" y="-110">+8</text><text x="-14" y="4">0</text><text x="-14" y="118">-8</text></g><rect x="-18" y="-10" width="36" height="20" rx="3" fill="url(#alu)"/><line x1="-14" x2="14" y1="0" y2="0" stroke="#d33" stroke-width="2"/></g>
+<!-- LCD readout -->
+<g transform="translate(700 600)"><rect x="-90" y="-26" width="180" height="46" rx="6" fill="#0d1a12" stroke="#3a2412" stroke-width="2"/>
+<text id="lcd" x="0" y="-2" text-anchor="middle" font-size="22" fill="#7dffb0" font-family="Consolas,monospace" filter="url(#glow)" opacity=".7"></text>
+<text id="lcd2" x="0" y="-2" text-anchor="middle" font-size="22" fill="#b8ffd4" font-family="Consolas,monospace"></text>
+<text id="lcd3" x="0" y="14" text-anchor="middle" font-size="9" fill="#7dffb0" font-family="Consolas,monospace" letter-spacing="1"></text></g>
+<!-- tonearm: base, arm rest, rotating arm -->
+<g transform="translate(800 150)">
+<circle r="46" fill="url(#alu)"/><circle r="38" fill="#2a2a2c"/><circle r="30" fill="url(#alu)"/>
+<g transform="translate(-60 40)" fill="#e9dcc8" font-size="7"><circle r="13" fill="url(#alu)"/><circle r="9" fill="#2a2a2c"/><text y="22" text-anchor="middle">ANTI-SKATE</text></g>
+</g>
+<g transform="translate(870 360)"><rect x="-8" y="-6" width="16" height="40" rx="3" fill="url(#alu)"/><path d="M-12 -6 h24 v-6 h-24z" fill="#333"/></g>
+<g id="arm" filter="url(#as)">
+<g transform="translate(800 150)">
+<rect x="-17" y="-92" width="34" height="46" rx="6" fill="url(#armG)"/><rect x="-17" y="-60" width="34" height="5" fill="#555"/>
+<path d="M0 -50 L0 40 C0 140 -38 230 -20 330 C-14 360 -12 380 -10 400" fill="none" stroke="url(#armG)" stroke-width="9" stroke-linecap="round"/>
+<g transform="translate(-10 400) rotate(22)"><path d="M-14 0 h28 l-3 46 h-22z" fill="#d9dce0" stroke="#7a7f86"/><rect x="-10" y="30" width="20" height="16" fill="#1a1a1a"/><path d="M14 8 l20 -10" stroke="#c9cdd2" stroke-width="3" stroke-linecap="round"/>
+<line x1="0" y1="46" x2="0" y2="52" stroke="#ddd" stroke-width="1.4"/></g>
+<circle r="16" fill="url(#armG)"/><circle r="5" fill="#333"/>
+</g></g>
+</svg>
+<script>
+const NS="http://www.w3.org/2000/svg",$=id=>document.getElementById(id);
+const el=(t,a,p)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);p.appendChild(e);return e};
+const CX=390,CY=360;
+// grooves with gaps between tracks
+for(let r=96;r<246;r+=1.6){const gap=[140,175,210].some(g=>Math.abs(r-g)<2.2);el('circle',{cx:CX,cy:CY,r,stroke:gap?'#3a3a3e':(Math.round(r*10)%3?'#1c1c1f':'#26262a'),'stroke-width':gap?2.4:.9},$('grooves'))}
+el('circle',{cx:CX,cy:CY,r:248,stroke:'#333','stroke-width':3},$('grooves'));
+// strobe dots on the platter rim
+for(let i=0;i<180;i++){const a=i/180*Math.PI*2;el('rect',{x:CX+Math.cos(a)*265-1.5,y:CY+Math.sin(a)*265-3,width:3,height:6,fill:'#3a3d42',transform:`rotate(${i*2+90} ${CX+Math.cos(a)*265} ${CY+Math.sin(a)*265})`},$('strobe'))}
+// arm geometry: stylus sits 400 units from the pivot (800,150); find the angle that puts it at radius r from the spindle
+const PX=800,PY=150,a22=22*Math.PI/180,SX=-10-52*Math.sin(a22),SY=400+52*Math.cos(a22);
+function stylusAt(th){return [PX+SX*Math.cos(th)-SY*Math.sin(th),PY+SX*Math.sin(th)+SY*Math.cos(th)]}
+function angleFor(r){let lo=0,hi=1.4;for(let i=0;i<40;i++){const m=(lo+hi)/2,[sx,sy]=stylusAt(m);Math.hypot(sx-CX,sy-CY)>r?lo=m:hi=m}return lo}
+function tick(){const d=new Date(),p=n=>String(n).padStart(2,'0'),t=d.getTime();
+const rot=(t/1000*(100/3)/60*360)%360;$('rec').setAttribute('transform',`rotate(${rot} ${CX} ${CY})`);$('strobeRot').setAttribute('transform',`rotate(${rot} ${CX} ${CY})`);
+// the needle travels from the outer groove to the run-out over each hour
+const f=(d.getMinutes()*60+d.getSeconds()+d.getMilliseconds()/1000)/3600,r=240-f*140,th=angleFor(r);$('arm').setAttribute('transform',`rotate(${th*180/Math.PI} ${PX} ${PY})`);
+$('lt').textContent=p(d.getHours())+':'+p(d.getMinutes());$('lw').textContent=d.toLocaleDateString(undefined,{weekday:'long'}).toUpperCase();$('ld').textContent=d.toLocaleDateString(undefined,{day:'numeric',month:'long',year:'numeric'});
+const lcd=`${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;$('lcd').textContent=lcd;$('lcd2').textContent=lcd;$('lcd3').textContent=`TRACK ${d.getHours()+1} · 33⅓ RPM`;
+requestAnimationFrame(tick)}
+tick();
+</script></body></html>

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tally Marks</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#8d8576;font-family:"Segoe Print","Comic Sans MS",cursive;color:#2b2620}
+body{background:radial-gradient(ellipse at 30% 20%,#a39b8a,#7a7264 70%,#5f584c)}
+.wrap{height:100%;display:flex;flex-direction:column;justify-content:center;padding:0 6vw;box-sizing:border-box;gap:3vh}
+.row{display:flex;align-items:center;gap:3vw}
+.lab{width:min(16vw,140px);flex:none;font-size:clamp(12px,2.6vmin,26px);opacity:.75;text-align:right}
+svg{flex:1;height:min(15vh,13vw)}
+.date{font-size:clamp(13px,3vmin,30px);text-align:center;margin-top:2vh;opacity:.85}
+</style></head><body>
+<div class="wrap">
+<div class="row"><span class="lab">hours</span><svg id="h" preserveAspectRatio="xMinYMid meet"></svg></div>
+<div class="row"><span class="lab">minutes</span><svg id="m" preserveAspectRatio="xMinYMid meet"></svg></div>
+<div class="row"><span class="lab">seconds</span><svg id="s" preserveAspectRatio="xMinYMid meet"></svg></div>
+<div class="date" id="d"></div>
+</div>
+<script>
+function rnd(seed){let x=Math.sin(seed)*10000;return x-Math.floor(x)}
+function tally(svg,n,max,seedBase){const groups=Math.ceil(max/5),GW=46,W=groups*GW;svg.setAttribute('viewBox',`0 0 ${W} 50`);let out='';
+for(let i=0;i<n;i++){const g=Math.floor(i/5),k=i%5,sd=seedBase+i;if(k<4){const x=g*GW+6+k*8+rnd(sd)*2;out+=`<path d="M${x} ${6+rnd(sd+1)*3} Q${x+rnd(sd+2)*3-1.5} 25 ${x+rnd(sd+3)*2-1} ${44-rnd(sd+4)*3}" stroke="#2b2620" stroke-width="${2.6+rnd(sd+5)}" fill="none" stroke-linecap="round" opacity=".85"/>`}
+else{const x=g*GW;out+=`<path d="M${x+1} ${36+rnd(sd)*4} L${x+38} ${12+rnd(sd+1)*4}" stroke="#7a1f12" stroke-width="2.8" fill="none" stroke-linecap="round" opacity=".85"/>`}}
+svg.innerHTML=out}
+function tick(){const d=new Date();tally(document.getElementById('h'),d.getHours(),60,1);tally(document.getElementById('m'),d.getMinutes(),60,100);tally(document.getElementById('s'),d.getSeconds(),60,200);
+document.getElementById('d').textContent=`${d.getHours()} h  ${d.getMinutes()} m  ${d.getSeconds()} s  —  day ${d.getDate()} of ${d.toLocaleDateString(undefined,{month:'long'})}, ${d.getFullYear()} (${d.toLocaleDateString(undefined,{weekday:'long'})})`}
+tick();setInterval(tick,1000);
+</script></body></html>

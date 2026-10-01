@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Neon Rings</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#07070d;font-family:"Segoe UI",system-ui,sans-serif;color:#fff}
+.wrap{height:100%;display:flex;align-items:center;justify-content:center;gap:4vw}
+canvas{width:min(70vw,90vh);height:min(70vw,90vh)}
+.leg{display:flex;flex-direction:column;gap:1.6vh;font-size:clamp(11px,2.2vmin,22px)}
+.leg div{display:flex;align-items:center;gap:1vw}
+.leg i{width:1.6vmin;height:1.6vmin;border-radius:50%}
+.leg b{font-weight:600;min-width:3ch;text-align:right;font-variant-numeric:tabular-nums}
+@media (max-aspect-ratio:1/1){.wrap{flex-direction:column;gap:2vh}canvas{width:min(92vw,62vh);height:min(92vw,62vh)}.leg{display:grid;grid-template-columns:1fr 1fr;gap:1vh 6vw}}
+</style></head><body>
+<div class="wrap"><canvas id="c"></canvas><div class="leg" id="l"></div></div>
+<script>
+const R=[{k:'Month',c:'#ff3df2'},{k:'Day',c:'#8a5bff'},{k:'Hour',c:'#2fd3ff'},{k:'Minute',c:'#3dff9a'},{k:'Second',c:'#ffe23d'}];
+const l=document.getElementById('l');R.forEach(r=>{const d=document.createElement('div');d.innerHTML=`<i style="background:${r.c};box-shadow:0 0 1vmin ${r.c}"></i><span>${r.k}</span><b></b>`;l.appendChild(d);r.el=d.querySelector('b')});
+const c=document.getElementById('c'),x=c.getContext('2d');
+function size(){const b=c.getBoundingClientRect(),p=devicePixelRatio||1;c.width=b.width*p;c.height=b.height*p}addEventListener('resize',size);size();
+function draw(){const d=new Date(),W=c.width,cx=W/2,ms=d.getMilliseconds(),s=d.getSeconds()+ms/1000,m=d.getMinutes()+s/60,h=d.getHours()+m/60;
+const dim=new Date(d.getFullYear(),d.getMonth()+1,0).getDate(),day=d.getDate()-1+h/24;
+const fr=[(d.getMonth()+day/dim)/12,day/dim,h/24,m/60,s/60],val=[d.toLocaleDateString(undefined,{month:'short'}),d.getDate(),d.getHours(),d.getMinutes(),d.getSeconds()];
+x.clearRect(0,0,W,W);const lw=W*.045;
+R.forEach((r,i)=>{const rad=W*.46-i*lw*1.6;x.lineCap='round';x.lineWidth=lw;x.strokeStyle='rgba(255,255,255,.06)';x.beginPath();x.arc(cx,cx,rad,0,7);x.stroke();
+x.strokeStyle=r.c;x.shadowColor=r.c;x.shadowBlur=W*.03;x.beginPath();x.arc(cx,cx,rad,-Math.PI/2,-Math.PI/2+Math.max(fr[i],.002)*Math.PI*2);x.stroke();x.shadowBlur=0;r.el.textContent=val[i]});
+const p=n=>String(n).padStart(2,'0');x.fillStyle='#fff';x.textAlign='center';x.textBaseline='middle';x.font=`200 ${W*.1}px "Segoe UI",sans-serif`;
+x.fillText(p(d.getHours())+':'+p(d.getMinutes()),cx,cx-W*.02);x.font=`${W*.032}px "Segoe UI",sans-serif`;x.fillStyle='rgba(255,255,255,.6)';
+x.fillText(d.toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short',year:'numeric'}),cx,cx+W*.07);requestAnimationFrame(draw)}
+draw();
+</script></body></html>

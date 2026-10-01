@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Liquid Text</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#0b132b;color:#5bc0be;font-family:"Segoe UI",system-ui,sans-serif}
+canvas{position:fixed;inset:0;width:100%;height:100%}
+.d{position:fixed;left:0;right:0;bottom:12vh;text-align:center;font-size:clamp(13px,3vmin,30px);letter-spacing:.25em;text-transform:uppercase;color:#cfe8ef}
+.k{position:fixed;left:0;right:0;top:8vh;text-align:center;font-size:clamp(10px,1.8vmin,18px);letter-spacing:.3em;color:#5a7a99}
+</style></head><body>
+<canvas id="c"></canvas><div class="k">THE DIGITS FILL AS THE MINUTE PASSES</div><div class="d" id="d"></div>
+<script>
+const c=document.getElementById('c'),x=c.getContext('2d');let W,H;
+function size(){const p=devicePixelRatio||1;W=innerWidth;H=innerHeight;c.width=W*p;c.height=H*p;x.setTransform(p,0,0,p,0,0)}addEventListener('resize',size);size();
+function draw(t){const d=new Date(),p=n=>String(n).padStart(2,'0'),str=p(d.getHours())+':'+p(d.getMinutes()),f=(d.getSeconds()+d.getMilliseconds()/1000)/60;
+const fs=Math.min(W/2.9,H/2.2);x.clearRect(0,0,W,H);x.font=`900 ${fs}px "Segoe UI Black","Arial Black",sans-serif`;x.textAlign='center';x.textBaseline='middle';
+const cy=H*.47,top=cy-fs*.38,bot=cy+fs*.38,level=bot-(bot-top)*f;
+x.lineWidth=Math.max(2,fs*.012);x.strokeStyle='rgba(91,192,190,.55)';x.strokeText(str,W/2,cy);
+x.save();x.beginPath();x.moveTo(0,H);for(let X=0;X<=W;X+=6)x.lineTo(X,level+Math.sin(X/70+t/400)*fs*.02+Math.sin(X/31+t/250)*fs*.008);x.lineTo(W,H);x.closePath();x.clip();
+const g=x.createLinearGradient(0,top,0,bot);g.addColorStop(0,'#6fffe9');g.addColorStop(1,'#1c7293');x.fillStyle=g;x.fillText(str,W/2,cy);x.restore();
+// bubbles inside the liquid
+x.save();x.beginPath();x.rect(0,level,W,H);x.clip();x.globalCompositeOperation='source-atop';x.fillStyle='rgba(255,255,255,.35)';
+for(let i=0;i<30;i++){const bx=(i*137.5%100)/100*W,by=bot-((t/30+i*53)%((bot-level)+1));x.beginPath();x.arc(bx,by,fs*.008,0,7);x.fill()}x.restore();
+document.getElementById('d').textContent=d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'})+' · '+p(d.getSeconds())+'s';requestAnimationFrame(draw)}
+requestAnimationFrame(draw);
+</script></body></html>

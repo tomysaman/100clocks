@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Moon Phase</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:radial-gradient(ellipse at 50% 40%,#1a2236,#05070d 70%);color:#dfe4f0;font-family:"Didot","Bodoni MT",Georgia,serif}
+.wrap{height:100%;display:flex;align-items:center;justify-content:center;gap:6vw}
+canvas{width:min(50vw,74vh);height:min(50vw,74vh)}
+.side{display:flex;flex-direction:column;gap:1.6vh;max-width:36vw}
+.t{font-size:clamp(34px,min(9vw,15vh),150px);font-weight:normal;line-height:1}
+.d{font-size:clamp(13px,3vmin,30px);font-style:italic;opacity:.85}
+.ph{font-size:clamp(12px,2.4vmin,24px);letter-spacing:.2em;text-transform:uppercase;color:#f3dfa6}
+.n{font-size:clamp(11px,2vmin,20px);opacity:.6;line-height:1.6}
+@media (max-aspect-ratio:1/1){.wrap{flex-direction:column;gap:3vh}canvas{width:76vw;height:76vw}.side{max-width:90vw;text-align:center}}
+</style></head><body>
+<div class="wrap"><canvas id="c"></canvas><div class="side"><div class="ph" id="ph"></div><div class="t" id="t"></div><div class="d" id="d"></div><div class="n" id="n"></div></div></div>
+<script>
+const SYN=29.530588853,REF=Date.UTC(2000,0,6,18,14);
+const c=document.getElementById('c'),x=c.getContext('2d');
+function size(){const b=c.getBoundingClientRect(),p=devicePixelRatio||1;c.width=b.width*p;c.height=b.height*p}addEventListener('resize',size);size();
+const craters=Array.from({length:40},()=>[Math.random()*2-1,Math.random()*2-1,Math.random()*.12+.02]).filter(([a,b])=>a*a+b*b<.85);
+function draw(){const now=new Date(),age=(((now-REF)/864e5)%SYN+SYN)%SYN,f=age/SYN,W=c.width,R=W*.42,cx=W/2;
+x.clearRect(0,0,W,W);const g=x.createRadialGradient(cx,cx,R*.9,cx,cx,R*1.25);g.addColorStop(0,'rgba(240,230,200,.15)');g.addColorStop(1,'rgba(240,230,200,0)');x.fillStyle=g;x.fillRect(0,0,W,W);
+// lit disc
+x.save();x.beginPath();x.arc(cx,cx,R,0,7);x.clip();const lg=x.createRadialGradient(cx-R*.3,cx-R*.3,0,cx,cx,R);lg.addColorStop(0,'#fbf6e6');lg.addColorStop(1,'#c9c2ac');x.fillStyle=lg;x.fillRect(0,0,W,W);
+craters.forEach(([a,b,r])=>{x.fillStyle='rgba(120,110,90,.18)';x.beginPath();x.arc(cx+a*R,cx+b*R,r*R,0,7);x.fill()});
+// shadow: terminator ellipse
+x.fillStyle='rgba(6,8,14,.93)';x.beginPath();const k=Math.cos(f*2*Math.PI);// 1 new, -1 full
+if(f<.5){x.arc(cx,cx,R+1,Math.PI/2,Math.PI*1.5);x.ellipse(cx,cx,Math.abs(k)*R+1,R+1,0,-Math.PI/2,Math.PI/2,k<0)}
+else{x.arc(cx,cx,R+1,-Math.PI/2,Math.PI/2);x.ellipse(cx,cx,Math.abs(k)*R+1,R+1,0,Math.PI/2,-Math.PI/2,k<0)}
+x.fill();x.restore();
+const names=['New Moon','Waxing Crescent','First Quarter','Waxing Gibbous','Full Moon','Waning Gibbous','Last Quarter','Waning Crescent'];
+const illum=Math.round((1-Math.cos(f*2*Math.PI))/2*100);
+document.getElementById('ph').textContent=names[Math.floor(f*8+.5)%8]+' · '+illum+'% lit';
+document.getElementById('t').textContent=now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+document.getElementById('d').textContent=now.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+const toFull=((.5-f+1)%1)*SYN,toNew=(1-f)*SYN,fmt=dd=>new Date(now.getTime()+dd*864e5).toLocaleDateString(undefined,{day:'numeric',month:'short'});
+document.getElementById('n').innerHTML=`Moon age ${age.toFixed(1)} days<br>Next full moon ${fmt(toFull)} · next new moon ${fmt(toNew)}`}
+draw();setInterval(draw,1000);
+</script></body></html>

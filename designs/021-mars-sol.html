@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mars Sol Clock</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#04030a;color:#ffd9c2;font-family:"Segoe UI",system-ui,sans-serif}
+canvas{position:fixed;inset:0;width:100%;height:100%}
+.info{position:fixed;right:5vw;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:1.6vh;padding:3vmin 3.4vmin;background:rgba(20,8,4,.55);border:1px solid rgba(255,138,80,.35);border-radius:1vmin;backdrop-filter:blur(4px);max-width:38vw}
+.lbl{font-size:clamp(10px,1.6vmin,16px);letter-spacing:.35em;color:#ff8a50}
+.mtc{font-size:clamp(34px,min(8vw,12vh),150px);font-weight:200;color:#fff;font-variant-numeric:tabular-nums;line-height:1}
+.row{display:flex;justify-content:space-between;gap:3vw;font-size:clamp(11px,2vmin,20px);border-top:1px solid rgba(255,138,80,.2);padding-top:1vh}
+.row span:first-child{color:#c98a6a}
+.earth{font-size:clamp(11px,2vmin,20px);opacity:.8;line-height:1.6}
+@media (max-aspect-ratio:1/1){.info{right:4vw;left:4vw;top:auto;bottom:3vh;transform:none;max-width:none}}
+</style></head><body>
+<canvas id="c"></canvas>
+<div class="info"><div class="lbl">COORDINATED MARS TIME</div><div class="mtc" id="m"></div>
+<div class="row"><span>Sol</span><span id="sol"></span></div><div class="row"><span>Mars Sol Date</span><span id="msd"></span></div><div class="row"><span>Solar longitude</span><span id="ls"></span></div>
+<div class="lbl" style="margin-top:1vh">EARTH</div><div class="earth" id="e"></div></div>
+<script>
+// Mars rendered on a canvas: a procedural albedo map (dark maria, bright plains, polar cap, craters) wrapped on a sphere,
+// rotating with the actual Mars rotation implied by MTC, lit from the side with a soft terminator and thin atmosphere.
+const c=document.getElementById('c'),x=c.getContext('2d');let W,H,P;
+function size(){P=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;c.width=W*P;c.height=H*P;x.setTransform(P,0,0,P,0,0)}addEventListener('resize',size);size();
+// albedo texture
+const TW=512,TH=256,tex=new Float32Array(TW*TH*3);
+function hash(a,b){const v=Math.sin(a*127.1+b*311.7)*43758.5453;return v-Math.floor(v)}
+function noise(px,py){const ix=Math.floor(px),iy=Math.floor(py),fx=px-ix,fy=py-iy,u=fx*fx*(3-2*fx),v=fy*fy*(3-2*fy),a=hash(ix,iy),b=hash(ix+1,iy),cc=hash(ix,iy+1),d=hash(ix+1,iy+1);return a+(b-a)*u+(cc-a)*v+(a-b-cc+d)*u*v}
+function fbm(px,py){let s=0,a=.5;for(let i=0;i<6;i++){s+=a*noise(px,py);px*=2.03;py*=2.03;a*=.5}return s}
+const craters=Array.from({length:70},()=>[Math.random()*TW,TH*.15+Math.random()*TH*.7,2+Math.random()*9]);
+for(let y=0;y<TH;y++)for(let X=0;X<TW;X++){const u=X/TW,v=y/TH,lat=(v-.5)*Math.PI;
+// wrap noise horizontally by sampling on a cylinder
+const nx=Math.cos(u*Math.PI*2)*2.2,nz=Math.sin(u*Math.PI*2)*2.2;let n=fbm(nx+5+nz*.7,v*4.4+nz*.3);
+let dark=Math.max(0,Math.min(1,(n-.5)*5.5));// maria
+let r=196-dark*92,g=92-dark*44,b=48-dark*20;const f=fbm(nx*3,v*12)*.25;r*=.88+f;g*=.88+f;b*=.88+f;
+for(const [cx,cy,cr] of craters){let dx=X-cx;if(dx>TW/2)dx-=TW;if(dx<-TW/2)dx+=TW;const dy=(y-cy)*1.4,dd=Math.hypot(dx,dy);if(dd<cr*1.2){const k=dd/cr;const bowl=k<1?(.82+.18*k*k)+(-dx-dy)/cr*.12:1+(1.2-k)*.25;r*=bowl;g*=bowl;b*=bowl}}
+// polar caps
+const cap=Math.max(0,(Math.abs(lat)-1.3+fbm(nx*3,nz*3)*.14)*7);if(cap>0){const k=Math.min(1,cap);r=r*(1-k)+245*k;g=g*(1-k)+240*k;b=b*(1-k)+235*k}
+const i=(y*TW+X)*3;tex[i]=r;tex[i+1]=g;tex[i+2]=b}
+const stars=Array.from({length:400},()=>[Math.random(),Math.random(),Math.random()]);
+let globe=null,gR=0;
+function mars(){const now=Date.now(),jdut=now/864e5+2440587.5,jdtt=jdut+69.184/86400,msd=(jdtt-2405522.0028779)/1.0274912517;return {msd,mtc:(msd%1)*24,dt:jdtt-2451545}}
+function draw(){const d=new Date(),M=mars(),port=H>W*1.05,R=Math.min(port?W*.42:W*.27,H*(port?.27:.4)),cx=port?W/2:W*.33,cy=port?H*.32:H/2;
+x.fillStyle='#04030a';x.fillRect(0,0,W,H);stars.forEach(([a,b,z])=>{x.fillStyle=`rgba(255,240,230,${.15+z*.6})`;x.fillRect(a*W,b*H,z*1.6,z*1.6)});
+// render the globe into an offscreen buffer at its pixel size
+const S=Math.round(R*2*Math.min(P,1.5));if(!globe||globe.width!==S){globe=document.createElement('canvas');globe.width=globe.height=S}
+const gx=globe.getContext('2d'),img=gx.createImageData(S,S),dt=img.data,rot=M.mtc/24,tilt=.38,lx=-.82,ly=-.18,lz=.55;
+for(let py=0;py<S;py++)for(let px=0;px<S;px++){const nx=(px/S)*2-1,ny=(py/S)*2-1,rr=nx*nx+ny*ny;const o=(py*S+px)*4;if(rr>1){dt[o+3]=0;continue}
+const nz=Math.sqrt(1-rr);// rotate by axial tilt around z then find lat/lon
+const ty=ny*Math.cos(tilt)+nz*Math.sin(tilt)*-1,tz=nz*Math.cos(tilt)+ny*Math.sin(tilt);const lat=Math.asin(Math.max(-1,Math.min(1,ty))),lon=Math.atan2(nx,tz);
+let u=(lon/(Math.PI*2)+rot)%1;if(u<0)u+=1;const v=.5-lat/Math.PI,ti=((Math.min(TH-1,v*TH|0))*TW+(u*TW|0))*3;
+const lam=Math.max(0,nx*lx+ny*ly+nz*lz),limb=Math.pow(nz,.35),shade=Math.min(1.15,.04+lam*1.05)*limb;
+dt[o]=Math.min(255,tex[ti]*shade);dt[o+1]=Math.min(255,tex[ti+1]*shade);dt[o+2]=Math.min(255,tex[ti+2]*shade);dt[o+3]=rr>.985?(1-rr)/.015*255:255}
+gx.putImageData(img,0,0);
+// atmosphere halo on the lit limb
+const ag=x.createRadialGradient(cx,cy,R*.96,cx,cy,R*1.12);ag.addColorStop(0,'rgba(255,150,100,.35)');ag.addColorStop(1,'rgba(255,150,100,0)');x.fillStyle=ag;x.beginPath();x.arc(cx,cy,R*1.12,0,7);x.fill();
+x.drawImage(globe,cx-R,cy-R,R*2,R*2);
+// Phobos orbits every 7.65 h
+const pa=(Date.now()/3600e3/7.65)%1*Math.PI*2,px=cx+Math.cos(pa)*R*1.45,py=cy+Math.sin(pa)*R*.32;if(Math.abs(px-cx)>R*1.04||Math.hypot(px-cx,py-cy)>R*1.04){x.fillStyle='#9a8a7a';x.beginPath();x.ellipse(px,py,R*.035,R*.025,pa,0,7);x.fill()}
+const p=n=>String(n).padStart(2,'0'),h=Math.floor(M.mtc),mm=Math.floor(M.mtc%1*60),ss=Math.floor(M.mtc*3600%60);
+document.getElementById('m').textContent=`${p(h)}:${p(mm)}:${p(ss)}`;document.getElementById('sol').textContent=Math.floor(M.msd).toLocaleString();document.getElementById('msd').textContent=M.msd.toFixed(5);
+const Mm=(19.3871+.52402073*M.dt)*Math.PI/180,afms=270.3871+.524038496*M.dt,pbs=0,nu=Mm+(10.691+3e-7*M.dt)*Math.PI/180*Math.sin(Mm)+.623*Math.PI/180*Math.sin(2*Mm);
+document.getElementById('ls').textContent=(((afms+(nu-Mm)*180/Math.PI)%360+360)%360).toFixed(1)+'°';
+document.getElementById('e').innerHTML=d.toLocaleTimeString()+'<br>'+d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+setTimeout(()=>requestAnimationFrame(draw),250)}
+draw();
+</script></body></html>

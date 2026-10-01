@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Numeral Systems</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#101820;color:#f2aa4c;font-family:"Segoe UI","Nirmala UI","Leelawadee UI","Microsoft YaHei",sans-serif}
+.wrap{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2vh;text-align:center}
+.big{font-size:clamp(40px,min(15vw,22vh),240px);font-weight:300;line-height:1.1;transition:opacity .5s}
+.nm{font-size:clamp(13px,3vmin,30px);letter-spacing:.3em;text-transform:uppercase;color:#fff}
+.d{font-size:clamp(12px,2.6vmin,26px);color:#c9d3dc;transition:opacity .5s}
+.dots{display:flex;gap:1vmin;flex-wrap:wrap;justify-content:center;max-width:80vw}
+.dots i{width:1.2vmin;height:1.2vmin;border-radius:50%;background:#2a3a48;cursor:pointer}.dots i.on{background:#f2aa4c}
+.hint{position:fixed;bottom:12px;left:0;right:0;font-size:12px;color:#5a6a78}
+</style></head><body>
+<div class="wrap"><div class="nm" id="nm"></div><div class="big" id="t"></div><div class="d" id="d"></div><div class="dots" id="dots"></div></div>
+<div class="hint">changes every 6 seconds · click a dot to pick one · click anywhere else to pause</div>
+<script>
+const SYS=[['latn','Western Arabic','en'],['arab','Eastern Arabic','ar-EG'],['arabext','Persian','fa'],['deva','Devanagari','hi'],['beng','Bengali','bn'],['thai','Thai','th'],['laoo','Lao','lo'],['khmr','Khmer','km'],['mymr','Burmese','my'],['tibt','Tibetan','bo'],['gujr','Gujarati','gu'],['guru','Gurmukhi','pa'],['knda','Kannada','kn'],['mlym','Malayalam','ml'],['orya','Odia','or'],['taml','Tamil','ta'],['telu','Telugu','te'],['mong','Mongolian','mn'],['hanidec','Chinese decimal','zh'],['fullwide','Full-width','ja']];
+let i=0,paused=false;try{i=+localStorage.getItem('numsys')||0}catch(e){}
+const dots=document.getElementById('dots');SYS.forEach((s,k)=>{const e=document.createElement('i');e.title=s[1];e.onclick=ev=>{ev.stopPropagation();i=k;paused=true;save();render()};dots.appendChild(e)});
+document.body.onclick=()=>{paused=!paused};
+function save(){try{localStorage.setItem('numsys',i)}catch(e){}}
+function render(){const d=new Date(),[ns,name,loc]=SYS[i];let t,dt;
+try{t=new Intl.DateTimeFormat(loc+'-u-nu-'+ns,{hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).format(d);dt=new Intl.DateTimeFormat(loc+'-u-nu-'+ns,{weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(d)}catch(e){t=d.toLocaleTimeString();dt=d.toDateString()}
+document.getElementById('t').textContent=t;document.getElementById('d').textContent=dt;document.getElementById('nm').textContent=name;
+[...dots.children].forEach((e,k)=>e.classList.toggle('on',k===i))}
+let tc=0;setInterval(()=>{if(!paused&&++tc%6===0){i=(i+1)%SYS.length;save()}render()},1000);render();
+</script></body></html>

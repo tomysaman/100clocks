@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Seven Segment</title>
+<style>
+:root{--on:#ff2a2a;--off:rgba(255,42,42,.07)}
+html,body{margin:0;height:100%;overflow:hidden;background:#0a0606;font-family:"Consolas",monospace;color:var(--on)}
+.wrap{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4vmin}
+.row{display:flex;align-items:center;gap:1.6vw;transform:skewX(-6deg)}
+.dg{position:relative;width:min(11vw,22vh);aspect-ratio:1/2}
+.dg.sm{width:min(6vw,12vh)}
+.s{position:absolute;background:var(--off);transition:background .1s}
+.s.on{background:var(--on);box-shadow:0 0 1.2vmin var(--on)}
+.a,.g,.d{left:12%;width:76%;height:7%;clip-path:polygon(0 50%,12% 0,88% 0,100% 50%,88% 100%,12% 100%)}
+.a{top:0}.g{top:46.5%}.d{top:93%}
+.b,.c,.e,.f{width:14%;height:44%;clip-path:polygon(50% 0,100% 12%,100% 88%,50% 100%,0 88%,0 12%)}
+.f{left:0;top:3.5%}.b{left:86%;top:3.5%}.e{left:0;top:52.5%}.c{left:86%;top:52.5%}
+.col{display:flex;flex-direction:column;gap:min(5vw,10vh)}
+.col i{width:min(1.6vw,3.2vh);aspect-ratio:1;background:var(--on);box-shadow:0 0 1.2vmin var(--on)}
+.col.blink i{opacity:.12}
+.date{font-size:clamp(14px,4vmin,44px);letter-spacing:.25em;opacity:.8;text-shadow:0 0 1vmin var(--on)}
+.ampm{display:flex;flex-direction:column;gap:1vmin;font-size:clamp(10px,2vmin,20px);margin-left:1vw}
+.ampm span{opacity:.15}.ampm span.on{opacity:1}
+#gear{position:fixed;top:12px;right:12px;background:none;border:0;color:var(--on);font-size:22px;cursor:pointer;opacity:.5}
+#panel{position:fixed;top:48px;right:12px;background:#1a1111;border:1px solid #422;padding:12px;border-radius:6px;display:none;color:#ddd;font:13px system-ui;gap:8px;flex-direction:column}
+#panel.open{display:flex}
+#panel label{display:flex;gap:8px;align-items:center}
+</style></head><body>
+<button id="gear" title="Settings">⚙</button>
+<div id="panel"><label>Color <input type="color" id="col" value="#ff2a2a"></label><label><input type="checkbox" id="h12"> 12-hour</label><label><input type="checkbox" id="sec" checked> Seconds</label></div>
+<div class="wrap">
+<div class="row" id="row"></div>
+<div class="date" id="d"></div>
+</div>
+<script>
+const SEG={0:'abcdef',1:'bc',2:'abged',3:'abgcd',4:'fgbc',5:'afgcd',6:'afgedc',7:'abc',8:'abcdefg',9:'abcdfg',' ':''};
+const row=document.getElementById('row');let cfg={col:'#ff2a2a',h12:false,sec:true};
+try{Object.assign(cfg,JSON.parse(localStorage.getItem('seg7')||'{}'))}catch(e){}
+function mkDigit(sm){const d=document.createElement('div');d.className='dg'+(sm?' sm':'');'abcdefg'.split('').forEach(k=>{const s=document.createElement('div');s.className='s '+k;d.appendChild(s)});return d}
+function mkCol(){const c=document.createElement('div');c.className='col';c.innerHTML='<i></i><i></i>';return c}
+let digits=[],cols=[],ap;
+function build(){row.innerHTML='';digits=[];cols=[];
+digits.push(mkDigit(),mkDigit());cols.push(mkCol());digits.push(mkDigit(),mkDigit());
+row.append(digits[0],digits[1],cols[0],digits[2],digits[3]);
+if(cfg.sec){cols.push(mkCol());const a=mkDigit(true),b=mkDigit(true);digits.push(a,b);row.append(cols[1],a,b)}
+ap=null;if(cfg.h12){ap=document.createElement('div');ap.className='ampm';ap.innerHTML='<span>AM</span><span>PM</span>';row.append(ap)}}
+function setD(el,ch){[...el.children].forEach(s=>s.classList.toggle('on',SEG[ch].includes(s.classList[1])))}
+function apply(){document.documentElement.style.setProperty('--on',cfg.col);document.documentElement.style.setProperty('--off',cfg.col+'14');build();
+document.getElementById('col').value=cfg.col;document.getElementById('h12').checked=cfg.h12;document.getElementById('sec').checked=cfg.sec;try{localStorage.setItem('seg7',JSON.stringify(cfg))}catch(e){}tick()}
+function tick(){const d=new Date();let h=d.getHours();if(cfg.h12){h=h%12||12}
+const hs=cfg.h12?String(h).padStart(2,' '):String(h).padStart(2,'0'),str=hs+String(d.getMinutes()).padStart(2,'0')+String(d.getSeconds()).padStart(2,'0');
+digits.forEach((el,i)=>setD(el,str[i]));cols.forEach(c=>c.classList.toggle('blink',d.getMilliseconds()>500));
+if(ap){ap.children[0].classList.toggle('on',d.getHours()<12);ap.children[1].classList.toggle('on',d.getHours()>=12)}
+document.getElementById('d').textContent=d.toLocaleDateString(undefined,{weekday:'short',day:'2-digit',month:'short',year:'numeric'}).toUpperCase()}
+document.getElementById('gear').onclick=()=>document.getElementById('panel').classList.toggle('open');
+document.getElementById('col').oninput=e=>{cfg.col=e.target.value;apply()};
+document.getElementById('h12').onchange=e=>{cfg.h12=e.target.checked;apply()};
+document.getElementById('sec').onchange=e=>{cfg.sec=e.target.checked;apply()};
+apply();setInterval(tick,100);
+</script></body></html>

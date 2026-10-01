@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Braille Clock</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#cfc7b8;color:#4b443a;font-family:"Segoe UI",system-ui,sans-serif}
+.wrap{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5vh}
+.line{display:flex;gap:min(3vw,4vh);align-items:flex-start}
+.cell{display:grid;grid-template-columns:repeat(2,1fr);gap:min(1.2vw,1.6vh);padding:min(1.4vw,1.8vh);border-radius:1vmin;background:#e2dbcd;box-shadow:inset 0 0 0 1px rgba(0,0,0,.06)}
+.cell i{width:min(3.4vw,5vh);aspect-ratio:1;border-radius:50%;background:transparent;box-shadow:inset 0 0 0 1px rgba(0,0,0,.05)}
+.cell i.on{background:radial-gradient(circle at 35% 30%,#fbf9f4,#d8d2c5 70%);box-shadow:.3vmin .5vmin .8vmin rgba(0,0,0,.45),-.2vmin -.2vmin .4vmin rgba(255,255,255,.9)}
+.sm .cell i{width:min(1.8vw,2.6vh)}
+.sm .cell{gap:min(.6vw,.8vh);padding:min(.8vw,1vh)}
+.cap{display:flex;flex-direction:column;align-items:center;gap:1.4vh}
+.cap span{font-size:clamp(12px,2.6vmin,26px);letter-spacing:.2em}
+</style></head><body>
+<div class="wrap">
+<div class="cap"><div class="line" id="t"></div><span id="tt"></span></div>
+<div class="cap sm"><div class="line" id="d"></div><span id="dd"></span></div>
+</div>
+<script>
+// Braille dots numbered 1-3 left column, 4-6 right. Digits use the number sign ⠼ followed by letters a-j.
+const NUMSIGN=[3,4,5,6],DIG={1:[1],2:[1,2],3:[1,4],4:[1,4,5],5:[1,5],6:[1,2,4],7:[1,2,4,5],8:[1,2,5],9:[2,4],0:[2,4,5]},COLON=[2,5],SPACE=[];
+const L={a:[1],b:[1,2],c:[1,4],d:[1,4,5],e:[1,5],f:[1,2,4],g:[1,2,4,5],h:[1,2,5],i:[2,4],j:[2,4,5],k:[1,3],l:[1,2,3],m:[1,3,4],n:[1,3,4,5],o:[1,3,5],p:[1,2,3,4],q:[1,2,3,4,5],r:[1,2,3,5],s:[2,3,4],t:[2,3,4,5],u:[1,3,6],v:[1,2,3,6],w:[2,4,5,6],x:[1,3,4,6],y:[1,3,4,5,6],z:[1,3,5,6]};
+function cell(dots){const c=document.createElement('div');c.className='cell';[1,4,2,5,3,6].forEach(n=>{const i=document.createElement('i');if(dots.includes(n))i.className='on';c.appendChild(i)});return c}
+function num(s){const out=[NUMSIGN];[...s].forEach(ch=>out.push(DIG[ch]));return out}
+let last='';
+function tick(){const d=new Date(),p=n=>String(n).padStart(2,'0'),k=p(d.getHours())+p(d.getMinutes());
+if(k!==last){last=k;const t=document.getElementById('t');t.innerHTML='';[...num(p(d.getHours())),COLON,...num(p(d.getMinutes()))].forEach(c=>t.appendChild(cell(c)));
+const wd=d.toLocaleDateString('en',{weekday:'short'}).toLowerCase(),dl=document.getElementById('d');dl.innerHTML='';
+[...[...wd].map(ch=>L[ch]),SPACE,...num(String(d.getDate())),SPACE,...[...d.toLocaleDateString('en',{month:'short'}).toLowerCase()].map(ch=>L[ch])].forEach(c=>dl.appendChild(cell(c)));
+document.getElementById('dd').textContent=d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
+document.getElementById('tt').textContent=d.toLocaleTimeString()}
+tick();setInterval(tick,500);
+</script></body></html>

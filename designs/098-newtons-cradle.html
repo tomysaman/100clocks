@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Newton's Cradle</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#d9d4cb;font-family:"Segoe UI",system-ui,sans-serif}
+canvas{position:fixed;inset:0;width:100%;height:100%}
+</style></head><body>
+<canvas id="c"></canvas>
+<script>
+// Newton's cradle on a desk. One click per second: the end ball swings out and back, the impact passes through,
+// and the ball on the other side swings out the next second. The engraved plate on the base shows the time.
+const c=document.getElementById('c'),x=c.getContext('2d');let W,H,P;
+function size(){P=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;c.width=W*P;c.height=H*P;x.setTransform(P,0,0,P,0,0)}addEventListener('resize',size);size();
+// wood grain for the desk, made once per size
+let deskImg=null,deskKey='';
+function desk(y0){const k=W+'x'+H+'x'+Math.round(y0);if(k===deskKey)return deskImg;const o=document.createElement('canvas');o.width=W;o.height=H-y0;const g=o.getContext('2d');
+const lg=g.createLinearGradient(0,0,0,o.height);lg.addColorStop(0,'#6b4426');lg.addColorStop(1,'#3a2210');g.fillStyle=lg;g.fillRect(0,0,o.width,o.height);
+for(let i=0;i<140;i++){const yy=Math.random()*o.height,a=.04+Math.random()*.08;g.strokeStyle=`rgba(${Math.random()<.5?'30,15,5':'150,100,60'},${a})`;g.lineWidth=.6+Math.random()*1.8;g.beginPath();
+for(let X=0;X<=o.width;X+=20)g.lineTo(X,yy+Math.sin(X/180+i)*4+Math.sin(X/53+i*2)*1.5);g.stroke()}
+deskImg=o;deskKey=k;return o}
+function chromeTube(x1,y1,x2,y2,w,dark){const v=Math.abs(x2-x1)<Math.abs(y2-y1),g=v?x.createLinearGradient(x1-w/2,0,x1+w/2,0):x.createLinearGradient(0,y1-w/2,0,y1+w/2);const a=dark?.55:1;
+g.addColorStop(0,`rgba(90,95,105,${a})`);g.addColorStop(.35,`rgba(250,252,255,${a})`);g.addColorStop(.55,`rgba(150,156,166,${a})`);g.addColorStop(1,`rgba(60,64,72,${a})`);
+x.strokeStyle=g;x.lineWidth=w;x.lineCap='round';x.beginPath();x.moveTo(x1,y1);x.lineTo(x2,y2);x.stroke()}
+function ball(bx,by,R,alpha){x.save();x.globalAlpha=alpha;
+// environment-mapped chrome: bright sky on top, dark horizon band, warm desk reflection below
+const g=x.createLinearGradient(bx,by-R,bx,by+R);g.addColorStop(0,'#ffffff');g.addColorStop(.3,'#cfd6e0');g.addColorStop(.48,'#3a3f48');g.addColorStop(.56,'#1e2128');g.addColorStop(.75,'#7a5a40');g.addColorStop(1,'#b08860');
+x.fillStyle=g;x.beginPath();x.arc(bx,by,R,0,7);x.fill();
+const r=x.createRadialGradient(bx,by,R*.6,bx,by,R);r.addColorStop(0,'rgba(0,0,0,0)');r.addColorStop(1,'rgba(0,0,0,.45)');x.fillStyle=r;x.beginPath();x.arc(bx,by,R,0,7);x.fill();
+x.fillStyle='rgba(255,255,255,.95)';x.beginPath();x.ellipse(bx-R*.35,by-R*.45,R*.22,R*.12,-.5,0,7);x.fill();
+x.fillStyle='rgba(255,255,255,.35)';x.beginPath();x.ellipse(bx+R*.45,by+R*.25,R*.08,R*.18,.4,0,7);x.fill();
+// hook on top
+x.fillStyle='#9aa0a8';x.fillRect(bx-R*.08,by-R-R*.12,R*.16,R*.16);x.restore()}
+function draw(){const d=new Date(),ms=d.getMilliseconds()/1000,even=d.getSeconds()%2===0;
+const S=Math.min(W*.78,H*1.2),cx=W/2,deskY=H*.68,baseH=S*.075,R=S*.052,L=S*.27,baseY=deskY-baseH*.2,top=baseY-L-R*3.2,n=5,fw=S*.41;
+// wall
+const wall=x.createLinearGradient(0,0,0,deskY);wall.addColorStop(0,'#e9e5de');wall.addColorStop(1,'#cfc8bc');x.fillStyle=wall;x.fillRect(0,0,W,deskY);
+const lamp=x.createRadialGradient(W*.3,deskY*.2,0,W*.3,deskY*.2,W*.8);lamp.addColorStop(0,'rgba(255,248,230,.6)');lamp.addColorStop(1,'rgba(255,248,230,0)');x.fillStyle=lamp;x.fillRect(0,0,W,deskY);
+x.drawImage(desk(deskY),0,deskY);x.fillStyle='rgba(0,0,0,.25)';x.fillRect(0,deskY,W,2);
+// soft shadow of the whole cradle on the desk
+const sh=x.createRadialGradient(cx+S*.04,baseY+baseH*1.2,0,cx+S*.04,baseY+baseH*1.2,fw*1.5);sh.addColorStop(0,'rgba(0,0,0,.45)');sh.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=sh;x.beginPath();x.ellipse(cx+S*.04,baseY+baseH*1.2,fw*1.5,baseH*1.3,0,0,7);x.fill();
+// glossy black base
+const bx0=cx-fw*1.18,bw=fw*2.36;const bg=x.createLinearGradient(0,baseY,0,baseY+baseH);bg.addColorStop(0,'#3a3a3e');bg.addColorStop(.12,'#1a1a1d');bg.addColorStop(1,'#050506');
+x.fillStyle=bg;x.beginPath();x.roundRect(bx0,baseY,bw,baseH,baseH*.25);x.fill();
+x.fillStyle='rgba(255,255,255,.18)';x.fillRect(bx0+baseH*.3,baseY+1,bw-baseH*.6,1.5);
+// back frame (darker, slightly higher = further away)
+const off=S*.025;chromeTube(cx-fw,baseY+2,cx-fw,top-off,S*.013,true);chromeTube(cx+fw,baseY+2,cx+fw,top-off,S*.013,true);chromeTube(cx-fw,top-off,cx+fw,top-off,S*.013,true);
+// swing: end ball goes out and back once per second
+const A=.48,ang=Math.sin(ms*Math.PI)*A*(1-ms*.04);const xs=i=>cx+(i-(n-1)/2)*R*2.02;
+const pos=[];for(let i=0;i<n;i++){let a=0;if(i===0&&even)a=-ang;if(i===n-1&&!even)a=ang;
+// a hint of motion passing through the middle balls just after impact
+if(i>0&&i<n-1&&ms<.08)a=(even?1:-1)*.004;pos.push([xs(i)+Math.sin(a)*L,top+Math.cos(a)*L,xs(i)])}
+// reflections of the balls in the glossy base
+x.save();x.beginPath();x.roundRect(bx0,baseY,bw,baseH,baseH*.25);x.clip();pos.forEach(([bx,by])=>{const ry=baseY+(baseY-by)*.25+baseH*.15;ball(bx,ry,R*.85,.12)});x.restore();
+// strings: V pairs to the front and back rails
+pos.forEach(([bx,by,px])=>{x.strokeStyle='rgba(40,40,45,.55)';x.lineWidth=.9;x.beginPath();x.moveTo(px-R*.7,top-off);x.lineTo(bx,by-R);x.lineTo(px+R*.7,top);x.stroke()});
+pos.forEach(([bx,by])=>ball(bx,by,R,1));
+// front frame
+chromeTube(cx-fw,baseY+2,cx-fw,top,S*.016,false);chromeTube(cx+fw,baseY+2,cx+fw,top,S*.016,false);chromeTube(cx-fw,top,cx+fw,top,S*.016,false);
+x.fillStyle='#888c94';[cx-fw,cx+fw].forEach(px=>{x.beginPath();x.ellipse(px,baseY+2,S*.018,S*.006,0,0,7);x.fill()});
+// engraved brass plate with the time
+const pw=S*.36,ph=baseH*.62,px0=cx-pw/2,py0=baseY+baseH*.19;const pg=x.createLinearGradient(px0,py0,px0+pw,py0+ph);pg.addColorStop(0,'#8a6a2a');pg.addColorStop(.45,'#e6cc7e');pg.addColorStop(.55,'#c9a75a');pg.addColorStop(1,'#7a5a20');
+x.fillStyle=pg;x.beginPath();x.roundRect(px0,py0,pw,ph,ph*.15);x.fill();x.strokeStyle='rgba(60,40,10,.6)';x.lineWidth=1;x.stroke();
+const p=v=>String(v).padStart(2,'0'),t=p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds());
+x.textAlign='center';x.textBaseline='middle';x.font=`600 ${ph*.62}px "Palatino Linotype",Georgia,serif`;x.fillStyle='rgba(255,240,200,.6)';x.fillText(t,cx+1,py0+ph/2+1);x.fillStyle='#3a2808';x.fillText(t,cx,py0+ph/2);
+// date on a card leaning on the desk
+x.font=`italic ${Math.max(13,S*.032)}px "Palatino Linotype",Georgia,serif`;x.fillStyle='rgba(255,240,220,.85)';x.fillText(d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'}),cx,Math.min(H-S*.04,deskY+(H-deskY)*.55));
+requestAnimationFrame(draw)}
+draw();
+</script></body></html>

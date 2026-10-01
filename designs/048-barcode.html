@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Barcode Clock</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#e8e8e8;font-family:"OCR B","Consolas",monospace;color:#111}
+.wrap{height:100%;display:flex;align-items:center;justify-content:center}
+.label{background:#fff;padding:4vmin 5vmin 3vmin;box-shadow:0 1vmin 3vmin rgba(0,0,0,.15);display:flex;flex-direction:column;align-items:center;gap:1.5vh;max-width:92vw;box-sizing:border-box}
+.hdr{width:100%;display:flex;justify-content:space-between;font-size:clamp(10px,2vmin,20px);letter-spacing:.1em}
+svg{width:min(80vw,70vh);height:auto;display:block}
+.price{font-size:clamp(28px,min(9vw,12vh),120px);font-weight:bold;letter-spacing:.02em}
+.small{font-size:clamp(10px,1.9vmin,18px);opacity:.7}
+.scan{position:fixed;left:0;right:0;height:2px;background:rgba(255,0,0,.6);box-shadow:0 0 8px red;animation:sc 3s ease-in-out infinite alternate;pointer-events:none}
+@keyframes sc{from{top:30%}to{top:70%}}
+</style></head><body>
+<div class="scan"></div>
+<div class="wrap"><div class="label"><div class="hdr"><span>TIME MART</span><span id="dw"></span></div>
+<div class="price" id="t"></div><svg id="bc"></svg><div class="small" id="d"></div><div class="small">EAN-13 · YY MM DD HH MM SS + check digit</div></div></div>
+<script>
+const L=['0001101','0011001','0010011','0111101','0100011','0110001','0101111','0111011','0110111','0001011'];
+const G=L.map(c=>[...c].map(b=>b==='1'?'0':'1').reverse().join('')),R=L.map(c=>[...c].map(b=>b==='1'?'0':'1').join(''));
+const PAR=['LLLLLL','LLGLGG','LLGGLG','LLGGGL','LGLLGG','LGGLLG','LGGGLL','LGLGLG','LGLGGL','LGGLGL'];
+function ean(d12){const ds=[...d12].map(Number),sum=ds.reduce((a,v,i)=>a+v*(i%2?3:1),0),ck=(10-sum%10)%10,all=[...ds,ck];
+let bits='101';const par=PAR[all[0]];for(let i=1;i<7;i++)bits+=(par[i-1]==='L'?L:G)[all[i]];bits+='01010';for(let i=7;i<13;i++)bits+=R[all[i]];bits+='101';return [bits,all.join('')]}
+function draw(){const d=new Date(),p=n=>String(n).padStart(2,'0'),code=p(d.getFullYear()%100)+p(d.getMonth()+1)+p(d.getDate())+p(d.getHours())+p(d.getMinutes())+p(d.getSeconds()),[bits,full]=ean(code);
+const svg=document.getElementById('bc'),W=bits.length+22,H=70;svg.setAttribute('viewBox',`0 0 ${W} ${H+12}`);let s='';
+for(let i=0;i<bits.length;i++)if(bits[i]==='1'){const guard=i<3||(i>=45&&i<50)||i>=92;s+=`<rect x="${i+11}" y="0" width="1" height="${guard?H+6:H}"/>`}
+s+=`<text x="4" y="${H+11}" font-size="10" font-family="Consolas,monospace">${full[0]}</text><text x="${11+3+21}" y="${H+11}" font-size="10" text-anchor="middle" font-family="Consolas,monospace" letter-spacing="2.3">${full.slice(1,7)}</text><text x="${11+50+21}" y="${H+11}" font-size="10" text-anchor="middle" font-family="Consolas,monospace" letter-spacing="2.3">${full.slice(7)}</text>`;
+svg.innerHTML=s;document.getElementById('t').textContent=p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds());
+document.getElementById('dw').textContent=d.toLocaleDateString(undefined,{weekday:'long'}).toUpperCase();
+document.getElementById('d').textContent=d.toLocaleDateString(undefined,{day:'numeric',month:'long',year:'numeric'})}
+draw();setInterval(draw,250);
+</script></body></html>

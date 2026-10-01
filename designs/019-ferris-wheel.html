@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ferris Wheel</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#0b1026;font-family:"Trebuchet MS","Segoe UI",sans-serif}
+canvas{position:fixed;inset:0;width:100%;height:100%}
+</style></head><body>
+<canvas id="c"></canvas>
+<script>
+// A fairground Ferris wheel with 12 gondolas, one per hour. The wheel turns once every 12 hours, so the gondola
+// at the top is the current hour. Sky, lighting and bulbs follow the time of day.
+const c=document.getElementById('c'),x=c.getContext('2d');let W,H,P;
+function size(){P=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;c.width=W*P;c.height=H*P;x.setTransform(P,0,0,P,0,0)}addEventListener('resize',size);size();
+const rnd=(()=>{let s=5;return()=>(s=(s*16807)%2147483647)/2147483647})();
+const stars=Array.from({length:200},()=>[rnd(),rnd()*.7,rnd()]),tents=Array.from({length:9},(_,i)=>({x:rnd(),w:.05+rnd()*.04,h:.07+rnd()*.05,c:['#d62839','#f2b33d','#2a9d8f','#e76f51','#457b9d'][i%5]}));
+const people=Array.from({length:12},()=>[rnd()<.5,rnd()<.6,rnd()]);
+const GC=['#e63946','#f4a261','#2a9d8f','#e9c46a','#457b9d','#f28482','#5aa8c8','#ffb703','#9b5de5','#06d6a0','#ef476f','#118ab2'];
+const K=[[0,'#070b20','#1a1f48'],[5.5,'#1a1f4a','#7a4a6a'],[7,'#6fa8dc','#ffd9a8'],[12,'#3b8fd8','#d8ecf8'],[17.5,'#4a7fc4','#ffd2a0'],[19,'#2a2a5e','#f08a5a'],[20.5,'#0e1230','#3a2a5a'],[24,'#070b20','#1a1f48']];
+const hx=h=>[1,3,5].map(i=>parseInt(h.substr(i,2),16)),mix=(a,b,t)=>'rgb('+hx(a).map((v,i)=>Math.round(v+(hx(b)[i]-v)*t)).join(',')+')';
+const shade=(h,k)=>'rgb('+hx(h).map(v=>Math.max(0,Math.min(255,Math.round(v*k)))).join(',')+')';
+function skyAt(h){for(let i=0;i<K.length-1;i++)if(h>=K[i][0]&&h<K[i+1][0]){const t=(h-K[i][0])/(K[i+1][0]-K[i][0]);return [mix(K[i][1],K[i+1][1],t),mix(K[i][2],K[i+1][2],t)]}return [K[0][1],K[0][2]]}
+function steel(x0,y0,x1,y1,w){const nx=-(y1-y0),ny=x1-x0,l=Math.hypot(nx,ny)||1,g=x.createLinearGradient(x0-nx/l*w/2,y0-ny/l*w/2,x0+nx/l*w/2,y0+ny/l*w/2);g.addColorStop(0,'#8a96a4');g.addColorStop(.45,'#f4f7fa');g.addColorStop(1,'#6a7684');x.strokeStyle=g;x.lineWidth=w;x.beginPath();x.moveTo(x0,y0);x.lineTo(x1,y1);x.stroke()}
+function truss(x0,y0,x1,y1,w,n){// two chords with zig-zag bracing
+const dx=x1-x0,dy=y1-y0,l=Math.hypot(dx,dy),ux=-dy/l*w/2,uy=dx/l*w/2;steel(x0+ux,y0+uy,x1+ux,y1+uy,w*.22);steel(x0-ux,y0-uy,x1-ux,y1-uy,w*.22);
+x.strokeStyle='#b8c2cc';x.lineWidth=w*.08;x.beginPath();for(let i=0;i<=n;i++){const t=i/n,s=i%2?1:-1;x.lineTo(x0+dx*t+ux*s,y0+dy*t+uy*s)}x.stroke()}
+function draw(t){const d=new Date(),s=d.getSeconds()+d.getMilliseconds()/1000,m=d.getMinutes()+s/60,H24=d.getHours()+m/60,h12=H24%12,night=H24<6||H24>=19.5?1:H24<7?7-H24:H24>18.5?H24-18.5:0;
+const [top,bot]=skyAt(H24),g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,top);g.addColorStop(1,bot);x.fillStyle=g;x.fillRect(0,0,W,H);
+stars.forEach(([a,b,z])=>{x.fillStyle=`rgba(255,255,255,${night*z*.8})`;x.fillRect(a*W,b*H,1.5,1.5)});
+const port=H>W,R=Math.min(W*(port?.42:.27),H*.36),cx=port?W/2:W*.4,cy=H*.44,ground=H*.88,lit=night>.2;
+// legs: A-frame trusses on both sides
+truss(cx,cy,cx-R*.62,ground,R*.07,14);truss(cx,cy,cx+R*.62,ground,R*.07,14);
+x.fillStyle='#5a6470';x.fillRect(cx-R*.72,ground-R*.03,R*.2,R*.03);x.fillRect(cx+R*.52,ground-R*.03,R*.2,R*.03);
+const rotA=-h12/12*Math.PI*2;
+x.save();x.translate(cx,cy);x.rotate(rotA);
+// tension spokes in pairs
+for(let i=0;i<24;i++){const a=i/24*Math.PI*2;x.strokeStyle='rgba(225,232,240,.85)';x.lineWidth=R*.006;x.beginPath();x.moveTo(Math.cos(a+.04)*R*.08,Math.sin(a+.04)*R*.08);x.lineTo(Math.cos(a)*R*.88,Math.sin(a)*R*.88);x.stroke();x.beginPath();x.moveTo(Math.cos(a-.04)*R*.08,Math.sin(a-.04)*R*.08);x.lineTo(Math.cos(a)*R*.88,Math.sin(a)*R*.88);x.stroke()}
+// twin rims joined by a lattice
+const rimC=(r,w)=>{const gr=x.createRadialGradient(0,0,r-w,0,0,r+w);gr.addColorStop(0,'#7a8694');gr.addColorStop(.5,'#f4f7fa');gr.addColorStop(1,'#6a7684');x.strokeStyle=gr;x.lineWidth=w;x.beginPath();x.arc(0,0,r,0,7);x.stroke()};
+rimC(R,R*.02);rimC(R*.88,R*.016);x.strokeStyle='#c8d0d8';x.lineWidth=R*.005;x.beginPath();for(let i=0;i<=96;i++){const a=i/96*Math.PI*2,r=i%2?R:R*.88;x.lineTo(Math.cos(a)*r,Math.sin(a)*r)}x.stroke();
+// bulbs on the outer rim, chasing at night
+for(let i=0;i<72;i++){const a=i/72*Math.PI*2,on=lit?((i+Math.floor(t/120))%3===0?1:.45):0;const px=Math.cos(a)*R*1.025,py=Math.sin(a)*R*1.025;
+if(on===1){x.fillStyle=`rgba(255,220,140,.3)`;x.beginPath();x.arc(px,py,R*.04,0,7);x.fill()}x.fillStyle=on?`rgba(255,${210+((i*37)%45)},${140+((i*53)%90)},${on})`:'#e8e2d0';x.beginPath();x.arc(px,py,R*.011,0,7);x.fill()}
+x.restore();
+// hub: bolted disc
+const hg=x.createRadialGradient(cx-R*.03,cy-R*.03,0,cx,cy,R*.1);hg.addColorStop(0,'#fff');hg.addColorStop(.6,'#b8c2cc');hg.addColorStop(1,'#5a6470');x.fillStyle=hg;x.beginPath();x.arc(cx,cy,R*.1,0,7);x.fill();
+x.fillStyle='#c62828';x.beginPath();x.arc(cx,cy,R*.05,0,7);x.fill();x.fillStyle='#3a4450';for(let i=0;i<8;i++){const a=i/8*Math.PI*2+rotA;x.beginPath();x.arc(cx+Math.cos(a)*R*.075,cy+Math.sin(a)*R*.075,R*.008,0,7);x.fill()}
+// gondolas: hang level from the rim, with roof, frame, windows and riders
+for(let i=0;i<12;i++){const a=i/12*Math.PI*2+rotA-Math.PI/2,px=cx+Math.cos(a)*R,py=cy+Math.sin(a)*R,sway=Math.sin(t/900+i)*.05,cur=i===Math.floor(h12),gw=R*.19,gh=R*.15,col=GC[i];
+x.save();x.translate(px,py);x.rotate(sway);
+x.fillStyle='#5a6470';x.fillRect(-R*.006,0,R*.012,gh*.3);x.beginPath();x.arc(0,0,R*.014,0,7);x.fill();
+// roof
+const rg=x.createLinearGradient(0,gh*.28,0,gh*.48);rg.addColorStop(0,shade(col,1.25));rg.addColorStop(1,shade(col,.8));x.fillStyle=rg;x.beginPath();x.moveTo(-gw*.6,gh*.48);x.quadraticCurveTo(0,gh*.18,gw*.6,gh*.48);x.closePath();x.fill();
+x.fillStyle='#f4f1e8';x.beginPath();x.arc(0,gh*.26,R*.01,0,7);x.fill();
+// body with side shading
+const bg=x.createLinearGradient(-gw/2,0,gw/2,0);bg.addColorStop(0,shade(col,.7));bg.addColorStop(.35,shade(col,1.15));bg.addColorStop(1,shade(col,.6));x.fillStyle=bg;x.beginPath();x.roundRect(-gw/2,gh*.48,gw,gh*.95,[2,2,gh*.25,gh*.25]);x.fill();
+// window band with riders
+x.fillStyle=cur?'rgba(255,248,220,.95)':(lit?'rgba(255,220,150,.55)':'rgba(200,225,245,.7)');x.beginPath();x.roundRect(-gw*.42,gh*.56,gw*.84,gh*.36,gh*.06);x.fill();
+const [a1,a2,hue]=people[i];x.fillStyle='rgba(20,24,40,.75)';if(a1){x.beginPath();x.arc(-gw*.18,gh*.72,gh*.07,0,7);x.fill();x.fillRect(-gw*.25,gh*.79,gw*.14,gh*.13)}if(a2){x.beginPath();x.arc(gw*.15,gh*.74,gh*.065,0,7);x.fill();x.fillRect(gw*.08,gh*.8,gw*.14,gh*.12)}
+x.fillStyle=shade(col,.75);x.fillRect(-R*.004,gh*.56,R*.008,gh*.36);
+x.fillStyle='rgba(255,255,255,.25)';x.fillRect(-gw*.42,gh*.57,gw*.2,gh*.06);
+// number plate
+x.fillStyle=cur?'#fff3b0':'#f4f1e8';x.beginPath();x.roundRect(-gw*.22,gh*1.02,gw*.44,gh*.3,gh*.06);x.fill();
+x.fillStyle='#1a1f48';x.font=`bold ${gh*.26}px "Trebuchet MS",sans-serif`;x.textAlign='center';x.textBaseline='middle';x.fillText(String(i||12),0,gh*1.18);
+if(cur){x.strokeStyle='#fff3b0';x.lineWidth=R*.01;x.shadowColor='#ffe680';x.shadowBlur=12;x.beginPath();x.roundRect(-gw/2-3,gh*.46,gw+6,gh*1,gh*.25);x.stroke();x.shadowBlur=0}
+x.restore()}
+// ground and tents
+const gg=x.createLinearGradient(0,ground,0,H);gg.addColorStop(0,mix('#4a6a3a','#101a12',Math.min(1,night)));gg.addColorStop(1,mix('#2a3a22','#060a08',Math.min(1,night)));x.fillStyle=gg;x.fillRect(0,ground,W,H-ground);
+x.filter=`brightness(${1-night*.45})`;tents.forEach(tn=>{const tx=tn.x*W,tw=tn.w*W,th=tn.h*H;if(Math.abs(tx-cx)<R*.8)return;
+x.fillStyle='rgba(0,0,0,.25)';x.beginPath();x.ellipse(tx+tw*.1,ground+2,tw*.6,th*.06,0,0,7);x.fill();
+// striped walls
+for(let k=0;k<6;k++){x.fillStyle=k%2?'#fbf6ea':tn.c;x.fillRect(tx-tw/2+k*tw/6,ground-th*.5,tw/6+.5,th*.5)}
+x.fillStyle='rgba(0,0,0,.18)';x.fillRect(tx+tw*.2,ground-th*.5,tw*.3,th*.5);
+// roof cone with stripes
+for(let k=0;k<6;k++){x.fillStyle=k%2?'#fbf6ea':tn.c;x.beginPath();x.moveTo(tx,ground-th);x.lineTo(tx-tw/2+k*tw/6,ground-th*.5);x.lineTo(tx-tw/2+(k+1)*tw/6,ground-th*.5);x.fill()}
+// scalloped valance
+x.fillStyle=tn.c;for(let k=0;k<6;k++){x.beginPath();x.arc(tx-tw/2+(k+.5)*tw/6,ground-th*.5,tw/12,0,Math.PI);x.fill()}
+// pennant
+x.strokeStyle='#5a4a3a';x.lineWidth=1.2;x.beginPath();x.moveTo(tx,ground-th);x.lineTo(tx,ground-th*1.25);x.stroke();x.fillStyle=tn.c;x.beginPath();x.moveTo(tx,ground-th*1.25);x.lineTo(tx+tw*.22+Math.sin(t/300+tx)*tw*.03,ground-th*1.19);x.lineTo(tx,ground-th*1.13);x.fill();
+// doorway
+x.fillStyle=lit?'#ffd86a':'#3a2a1a';x.beginPath();x.moveTo(tx-tw*.12,ground);x.lineTo(tx-tw*.12,ground-th*.26);x.quadraticCurveTo(tx,ground-th*.38,tx+tw*.12,ground-th*.26);x.lineTo(tx+tw*.12,ground);x.fill()});
+x.filter="none";
+// time board with marquee bulbs
+const p=n=>String(n).padStart(2,'0'),bx=port?W/2:W*.78,by=port?H*.93:H*.42,fs=port?W*.08:Math.min(W*.06,H*.11),bw=fs*4.8,bh=fs*(port?1.6:2.3),bx0=bx-bw/2,by0=by-fs*.9;
+const bgr=x.createLinearGradient(0,by0,0,by0+bh);bgr.addColorStop(0,'#2a1a3a');bgr.addColorStop(1,'#120a1e');x.fillStyle=bgr;x.beginPath();x.roundRect(bx0,by0,bw,bh,fs*.2);x.fill();
+x.strokeStyle='#c9a24a';x.lineWidth=fs*.08;x.stroke();
+const nb=Math.round(bw/(fs*.28));for(let k=0;k<nb;k++)for(const yy of [by0+fs*.12,by0+bh-fs*.12]){const on=1,xx=bx0+fs*.2+k*(bw-fs*.4)/(nb-1);x.fillStyle=`rgba(255,${200+k%3*20},120,${on})`;x.beginPath();x.arc(xx,yy,fs*.045,0,7);x.fill()}
+x.fillStyle='#ffe6a0';x.textAlign='center';x.textBaseline='middle';x.font=`bold ${fs}px "Trebuchet MS",sans-serif`;x.shadowColor='#ffb030';x.shadowBlur=6+night*12;x.fillText(p(d.getHours())+':'+p(d.getMinutes()),bx,by-fs*.12);x.shadowBlur=0;
+x.font=`${fs*.26}px "Trebuchet MS",sans-serif`;x.fillStyle='#fff';x.fillText(d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'}),bx,by+fs*.5);
+if(!port){x.font=`${fs*.2}px "Trebuchet MS",sans-serif`;x.fillStyle='rgba(255,255,255,.7)';x.fillText('the gondola at the top is the hour',bx,by+fs*.9)}
+requestAnimationFrame(draw)}
+requestAnimationFrame(draw);
+</script></body></html>

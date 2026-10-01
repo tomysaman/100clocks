@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sundial</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#3e5a2a;font-family:"Trajan Pro",Georgia,serif}
+svg{position:fixed;inset:0;width:100%;height:100%}
+</style></head><body>
+<svg viewBox="-160 -145 320 315" preserveAspectRatio="xMidYMid meet">
+<defs>
+<filter id="lawn" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".9 .25" numOctaves="3" seed="4" result="n"/><feColorMatrix in="n" values="0 0 0 0 .12  0 0 0 0 .22  0 0 0 0 .06  0 0 0 .9 -.1" result="g"/><feComposite in="g" in2="SourceGraphic" operator="in" result="gc"/><feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="gc"/></feMerge></filter>
+<filter id="granite" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="1.6" numOctaves="2" seed="9" result="n"/><feColorMatrix in="n" values="0 0 0 0 .1 0 0 0 0 .1 0 0 0 0 .1 0 0 0 1.2 -.45" result="g"/><feComposite in="g" in2="SourceGraphic" operator="in" result="gc"/><feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="gc"/></feMerge></filter>
+<filter id="patina" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".09" numOctaves="4" seed="3" result="n"/><feColorMatrix in="n" values="0 0 0 0 .3  0 0 0 0 .5  0 0 0 0 .42  0 0 0 2 -1.15" result="g"/><feComposite in="g" in2="SourceGraphic" operator="in" result="gc"/>
+<feTurbulence type="fractalNoise" baseFrequency="1.2" numOctaves="2" seed="5" result="n2"/><feColorMatrix in="n2" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .25 0" result="g2"/><feComposite in="g2" in2="SourceGraphic" operator="in" result="gc2"/><feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="gc"/><feMergeNode in="gc2"/></feMerge></filter>
+<radialGradient id="bronze" cx="40%" cy="35%" r="75%"><stop offset="0" stop-color="#d6b47a"/><stop offset=".55" stop-color="#a87a44"/><stop offset="1" stop-color="#6a4a24"/></radialGradient>
+<linearGradient id="rim" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e8c890"/><stop offset=".5" stop-color="#8a5e2e"/><stop offset="1" stop-color="#4a3014"/></linearGradient>
+<linearGradient id="stone" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c9c4b8"/><stop offset="1" stop-color="#8a867c"/></linearGradient>
+<linearGradient id="gnoL" x1="0" x2="1"><stop offset="0" stop-color="#5a3c18"/><stop offset="1" stop-color="#9a6e3a"/></linearGradient>
+<linearGradient id="gnoR" x1="0" x2="1"><stop offset="0" stop-color="#f0d49a"/><stop offset="1" stop-color="#b88a4e"/></linearGradient>
+<filter id="soft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="1.6"/></filter>
+<filter id="ds" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="5" dy="7" stdDeviation="5" flood-color="#0a1404" flood-opacity=".55"/></filter>
+<filter id="engr"><feOffset dx=".35" dy=".45" in="SourceAlpha" result="o"/><feFlood flood-color="#f6dca0" flood-opacity=".55"/><feComposite in2="o" operator="in" result="hl"/><feMerge><feMergeNode in="hl"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+</defs>
+<rect x="-900" y="-700" width="1800" height="1400" fill="#4a6a2e" filter="url(#lawn)"/>
+<radialGradient id="vig" gradientUnits="userSpaceOnUse" cx="0" cy="0" r="240"><stop offset=".45" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#0a1404" stop-opacity=".55"/></radialGradient><rect x="-900" y="-700" width="1800" height="1400" fill="url(#vig)"/>
+<rect id="sunwash" x="-400" y="-300" width="800" height="600" fill="#fff6d8" opacity=".12"/>
+<!-- octagonal granite pedestal top -->
+<g filter="url(#ds)"><path id="oct" fill="url(#stone)"/></g>
+<path id="oct2" fill="url(#stone)" filter="url(#granite)"/>
+<path id="octEdge" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width=".8"/>
+<g id="moss" fill="#3e5a1e" opacity=".35" filter="url(#soft)"></g>
+<!-- bronze dial -->
+<g filter="url(#ds)"><circle r="100" fill="url(#rim)"/></g>
+<circle r="96" fill="url(#bronze)" filter="url(#patina)"/>
+<circle r="96" fill="none" stroke="#3a2410" stroke-width=".6"/><circle r="92" fill="none" stroke="#3a2410" stroke-width=".4"/>
+<circle r="72" fill="none" stroke="#3a2410" stroke-width=".4"/><circle r="70" fill="none" stroke="#3a2410" stroke-width=".25"/>
+<g id="rose" filter="url(#engr)"></g>
+<g id="lines" filter="url(#engr)"></g>
+<g id="nums" filter="url(#engr)" font-size="9.5" fill="#2e1c0a" text-anchor="middle" dominant-baseline="central"></g>
+<text y="44" text-anchor="middle" font-size="5.6" fill="#2e1c0a" letter-spacing="1.8" filter="url(#engr)">· TEMPVS FVGIT ·</text>
+<text y="52" text-anchor="middle" font-size="3.6" fill="#3a2410" letter-spacing="1.2" filter="url(#engr)">LAT 45° N · MDCCCLXXXII</text>
+<!-- cast shadow of the gnomon -->
+<polygon id="sh" fill="#1a1006" opacity=".55" filter="url(#soft)"/>
+<!-- gnomon: triangular blade seen from above with lit and shaded faces -->
+<g id="gno"><path d="M0 4 L-3.2 4 L-1.6 -66 Z" fill="url(#gnoL)"/><path d="M0 4 L3.2 4 L1.6 -66 Z" fill="url(#gnoR)"/><path d="M-1.6 -66 L1.6 -66 L0 6Z" fill="#c9a060"/><path d="M0 -66 L0 4" stroke="#fff3c8" stroke-width=".5" opacity=".8"/>
+<circle cy="-46" r="5" fill="none" stroke="url(#gnoR)" stroke-width="1.8"/></g>
+<circle r="4.2" fill="url(#rim)"/><circle r="1.4" fill="#3a2410"/>
+<text id="tt" x="0" y="150" text-anchor="middle" font-size="10" fill="#f4ecd6" letter-spacing="2"></text>
+<text id="dd" x="0" y="161" text-anchor="middle" font-size="6" fill="#e8ddc0" font-style="italic"></text>
+</svg>
+<script>
+// Horizontal sundial for latitude 45°: hour lines from tan θ = sin φ · tan(15° · (h − 12)).
+const NS="http://www.w3.org/2000/svg",$=id=>document.getElementById(id);
+const el=(t,a,p)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);p.appendChild(e);return e};
+const lat=45*Math.PI/180,ang=h=>Math.atan2(Math.sin(lat)*Math.sin((h-12)*Math.PI/12),Math.cos((h-12)*Math.PI/12));
+// pedestal
+const oct=Array.from({length:8},(_,i)=>{const a=(i+.5)/8*Math.PI*2;return [Math.cos(a)*132,Math.sin(a)*132]}),od='M'+oct.map(p=>p.join(' ')).join(' L')+'Z';
+$('oct').setAttribute('d',od);$('oct2').setAttribute('d',od);$('octEdge').setAttribute('d','M'+oct.map(p=>p.map(v=>v*.97).join(' ')).join(' L')+'Z');
+for(let i=0;i<40;i++){const k=Math.random()*8|0,a=(k+.5)/8*Math.PI*2+(Math.random()-.5)*.25,r=118+Math.random()*12;el('circle',{cx:Math.cos(a)*r,cy:Math.sin(a)*r,r:1+Math.random()*3},$('moss'))}
+// compass rose in the centre
+for(let i=0;i<8;i++){const a=i*Math.PI/4,L=i%2?20:32;el('path',{d:`M0 0 L${Math.cos(a-.12)*7} ${Math.sin(a-.12)*7} L${Math.cos(a)*L} ${Math.sin(a)*L} L${Math.cos(a+.12)*7} ${Math.sin(a+.12)*7}Z`,fill:i%2?'#7a5228':'#5a3a18',opacity:.55},$('rose'))}
+el('text',{y:58,'font-size':4,'text-anchor':'middle',fill:'#2e1c0a'},$('rose')).textContent='S';
+// hour lines, half and quarter hours, Roman numerals
+const R=['VI','VII','VIII','IX','X','XI','XII','I','II','III','IV','V','VI'];
+for(let q=6*4;q<=18*4;q++){const h=q/4,a=ang(h),full=q%4===0,half=q%2===0;const r1=full?60:half?84:88;
+el('line',{x1:Math.sin(a)*r1,y1:-Math.cos(a)*r1,x2:Math.sin(a)*92,y2:-Math.cos(a)*92,stroke:'#2e1c0a','stroke-width':full?.9:.45},$('lines'));
+if(full){const x=Math.sin(a)*81,y=-Math.cos(a)*81;el('text',{x,y,transform:`rotate(${a*180/Math.PI} ${x} ${y})`},$('nums')).textContent=R[h-6]}}
+function tick(){const d=new Date(),h=d.getHours()+d.getMinutes()/60+d.getSeconds()/3600,day=h>=6&&h<=18,elev=Math.max(0,Math.sin((h-6)/12*Math.PI));
+// shadow: points away from the sun along the hour line; long in morning and evening, short at noon
+if(day){const a=ang(h),len=64+60*(1-elev),w=1.6+3*(1-elev);const sx=Math.sin(a),sy=-Math.cos(a);
+$('sh').setAttribute('points',`${-sy*w} ${sx*w} ${sx*len} ${sy*len} ${sy*w} ${-sx*w}`);$('sh').setAttribute('opacity',(.25+.4*elev).toFixed(2))}else $('sh').setAttribute('opacity',0);
+// daylight: brightness of the scene
+const light=day?.55+.45*elev:.25;document.querySelector('svg').style.filter=`brightness(${light}) saturate(${day?1:.4})${day?'':' hue-rotate(190deg)'}`;
+$('tt').textContent=d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+$('dd').textContent=(day?'':'The sun has set — ')+d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
+tick();setInterval(tick,1000);
+</script></body></html>

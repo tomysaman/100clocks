@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Roman Numerals</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#e9e1cf url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='.08'/%3E%3C/svg%3E");color:#3b2f22;font-family:"Trajan Pro","Times New Roman",serif}
+.wrap{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.slab{border-top:.5vmin solid #3b2f22;border-bottom:.5vmin solid #3b2f22;padding:3vh 4vw}
+.time{font-size:clamp(28px,min(9vw,16vh),160px);letter-spacing:.08em;line-height:1.1}
+.time span{opacity:.35;margin:0 .15em}
+.sec{font-size:clamp(14px,min(4vw,6vh),60px);opacity:.6;letter-spacing:.2em;margin-top:1vh}
+.date{margin-top:4vh;font-size:clamp(13px,3vmin,32px);letter-spacing:.35em}
+.lat{font-style:italic;opacity:.6;font-size:clamp(11px,2.2vmin,22px);margin-top:1vh;letter-spacing:.1em}
+</style></head><body>
+<div class="wrap"><div class="slab"><div class="time" id="t"></div><div class="sec" id="s"></div></div>
+<div class="date" id="d"></div><div class="lat" id="l"></div></div>
+<script>
+function R(n){if(!n)return'N';const v=[[1000,'M'],[900,'CM'],[500,'D'],[400,'CD'],[100,'C'],[90,'XC'],[50,'L'],[40,'XL'],[10,'X'],[9,'IX'],[5,'V'],[4,'IV'],[1,'I']];let s='';for(const [a,b] of v)while(n>=a){s+=b;n-=a}return s}
+const DIES=['DIES SOLIS','DIES LUNAE','DIES MARTIS','DIES MERCURII','DIES IOVIS','DIES VENERIS','DIES SATURNI'];
+const MENS=['IANUARIUS','FEBRUARIUS','MARTIUS','APRILIS','MAIUS','IUNIUS','IULIUS','AUGUSTUS','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
+function tick(){const d=new Date();document.getElementById('t').innerHTML=R(d.getHours())+'<span>·</span>'+R(d.getMinutes());
+document.getElementById('s').textContent=R(d.getSeconds());
+document.getElementById('d').textContent=R(d.getDate())+' · '+R(d.getMonth()+1)+' · '+R(d.getFullYear());
+document.getElementById('l').textContent=DIES[d.getDay()]+', '+d.getDate()+' '+MENS[d.getMonth()]+' '+d.getFullYear()}
+tick();setInterval(tick,500);
+</script></body></html>

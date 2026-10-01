@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lava Lamp</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#120a16;font-family:"Trebuchet MS","Segoe UI",sans-serif}
+canvas{position:fixed;inset:0;width:100%;height:100%}
+.ctl{position:fixed;right:14px;bottom:12px;display:flex;gap:8px;z-index:2}
+.ctl button{width:24px;height:24px;border-radius:50%;border:2px solid rgba(255,255,255,.35);cursor:pointer}
+</style></head><body>
+<canvas id="c"></canvas>
+<div class="ctl" id="ctl"></div>
+<script>
+// Lava lamp. The wax is rendered as metaballs (blobs that merge and split), lit from the bulb below,
+// inside a tapered glass with a chrome cap and base. Click a swatch to change the wax and liquid colours.
+const THEMES=[{wax:[255,120,40],wax2:[255,60,90],liq:[90,20,80],glow:'255,110,60'},{wax:[120,255,120],wax2:[40,200,170],liq:[20,40,90],glow:'90,255,170'},
+{wax:[255,230,80],wax2:[255,120,30],liq:[150,20,20],glow:'255,190,60'},{wax:[230,120,255],wax2:[120,90,255],liq:[20,15,50],glow:'190,120,255'}];
+let ti=0;try{ti=+localStorage.getItem('lava-theme')||0}catch(e){}
+const ctl=document.getElementById('ctl');THEMES.forEach((t,i)=>{const b=document.createElement('button');b.style.background=`linear-gradient(135deg,rgb(${t.wax}) 50%,rgb(${t.liq}) 50%)`;b.onclick=()=>{ti=i;try{localStorage.setItem('lava-theme',i)}catch(e){}};ctl.appendChild(b)});
+const c=document.getElementById('c'),x=c.getContext('2d'),wax=document.createElement('canvas'),wx=wax.getContext('2d'),GW=90,GH=260;wax.width=GW;wax.height=GH;const img=wx.createImageData(GW,GH);
+let W,H,P;function size(){P=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;c.width=W*P;c.height=H*P;x.setTransform(P,0,0,P,0,0)}addEventListener('resize',size);size();
+const B=Array.from({length:8},(_,i)=>({x:.25+Math.random()*.5,r:.09+Math.random()*.07,sp:.035+Math.random()*.05,ph:Math.random()*6.28,wob:Math.random()*6.28}));
+function renderWax(t){const T=THEMES[ti],d=img.data,blobs=B.map(b=>{const cyc=(t/1000*b.sp+b.ph/6.28)%1,y=.5-.5*Math.cos(cyc*Math.PI*2);// rise and sink
+return [b.x*GW+Math.sin(t/2300+b.wob)*GW*.12,(1-y)*GH*.92+GH*.04,b.r*GW*(1+.25*Math.sin(t/900+b.wob))]});
+blobs.push([GW/2,GH*1.02,GW*.42]);// the pool at the bottom
+for(let py=0;py<GH;py++)for(let px=0;px<GW;px++){let f=0;for(const [bx,by,br] of blobs){const dx=px-bx,dy=(py-by)*.8;f+=br*br/(dx*dx+dy*dy+1)}
+const i=(py*GW+px)*4,heat=py/GH;// warmer near the bulb
+if(f>1){const k=Math.min(1,(f-1)*.6),sh=.55+.45*k;for(let ch=0;ch<3;ch++)d[i+ch]=(T.wax[ch]*(1-heat*.4)+T.wax2[ch]*heat*.4)*sh+40*k;d[i+3]=255}
+else{const g=Math.max(0,f-.45)*1.6;for(let ch=0;ch<3;ch++)d[i+ch]=Math.min(255,T.liq[ch]*(.7+heat*.5)*(1+g*.9));d[i+3]=255}}
+wx.putImageData(img,0,0)}
+function glassPath(cx,top,bot,wt,wb){x.beginPath();x.moveTo(cx-wt,top);x.bezierCurveTo(cx-wt*1.05,top+(bot-top)*.4,cx-wb*1.02,bot-(bot-top)*.2,cx-wb,bot);x.lineTo(cx+wb,bot);x.bezierCurveTo(cx+wb*1.02,bot-(bot-top)*.2,cx+wt*1.05,top+(bot-top)*.4,cx+wt,top);x.closePath()}
+function metal(x0,x1,y0,y1){const g=x.createLinearGradient(x0,0,x1,0);g.addColorStop(0,'#3a3a40');g.addColorStop(.18,'#c9ccd2');g.addColorStop(.3,'#ffffff');g.addColorStop(.45,'#8a8e96');g.addColorStop(.75,'#5a5e66');g.addColorStop(.9,'#b8bcc4');g.addColorStop(1,'#2a2a30');return g}
+function draw(t){const d=new Date(),T=THEMES[ti],port=H>W*1.1;
+const LH=Math.min(H*.9,W*(port?1.6:1.1)),cx=port?W/2:W*.36,bottom=H*.5+LH/2,capH=LH*.07,glassH=LH*.58,baseH=LH*.33,top=bottom-baseH-glassH-capH,wTop=LH*.075,wMid=LH*.15,wBase=LH*.16;
+// room: wall and table, lit by the lamp
+x.fillStyle='#120a16';x.fillRect(0,0,W,H);const tableY=bottom-LH*.01;
+const glow=x.createRadialGradient(cx,top+capH+glassH*.55,0,cx,top+capH+glassH*.55,LH*.9);glow.addColorStop(0,`rgba(${T.glow},.45)`);glow.addColorStop(.4,`rgba(${T.glow},.12)`);glow.addColorStop(1,`rgba(${T.glow},0)`);x.fillStyle=glow;x.fillRect(0,0,W,H);
+const tg=x.createLinearGradient(0,tableY,0,H);tg.addColorStop(0,'#3a2418');tg.addColorStop(1,'#1a0e08');x.fillStyle=tg;x.fillRect(0,tableY,W,H-tableY);
+const tl=x.createRadialGradient(cx,tableY,0,cx,tableY,LH*.6);tl.addColorStop(0,`rgba(${T.glow},.35)`);tl.addColorStop(1,`rgba(${T.glow},0)`);x.fillStyle=tl;x.fillRect(0,tableY,W,H-tableY);
+x.fillStyle='rgba(0,0,0,.5)';x.beginPath();x.ellipse(cx,tableY+2,wBase*1.1,LH*.02,0,0,7);x.fill();
+// glass with wax
+renderWax(t);const gTop=top+capH,gBot=gTop+glassH;x.save();glassPath(cx,gTop,gBot,wTop,wMid);x.clip();x.imageSmoothingEnabled=true;x.imageSmoothingQuality='high';x.filter='blur(.8px)';x.drawImage(wax,cx-wMid,gTop,wMid*2,glassH);x.filter='none';
+// glass shading and highlights
+const gs=x.createLinearGradient(cx-wMid,0,cx+wMid,0);gs.addColorStop(0,'rgba(0,0,0,.55)');gs.addColorStop(.18,'rgba(255,255,255,.14)');gs.addColorStop(.25,'rgba(255,255,255,.02)');gs.addColorStop(.7,'rgba(0,0,0,0)');gs.addColorStop(.82,'rgba(255,255,255,.1)');gs.addColorStop(1,'rgba(0,0,0,.6)');x.fillStyle=gs;x.fillRect(cx-wMid,gTop,wMid*2,glassH);
+x.restore();x.strokeStyle='rgba(255,255,255,.18)';x.lineWidth=1;glassPath(cx,gTop,gBot,wTop,wMid);x.stroke();
+// cap
+x.fillStyle=metal(cx-wTop,cx+wTop,0,0);x.beginPath();x.moveTo(cx-wTop*.55,top);x.lineTo(cx+wTop*.55,top);x.lineTo(cx+wTop*1.02,gTop+2);x.lineTo(cx-wTop*1.02,gTop+2);x.closePath();x.fill();
+x.fillStyle='rgba(0,0,0,.35)';x.fillRect(cx-wTop*1.02,gTop-LH*.006,wTop*2.04,LH*.006);
+// base: upside-down cone from the glass down to the table
+x.fillStyle=metal(cx-wBase,cx+wBase,0,0);x.beginPath();x.moveTo(cx-wMid*1.02,gBot-1);x.lineTo(cx+wMid*1.02,gBot-1);x.lineTo(cx+wBase*.62,bottom);x.lineTo(cx-wBase*.62,bottom);x.closePath();x.fill();
+x.fillStyle=metal(cx-wMid,cx+wMid,0,0);x.fillRect(cx-wMid*1.05,gBot-LH*.008,wMid*2.1,LH*.016);
+// warm light spilling onto the top of the base
+const bl=x.createRadialGradient(cx,gBot,0,cx,gBot,wMid*1.2);bl.addColorStop(0,`rgba(${T.glow},.45)`);bl.addColorStop(1,`rgba(${T.glow},0)`);x.fillStyle=bl;x.beginPath();x.moveTo(cx-wMid,gBot);x.lineTo(cx+wMid,gBot);x.lineTo(cx+wBase*.62,bottom);x.lineTo(cx-wBase*.62,bottom);x.closePath();x.fill();
+// time engraved on the base
+const p=v=>String(v).padStart(2,'0');x.textAlign='center';x.textBaseline='middle';x.font=`bold ${LH*.055}px "Trebuchet MS",sans-serif`;
+x.fillStyle='rgba(255,255,255,.35)';x.fillText(p(d.getHours())+':'+p(d.getMinutes()),cx+1,gBot+baseH*.42+1);x.fillStyle='rgba(30,30,40,.8)';x.fillText(p(d.getHours())+':'+p(d.getMinutes()),cx,gBot+baseH*.42);
+x.font=`${LH*.022}px "Trebuchet MS",sans-serif`;x.fillStyle='rgba(30,30,40,.7)';x.fillText(d.toLocaleDateString(undefined,{day:'numeric',month:'short'}).toUpperCase(),cx,gBot+baseH*.6);
+// big readout beside the lamp
+if(!port){const tx=W*.68,ty=H*.46;x.font=`300 ${Math.min(W*.075,H*.14)}px "Segoe UI",sans-serif`;x.fillStyle=`rgba(${T.glow},.18)`;x.fillText(d.toLocaleTimeString(),tx,ty+2);x.fillStyle='#ffe6f2';x.shadowColor=`rgba(${T.glow},.8)`;x.shadowBlur=24;x.fillText(d.toLocaleTimeString(),tx,ty);x.shadowBlur=0;
+x.font=`${Math.min(W*.02,H*.035)}px "Segoe UI",sans-serif`;x.fillStyle='rgba(255,230,242,.8)';x.fillText(d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'}),tx,ty+Math.min(W*.06,H*.1))}
+else{x.font=`${W*.045}px "Segoe UI",sans-serif`;x.fillStyle='rgba(255,230,242,.85)';x.fillText(d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'})+' · '+d.toLocaleTimeString(),W/2,Math.min(H-20,bottom+(H-bottom)/2))}
+requestAnimationFrame(draw)}
+requestAnimationFrame(draw);
+</script></body></html>

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Grand Complication</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;font-family:"Palatino Linotype",Palatino,Georgia,serif}
+body{background:radial-gradient(ellipse at 50% 42%,#3a3a40 0%,#1c1c20 55%,#0a0a0c 100%)}
+svg{position:fixed;inset:0;width:100%;height:100%}
+.cap{position:fixed;left:16px;bottom:12px;color:#8d8a84;font-size:clamp(11px,1.8vmin,16px);letter-spacing:.08em}
+</style></head><body>
+<svg viewBox="-150 -165 300 330" preserveAspectRatio="xMidYMid meet">
+<defs>
+<linearGradient id="strap" x1="0" x2="1"><stop offset="0" stop-color="#2a1a12"/><stop offset=".15" stop-color="#4a2e1e"/><stop offset=".5" stop-color="#5c3a26"/><stop offset=".85" stop-color="#4a2e1e"/><stop offset="1" stop-color="#2a1a12"/></linearGradient>
+<linearGradient id="steel" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f7f8fa"/><stop offset=".25" stop-color="#9aa0a8"/><stop offset=".5" stop-color="#e9ecef"/><stop offset=".75" stop-color="#6c727a"/><stop offset="1" stop-color="#c9cdd2"/></linearGradient>
+<linearGradient id="steel2" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d9dde2"/><stop offset=".5" stop-color="#5a6068"/><stop offset="1" stop-color="#eef0f2"/></linearGradient>
+<linearGradient id="lug" x1="0" x2="1"><stop offset="0" stop-color="#6c727a"/><stop offset=".4" stop-color="#f2f4f6"/><stop offset="1" stop-color="#7a8088"/></linearGradient>
+<radialGradient id="dial" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#21407a"/><stop offset=".7" stop-color="#132a55"/><stop offset="1" stop-color="#0a1836"/></radialGradient>
+<radialGradient id="subd" cx="50%" cy="45%"><stop offset="0" stop-color="#e9ebee"/><stop offset="1" stop-color="#b9bec6"/></radialGradient>
+<linearGradient id="goldL" x1="0" x2="1"><stop offset="0" stop-color="#fff4c8"/><stop offset="1" stop-color="#d9b25a"/></linearGradient>
+<linearGradient id="goldD" x1="0" x2="1"><stop offset="0" stop-color="#a87e2a"/><stop offset="1" stop-color="#6a4a12"/></linearGradient>
+<linearGradient id="glare" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset=".35" stop-color="#fff" stop-opacity=".05"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#fff" stop-opacity=".04"/></linearGradient>
+<radialGradient id="moonsky" cx="50%" cy="80%"><stop offset="0" stop-color="#2a4c9a"/><stop offset="1" stop-color="#0c1a40"/></radialGradient>
+<radialGradient id="moonG" cx="40%" cy="35%"><stop offset="0" stop-color="#fff2c0"/><stop offset="1" stop-color="#c9a24a"/></radialGradient>
+<filter id="ds" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#000" flood-opacity=".6"/></filter>
+<filter id="hs" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="1.2" dy="2" stdDeviation=".9" flood-color="#000" flood-opacity=".55"/></filter>
+<clipPath id="moonwin"><path d="M-22 -48 A22 22 0 0 1 22 -48 Z"/></clipPath>
+<clipPath id="dialclip"><circle r="96"/></clipPath>
+</defs>
+<!-- straps with stitching -->
+<g filter="url(#ds)">
+<path d="M-62 -250 L62 -250 L58 -110 L-58 -110 Z" fill="url(#strap)"/><path d="M-58 110 L58 110 L62 250 L-62 250 Z" fill="url(#strap)"/>
+<g stroke="#d8c7a8" stroke-width="1.1" stroke-dasharray="4 3" fill="none" opacity=".8"><path d="M-52 -250 L-49 -112 M52 -250 L49 -112 M-49 112 L-52 250 M49 112 L52 250"/></g>
+<!-- lugs -->
+<g fill="url(#lug)"><path d="M-70 -118 L-44 -118 L-38 -96 L-62 -88 Z"/><path d="M70 -118 L44 -118 L38 -96 L62 -88 Z"/><path d="M-70 118 L-44 118 L-38 96 L-62 88 Z"/><path d="M70 118 L44 118 L38 96 L62 88 Z"/></g>
+<!-- pushers and crown -->
+<g fill="url(#steel2)"><rect x="104" y="-58" width="16" height="12" rx="2" transform="rotate(-30)"/><rect x="104" y="46" width="16" height="12" rx="2" transform="rotate(30)"/></g>
+<rect x="112" y="-11" width="16" height="22" rx="3" fill="url(#steel)"/><g id="crownk" stroke="rgba(0,0,0,.35)" stroke-width=".6"></g>
+<!-- case -->
+<circle r="118" fill="url(#steel)"/>
+<circle r="112" fill="url(#steel2)"/>
+<circle r="106" fill="url(#steel)"/>
+<circle r="101" fill="#0b0d12"/>
+</g>
+<!-- dial -->
+<circle r="99" fill="url(#dial)"/>
+<g id="sun" clip-path="url(#dialclip)" opacity=".5"></g>
+<!-- chapter ring with minute track -->
+<circle r="96" fill="none" stroke="#c9ced6" stroke-width=".5" opacity=".8"/><circle r="89" fill="none" stroke="#c9ced6" stroke-width=".4" opacity=".7"/>
+<g id="mt"></g><g id="mn" font-size="4.2" fill="#dfe4ec" text-anchor="middle" dominant-baseline="central" font-family="Georgia,serif"></g>
+<!-- applied indices -->
+<g id="idx" filter="url(#hs)"></g>
+<!-- brand and moon phase -->
+<g transform="translate(0 0)">
+<circle cy="-48" r="22" fill="#0b0d12"/>
+<g clip-path="url(#moonwin)"><g id="moondisc" transform="translate(0 -48)"><circle r="21" fill="url(#moonsky)"/><g id="moonstars"></g><circle cx="0" cy="-13" r="6.2" fill="url(#moonG)"/><circle cx="0" cy="13" r="6.2" fill="url(#moonG)"/></g></g>
+<path d="M-22 -48 A22 22 0 0 1 22 -48" fill="none" stroke="url(#goldL)" stroke-width="1.6"/>
+<path d="M-22 -48 Q-11 -54 0 -48 Q11 -54 22 -48" fill="#0f1f44" stroke="url(#goldL)" stroke-width=".8"/>
+</g>
+<text y="-20" text-anchor="middle" font-size="7.5" fill="#f1e6c8" letter-spacing="2.4">AURELIUS</text>
+<text y="-13" text-anchor="middle" font-size="3.2" fill="#b9c4d8" letter-spacing="1.5">GENÈVE</text>
+<text y="74" text-anchor="middle" font-size="3.1" fill="#b9c4d8" letter-spacing="1.1">QUANTIÈME PERPÉTUEL · PHASE DE LUNE</text>
+<!-- sub-dials: day (9), month (3), small seconds (6) -->
+<g transform="translate(-50 6)" id="sdDay"></g><g transform="translate(50 6)" id="sdMon"></g><g transform="translate(0 46)" id="sdSec"></g>
+<!-- date window between 4 and 5 -->
+<g transform="rotate(135) translate(0 -76) rotate(-135)"><rect x="-8" y="-6" width="16" height="12" rx="1" fill="#f6f4ef" stroke="url(#goldL)" stroke-width="1.2"/><text id="dw" y=".6" text-anchor="middle" dominant-baseline="central" font-size="7.5" fill="#111" font-family="Georgia,serif"></text></g>
+<!-- hands -->
+<g id="H" filter="url(#hs)"><path d="M0 12 L-5 0 L0 -54 Z" fill="url(#goldL)"/><path d="M0 12 L5 0 L0 -54 Z" fill="url(#goldD)"/><path d="M0 -8 L0 -46" stroke="#e8f4e0" stroke-width="1.6" opacity=".85"/></g>
+<g id="M" filter="url(#hs)"><path d="M0 14 L-4 0 L0 -82 Z" fill="url(#goldL)"/><path d="M0 14 L4 0 L0 -82 Z" fill="url(#goldD)"/><path d="M0 -10 L0 -74" stroke="#e8f4e0" stroke-width="1.2" opacity=".85"/></g>
+<g id="S" filter="url(#hs)"><path d="M-.5 22 L-.35 -90 L0 -94 L.35 -90 L.5 22Z" fill="#e9ecef"/><circle cy="18" r="3.4" fill="#e9ecef"/><circle r="3.2" fill="#c9ced6"/></g>
+<circle r="1.4" fill="#5a6068"/>
+<!-- sapphire crystal glare -->
+<circle r="99" fill="url(#glare)"/>
+<path d="M-82 -48 A95 95 0 0 1 -20 -93" fill="none" stroke="rgba(255,255,255,.28)" stroke-width="2.4" stroke-linecap="round"/>
+</svg>
+<div class="cap" id="cap"></div>
+<script>
+const NS="http://www.w3.org/2000/svg",$=id=>document.getElementById(id);
+const el=(t,a,p)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);p.appendChild(e);return e};
+for(let y=-10;y<=10;y+=1.6)el('line',{x1:113,y1:y,x2:127,y2:y},$('crownk'));
+// sunburst: fine radial strokes catching the light
+for(let i=0;i<360;i++)el('line',{x1:0,y1:0,x2:0,y2:-99,stroke:i%2?'#ffffff':'#000000','stroke-width':.55,opacity:(.08+.1*Math.abs(Math.cos(i*Math.PI/90))).toFixed(3),transform:`rotate(${i})`},$('sun'));
+for(let i=0;i<60;i++)el('line',{y1:-96,y2:i%5?-92.5:-90,stroke:'#dfe4ec','stroke-width':i%5?.5:1,transform:`rotate(${i*6})`},$('mt'));
+for(let i=1;i<=12;i++){const a=i*Math.PI/6;el('text',{x:Math.sin(a)*93,y:-Math.cos(a)*93,transform:`rotate(${i*30} ${Math.sin(a)*93} ${-Math.cos(a)*93})`},$('mn')).textContent=String(i*5).padStart(2,'0')}
+// faceted gold baton indices, doubled at 12; skip where sub-dials and the date window sit
+for(let i=0;i<12;i++){if([3,6,9,4].includes(i)&&i!==4)continue;if(i===4)continue;const g=el('g',{transform:`rotate(${i*30})`},$('idx'));
+const w=i===0?2.4:3.2;(i===0?[-3.2,3.2]:[0]).forEach(dx=>{el('rect',{x:dx-w/2,y:-86,width:w/2,height:14,fill:'url(#goldL)'},g);el('rect',{x:dx,y:-86,width:w/2,height:14,fill:'url(#goldD)'},g)})}
+for(const i of [3,9]){const g=el('g',{transform:`rotate(${i*30})`},$('idx'));el('rect',{x:-1.6,y:-86,width:1.6,height:7,fill:'url(#goldL)'},g);el('rect',{x:0,y:-86,width:1.6,height:7,fill:'url(#goldD)'},g)}
+// moon disc stars
+for(let i=0;i<26;i++){const a=Math.random()*Math.PI*2,r=4+Math.random()*16;el('circle',{cx:Math.cos(a)*r,cy:Math.sin(a)*r,r:.25+Math.random()*.45,fill:'#fff6d8'},$('moonstars'))}
+// sub-dial: snailed silver with labels, returns its hand
+function sub(g,labels,title,size){let s=`<circle r="22" fill="url(#goldL)"/><circle r="21" fill="url(#subd)"/>`;for(let r=3;r<21;r+=1.1)s+=`<circle r="${r}" fill="none" stroke="#ffffff" stroke-opacity=".35" stroke-width=".3"/>`;
+const n=labels.length;labels.forEach((t,i)=>{const a=i/n*Math.PI*2;s+=`<line x1="${Math.sin(a)*21}" y1="${-Math.cos(a)*21}" x2="${Math.sin(a)*18.5}" y2="${-Math.cos(a)*18.5}" stroke="#1a2440" stroke-width=".5"/>`;if(t)s+=`<text x="${Math.sin(a)*14}" y="${-Math.cos(a)*14}" text-anchor="middle" dominant-baseline="central" font-size="${size}" fill="#1a2440" font-family="Georgia,serif">${t}</text>`});
+s+=`<text y="7.5" text-anchor="middle" font-size="2.4" fill="#556" letter-spacing=".6">${title}</text><g class="h" filter="url(#hs)"><path d="M-.9 3 L0 -18 L.9 3Z" fill="#132a55"/><circle r="1.8" fill="url(#goldL)"/></g>`;g.innerHTML=s;return g.querySelector('.h')}
+const DAY=sub($('sdDay'),['SUN','MON','TUE','WED','THU','FRI','SAT'],'JOUR',3),MON=sub($('sdMon'),['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'],'MOIS',2.6),
+SEC=sub($('sdSec'),['60','','','','','','','','','','','','10','','','','','','','','','','','','20','','','','','','','','','','','','30','','','','','','','','','','','','40','','','','','','','','','','','','50','','','','','','','','','','',''].slice(0,60),'',3);
+function tick(){const d=new Date(),ms=d.getMilliseconds(),s=d.getSeconds()+Math.floor(ms/125)/8,m=d.getMinutes()+s/60,h=d.getHours()%12+m/60;
+$('H').setAttribute('transform',`rotate(${h*30})`);$('M').setAttribute('transform',`rotate(${m*6})`);
+// the centre seconds hand sweeps at 8 beats per second; the small seconds dial follows it
+$('S').setAttribute('transform',`rotate(${s*6})`);SEC.setAttribute('transform',`rotate(${s*6})`);
+DAY.setAttribute('transform',`rotate(${(d.getDay()+(d.getHours()+m/60)/24)/7*360})`);
+const dim=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();MON.setAttribute('transform',`rotate(${(d.getMonth()+(d.getDate()-1)/dim)/12*360})`);
+$('dw').textContent=d.getDate();
+// moon disc turns half a revolution per lunation so the gold moon crosses the window
+const age=(((d-Date.UTC(2000,0,6,18,14))/864e5)%29.530588+29.530588)%29.530588;$('moondisc').setAttribute('transform',`translate(0 -48) rotate(${age/29.530588*180-90})`);
+$('cap').textContent=d.toLocaleString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit'});requestAnimationFrame(tick)}
+tick();
+</script></body></html>

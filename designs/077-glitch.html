@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Glitch</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#0a0a0a;color:#fff;font-family:"Arial Black","Segoe UI Black",sans-serif}
+body::after{content:"";position:fixed;inset:0;background:repeating-linear-gradient(transparent 0 2px,rgba(0,0,0,.35) 2px 4px);pointer-events:none}
+.wrap{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3vh}
+.g{position:relative;font-size:clamp(50px,min(18vw,28vh),300px);letter-spacing:-.02em;line-height:1}
+.g::before,.g::after{content:attr(data-t);position:absolute;inset:0;mix-blend-mode:screen}
+.g::before{color:#ff004c;transform:translate(var(--rx,0),0);clip-path:inset(var(--c1,0) 0 var(--c2,0) 0)}
+.g::after{color:#00e5ff;transform:translate(var(--bx,0),0);clip-path:inset(var(--c3,0) 0 var(--c4,0) 0)}
+.d{font-family:Consolas,monospace;font-size:clamp(12px,2.8vmin,28px);letter-spacing:.4em;color:#9f9;text-transform:uppercase}
+.err{font-family:Consolas,monospace;font-size:clamp(10px,1.6vmin,16px);color:#555;position:fixed;left:2vmin;bottom:2vmin}
+</style></head><body>
+<div class="wrap"><div class="g" id="g"></div><div class="d" id="d"></div></div><div class="err" id="e"></div>
+<script>
+const g=document.getElementById('g'),CH='!<>-_\\/[]{}—=+*^?#01';
+function setT(s){g.textContent=s;g.dataset.t=s}
+function glitch(on){const r=()=>Math.floor(Math.random()*100)+'%';if(on){g.style.setProperty('--rx',(Math.random()*16-8)+'px');g.style.setProperty('--bx',(Math.random()*16-8)+'px');g.style.setProperty('--c1',r());g.style.setProperty('--c2',r());g.style.setProperty('--c3',r());g.style.setProperty('--c4',r());g.style.transform=`skewX(${Math.random()*6-3}deg)`}
+else{['--rx','--bx'].forEach(k=>g.style.setProperty(k,'2px'));['--c1','--c2','--c3','--c4'].forEach(k=>g.style.setProperty(k,'0'));g.style.transform=''}}
+let burst=0;
+function tick(){const d=new Date(),p=n=>String(n).padStart(2,'0');let s=p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds());
+if(burst>0){burst--;glitch(true);if(Math.random()<.4){const a=[...s];a[Math.floor(Math.random()*a.length)]=CH[Math.floor(Math.random()*CH.length)];s=a.join('')}}else{glitch(false);if(Math.random()<.02)burst=6+Math.random()*10}
+setT(s);document.getElementById('d').textContent=d.toLocaleDateString('en-GB',{weekday:'short',day:'2-digit',month:'short',year:'numeric'});
+document.getElementById('e').textContent=burst?'SIGNAL_LOST 0x'+Math.floor(Math.random()*0xffffff).toString(16).toUpperCase():'SYNC OK · '+d.toISOString()}
+setInterval(tick,60);tick();
+</script></body></html>

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lighthouse</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#0a1428;font-family:Georgia,serif}
+canvas{position:fixed;inset:0;width:100%;height:100%}
+</style></head><body>
+<canvas id="c"></canvas>
+<script>
+// A lighthouse on a rocky point. The beam sweeps once a minute (its angle is the seconds), the sea and sky follow
+// the time of day, and the time is painted on the lighthouse's gallery sign. Waves roll in and break on the rocks.
+const c=document.getElementById('c'),x=c.getContext('2d');let W,H,P;
+function size(){P=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;c.width=W*P;c.height=H*P;x.setTransform(P,0,0,P,0,0)}addEventListener('resize',size);size();
+const rnd=(()=>{let s=9;return()=>(s=(s*16807)%2147483647)/2147483647})();
+const stars=Array.from({length:220},()=>[rnd(),rnd()*.6,rnd()]),gulls=Array.from({length:4},()=>({x:rnd(),y:.15+rnd()*.25,v:.02+rnd()*.03,ph:rnd()*6}));
+const K=[[0,'#050a1c','#16264a','#081830'],[5.5,'#1a1f4a','#c47a6a','#2a3a5a'],[7,'#6fa8dc','#ffd9a8','#3a7aa8'],[12,'#3b8fd8','#cfe6f6','#2a6a9a'],[17.5,'#4a7fc4','#ffc890','#2a5a88'],[19.2,'#2a2a5e','#f08a5a','#2a3a5a'],[20.5,'#0e1230','#3a2a5a','#0c1a30'],[24,'#050a1c','#16264a','#081830']];
+const hx=h=>[1,3,5].map(i=>parseInt(h.substr(i,2),16)),mix=(a,b,t)=>'rgb('+hx(a).map((v,i)=>Math.round(v+(hx(b)[i]-v)*t)).join(',')+')';
+function pal(h){for(let i=0;i<K.length-1;i++)if(h>=K[i][0]&&h<K[i+1][0]){const t=(h-K[i][0])/(K[i+1][0]-K[i][0]);return K[i].slice(1).map((c,j)=>mix(c,K[i+1][j+1],t))}return K[0].slice(1)}
+function draw(t){const d=new Date(),s=d.getSeconds()+d.getMilliseconds()/1000,H24=d.getHours()+d.getMinutes()/60,night=H24<6||H24>=19.5?1:H24<7?7-H24:H24>18.5?H24-18.5:0,[sk,hz,sea]=pal(H24);
+const hor=H*.62,port=H>W,LX=port?W*.62:W*.66,LS=Math.min(H*.5,W*(port?.5:.28));
+const g=x.createLinearGradient(0,0,0,hor);g.addColorStop(0,sk);g.addColorStop(1,hz);x.fillStyle=g;x.fillRect(0,0,W,hor);
+stars.forEach(([a,b,z])=>{x.fillStyle=`rgba(255,255,255,${night*z*.85})`;x.fillRect(a*W,b*H,1.4,1.4)});
+// moon or sun low over the sea
+const day=H24>=6&&H24<19,f=day?(H24-6)/13:((H24-19+24)%24)/11,bx=W*(.08+f*.6),by=hor-Math.sin(f*Math.PI)*H*.45;
+x.fillStyle=day?'#fff3c4':'#f4f1e6';x.beginPath();x.arc(bx,by,LS*.07,0,7);x.fill();
+// sea with reflection streaks
+const sg=x.createLinearGradient(0,hor,0,H);sg.addColorStop(0,sea);sg.addColorStop(1,mix('#020812','#0a2a4a',1-night));x.fillStyle=sg;x.fillRect(0,hor,W,H-hor);
+x.fillStyle=day?'rgba(255,240,200,.35)':'rgba(240,240,255,.25)';for(let k=0;k<26;k++){const yy=hor+(k*k)*.9+4,ww=LS*.06*(1+k*.15)*(.6+.4*Math.sin(t/600+k));x.fillRect(bx-ww/2+Math.sin(t/800+k*2)*6,yy,ww,1.5)}
+for(let k=0;k<60;k++){const yy=hor+((k*37)%100)/100*(H-hor),xx=((k*91+t/40*(1+yy/H))%(W+200))-100;x.strokeStyle=`rgba(255,255,255,${.06+.1*(yy-hor)/(H-hor)})`;x.lineWidth=1;x.beginPath();x.moveTo(xx,yy);x.quadraticCurveTo(xx+10,yy-3,xx+24+(yy-hor)*.08,yy);x.stroke()}
+// beam: rotates once per minute, visible mostly at dusk/night
+const lampY=hor-LS*.98,ang=s/60*Math.PI*2;const bw=.16;
+if(night>.05){x.save();x.globalCompositeOperation='lighter';[ang,ang+Math.PI].forEach((a,i)=>{const cs=Math.cos(a),facing=Math.max(.15,Math.sin(a)*.5+.5);const len=W*1.3*Math.abs(cs)+LS*.2,dir=cs>0?1:-1;
+const gr=x.createLinearGradient(LX,lampY,LX+dir*len,lampY);gr.addColorStop(0,`rgba(255,240,190,${.55*night*facing})`);gr.addColorStop(1,'rgba(255,240,190,0)');x.fillStyle=gr;x.beginPath();x.moveTo(LX,lampY);x.lineTo(LX+dir*len,lampY-len*bw);x.lineTo(LX+dir*len,lampY+len*bw);x.closePath();x.fill()});x.restore()}
+// rocks and island
+x.fillStyle=mix('#4a4a44','#0a0c10',night);x.beginPath();x.moveTo(LX-LS*.75,hor+LS*.16);x.quadraticCurveTo(LX-LS*.5,hor-LS*.12,LX-LS*.1,hor-LS*.08);x.lineTo(LX+LS*.15,hor-LS*.1);x.quadraticCurveTo(LX+LS*.5,hor-LS*.05,LX+LS*.8,hor+LS*.18);x.closePath();x.fill();
+x.fillStyle=mix('#6a6a60','#14161c',night);for(const [ox,oy,r] of [[-.5,.05,.12],[.45,.08,.1],[-.25,.0,.08],[.65,.14,.08],[-.68,.13,.07]]){x.beginPath();x.ellipse(LX+ox*LS,hor+oy*LS,r*LS,r*LS*.55,0,Math.PI,0);x.fill()}
+// spray where waves hit
+for(let k=0;k<3;k++){const ph=(t/1400+k/3)%1,sx=LX+(k-1)*LS*.55,sy=hor+LS*.1;x.fillStyle=`rgba(255,255,255,${.6*(1-ph)})`;for(let j=0;j<8;j++){x.beginPath();x.arc(sx+(j-4)*LS*.02,sy-ph*LS*.12*Math.sin(j/8*Math.PI),LS*.01,0,7);x.fill()}}
+// lighthouse tower: tapered, red and white bands
+const tb=hor-LS*.08,tt=hor-LS*.85,wb=LS*.13,wt=LS*.085;x.save();x.beginPath();x.moveTo(LX-wb,tb);x.lineTo(LX-wt,tt);x.lineTo(LX+wt,tt);x.lineTo(LX+wb,tb);x.closePath();x.clip();
+for(let k=0;k<6;k++){x.fillStyle=k%2?'#f4f1ea':'#c62828';x.fillRect(LX-wb,tt+(tb-tt)*k/6,wb*2,(tb-tt)/6+1)}
+const sh=x.createLinearGradient(LX-wb,0,LX+wb,0);sh.addColorStop(0,'rgba(0,0,0,.3)');sh.addColorStop(.35,'rgba(255,255,255,.15)');sh.addColorStop(1,'rgba(0,0,0,.45)');x.fillStyle=sh;x.fillRect(LX-wb,tt,wb*2,tb-tt);
+x.fillStyle=`rgba(0,0,30,${night*.55})`;x.fillRect(LX-wb,tt,wb*2,tb-tt);x.restore();
+// windows and door
+x.fillStyle=night>.3?'#ffd86a':'#2a2a34';for(const k of [.3,.55,.8])x.fillRect(LX-LS*.012,tt+(tb-tt)*k,LS*.024,LS*.04);x.fillStyle='#2a1a10';x.fillRect(LX-LS*.03,tb-LS*.08,LS*.06,LS*.08);
+// gallery, lantern room, dome
+x.fillStyle='#222';x.fillRect(LX-wt*1.5,tt-LS*.02,wt*3,LS*.025);for(let k=0;k<9;k++)x.fillRect(LX-wt*1.45+k*wt*.36,tt-LS*.06,LS*.004,LS*.04);x.fillRect(LX-wt*1.5,tt-LS*.065,wt*3,LS*.006);
+const lr=x.createRadialGradient(LX,lampY,0,LX,lampY,wt*1.2);lr.addColorStop(0,night>.05?'#fffbe0':'#e8f0f6');lr.addColorStop(1,night>.05?'#ffcf5a':'#8ab0c8');x.fillStyle=lr;x.fillRect(LX-wt*.8,tt-LS*.17,wt*1.6,LS*.11);
+x.strokeStyle='#222';x.lineWidth=LS*.006;for(let k=0;k<4;k++){x.beginPath();x.moveTo(LX-wt*.8+k*wt*.53,tt-LS*.17);x.lineTo(LX-wt*.8+k*wt*.53,tt-LS*.06);x.stroke()}
+x.fillStyle='#c62828';x.beginPath();x.moveTo(LX-wt*.95,tt-LS*.17);x.quadraticCurveTo(LX,tt-LS*.3,LX+wt*.95,tt-LS*.17);x.fill();x.fillStyle='#222';x.fillRect(LX-LS*.004,tt-LS*.32,LS*.008,LS*.06);
+if(night>.05){x.save();x.globalCompositeOperation='lighter';const hg=x.createRadialGradient(LX,lampY,0,LX,lampY,LS*.3);hg.addColorStop(0,`rgba(255,240,180,${.6*night})`);hg.addColorStop(1,'rgba(255,240,180,0)');x.fillStyle=hg;x.beginPath();x.arc(LX,lampY,LS*.3,0,7);x.fill();x.restore()}
+// gulls by day
+gulls.forEach(gl=>{const gx=((gl.x+t/1000*gl.v)%1.2-.1)*W,gy=gl.y*H+Math.sin(t/700+gl.ph)*8,fl=Math.sin(t/180+gl.ph)*4;x.strokeStyle=`rgba(30,30,40,${1-night})`;x.lineWidth=1.6;x.beginPath();x.moveTo(gx-9,gy-fl);x.quadraticCurveTo(gx-4,gy-4,gx,gy);x.quadraticCurveTo(gx+4,gy-4,gx+9,gy-fl);x.stroke()});
+// text
+const p=n=>String(n).padStart(2,'0'),tx=port?W/2:W*.27,ty=port?H*.12:H*.74,fs=port?W*.14:Math.min(W*.09,H*.16);x.textAlign='center';x.textBaseline='middle';
+x.fillStyle='#fff';x.shadowColor='rgba(0,0,0,.45)';x.shadowBlur=12;x.font=`${fs}px Georgia,serif`;x.fillText(p(d.getHours())+':'+p(d.getMinutes()),tx,ty);
+x.font=`italic ${fs*.22}px Georgia,serif`;x.fillText(d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'}),tx,ty+fs*.65);
+x.font=`${fs*.14}px Georgia,serif`;x.fillStyle='rgba(255,255,255,.75)';x.fillText(`the beam sweeps once a minute · ${p(d.getSeconds())} s`,tx,ty+fs*.95);x.shadowBlur=0;
+requestAnimationFrame(draw)}
+requestAnimationFrame(draw);
+</script></body></html>

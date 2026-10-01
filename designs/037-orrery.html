@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Orrery</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#02030a;color:#cfd8ff;font-family:"Segoe UI",system-ui,sans-serif}
+canvas{position:fixed;inset:0;width:100%;height:100%}
+.leg{position:fixed;left:3vmin;bottom:3vmin;font-size:clamp(10px,1.9vmin,18px);line-height:1.7;opacity:.85}
+.leg i{display:inline-block;width:1.2vmin;height:1.2vmin;border-radius:50%;margin-right:1vmin}
+.t{position:fixed;right:3vmin;top:3vmin;text-align:right}
+.t b{display:block;font-size:clamp(24px,6vmin,64px);font-weight:200;color:#fff}
+.t span{font-size:clamp(11px,2.2vmin,22px);opacity:.7}
+</style></head><body>
+<canvas id="c"></canvas>
+<div class="t"><b id="tm"></b><span id="dt"></span></div>
+<div class="leg"><div><i style="background:#ff9f43"></i>Hour world — one orbit / 12 h</div><div><i style="background:#48dbfb"></i>Minute world — one orbit / hour</div><div><i style="background:#ddd"></i>Second moon — one orbit / minute</div><div><i style="background:#1dd1a1"></i>Day world — one orbit / month</div></div>
+<script>
+const c=document.getElementById('c'),x=c.getContext('2d');let W,H,stars=[];
+function size(){W=c.width=innerWidth;H=c.height=innerHeight;stars=Array.from({length:250},()=>[Math.random()*W,Math.random()*H,Math.random()])}addEventListener('resize',size);size();
+function draw(){const d=new Date(),ms=d.getMilliseconds(),s=d.getSeconds()+ms/1000,m=d.getMinutes()+s/60,h=d.getHours()%12+m/60,
+dim=new Date(d.getFullYear(),d.getMonth()+1,0).getDate(),dy=(d.getDate()-1+(d.getHours()+m/60)/24)/dim,cx=W/2,cy=H/2,R=Math.min(W,H)*.46;
+x.fillStyle='#02030a';x.fillRect(0,0,W,H);stars.forEach(([a,b,z])=>{x.fillStyle=`rgba(255,255,255,${.2+z*.6*Math.abs(Math.sin(Date.now()/2000+z*10))})`;x.fillRect(a,b,1.5,1.5)});
+const orb=[[R*.35,h/12,'#ff9f43',R*.06,'H'],[R*.62,m/60,'#48dbfb',R*.045,'M'],[R*.92,dy,'#1dd1a1',R*.04,'D']];
+x.strokeStyle='rgba(160,180,255,.15)';x.lineWidth=1;orb.forEach(o=>{x.beginPath();x.arc(cx,cy,o[0],0,7);x.stroke()});
+// hour markers
+x.fillStyle='rgba(200,210,255,.4)';x.font=`${R*.04}px Segoe UI`;x.textAlign='center';x.textBaseline='middle';for(let i=0;i<12;i++){const a=i/12*Math.PI*2;x.fillText(i||12,cx+Math.sin(a)*R*.25,cy-Math.cos(a)*R*.25)}
+const g=x.createRadialGradient(cx,cy,0,cx,cy,R*.16);g.addColorStop(0,'#fff6c8');g.addColorStop(.35,'#ffcc33');g.addColorStop(1,'rgba(255,140,0,0)');x.fillStyle=g;x.beginPath();x.arc(cx,cy,R*.16,0,7);x.fill();
+let mpos;orb.forEach(([r,f,col,sz,k])=>{const a=f*Math.PI*2,px=cx+Math.sin(a)*r,py=cy-Math.cos(a)*r;
+x.strokeStyle=col+'55';x.lineWidth=R*.012;x.beginPath();x.arc(cx,cy,r,-Math.PI/2,-Math.PI/2+a);x.stroke();
+const pg=x.createRadialGradient(px-sz*.3,py-sz*.3,0,px,py,sz);pg.addColorStop(0,'#fff');pg.addColorStop(.3,col);pg.addColorStop(1,'#000');x.fillStyle=pg;x.beginPath();x.arc(px,py,sz,0,7);x.fill();
+x.fillStyle='#fff';x.font=`${sz*.9}px Segoe UI`;x.fillText(k==='H'?(d.getHours()%12||12):k==='M'?d.getMinutes():d.getDate(),px,py+sz*1.9);if(k==='M')mpos=[px,py]});
+const sa=s/60*Math.PI*2,mr=R*.1;x.strokeStyle='rgba(255,255,255,.15)';x.beginPath();x.arc(mpos[0],mpos[1],mr,0,7);x.stroke();
+x.fillStyle='#ddd';x.beginPath();x.arc(mpos[0]+Math.sin(sa)*mr,mpos[1]-Math.cos(sa)*mr,R*.015,0,7);x.fill();
+document.getElementById('tm').textContent=d.toLocaleTimeString();document.getElementById('dt').textContent=d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+requestAnimationFrame(draw)}
+draw();
+</script></body></html>

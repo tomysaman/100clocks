@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sky Arc</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:"Segoe UI",system-ui,sans-serif}
+canvas{position:fixed;inset:0;width:100%;height:100%}
+.ov{position:fixed;left:0;right:0;top:8vh;text-align:center;color:#fff;text-shadow:0 .3vmin 1.5vmin rgba(0,0,0,.35)}
+.t{font-size:clamp(40px,min(14vw,18vh),220px);font-weight:200;line-height:1}
+.d{font-size:clamp(13px,3vmin,30px);opacity:.9;margin-top:1vh}
+</style></head><body>
+<canvas id="c"></canvas><div class="ov"><div class="t" id="t"></div><div class="d" id="d"></div></div>
+<script>
+const c=document.getElementById('c'),x=c.getContext('2d');let W,H,stars=[];
+function size(){W=c.width=innerWidth;H=c.height=innerHeight;stars=Array.from({length:180},()=>[Math.random()*W,Math.random()*H*.7,Math.random()])}addEventListener('resize',size);size();
+const KEYS=[[0,'#070b1f','#141a3a'],[5,'#0d1440','#3b2a5a'],[6,'#f27a54','#ffcf8a'],[8,'#5fa8e8','#bfe3ff'],[12,'#3b8fe0','#a9d8ff'],[17,'#4a8ad0','#ffd5a0'],[18.5,'#c2456b','#ffaa66'],[19.5,'#2b2558','#7a3f6b'],[21,'#0a0f2a','#1a1f45'],[24,'#070b1f','#141a3a']];
+const lerp=(a,b,t)=>a+(b-a)*t,hx=h=>[1,3,5].map(i=>parseInt(h.substr(i,2),16)),mix=(a,b,t)=>{const A=hx(a),B=hx(b);return `rgb(${A.map((v,i)=>Math.round(lerp(v,B[i],t))).join(',')})`};
+function sky(h){for(let i=0;i<KEYS.length-1;i++)if(h>=KEYS[i][0]&&h<KEYS[i+1][0]){const t=(h-KEYS[i][0])/(KEYS[i+1][0]-KEYS[i][0]);return [mix(KEYS[i][1],KEYS[i+1][1],t),mix(KEYS[i][2],KEYS[i+1][2],t)]}return [KEYS[0][1],KEYS[0][2]]}
+function hills(y0,amp,col,ph){x.fillStyle=col;x.beginPath();x.moveTo(0,H);for(let X=0;X<=W;X+=8)x.lineTo(X,y0+Math.sin(X/W*Math.PI*2+ph)*amp+Math.sin(X/W*Math.PI*5+ph*2)*amp*.4);x.lineTo(W,H);x.fill()}
+function draw(){const d=new Date(),h=d.getHours()+d.getMinutes()/60+d.getSeconds()/3600,[top,bot]=sky(h),g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,top);g.addColorStop(1,bot);x.fillStyle=g;x.fillRect(0,0,W,H);
+const night=h<5.5||h>19.5?1:h<6.5?(6.5-h):h>18.5?(h-18.5):0;stars.forEach(([a,b,z])=>{x.fillStyle=`rgba(255,255,255,${night*z})`;x.fillRect(a,b,1.6,1.6)});
+// sun: 6→18 ; moon: 18→6
+const arc=(f)=>[W*.08+f*W*.84,H*.84-Math.sin(f*Math.PI)*H*.42],R=Math.min(W,H)*.06;
+if(h>=5.5&&h<=18.5){const [sx,sy]=arc((h-6)/12),sg=x.createRadialGradient(sx,sy,0,sx,sy,R*4);sg.addColorStop(0,'rgba(255,240,180,.9)');sg.addColorStop(.25,'rgba(255,220,120,.35)');sg.addColorStop(1,'rgba(255,200,100,0)');x.fillStyle=sg;x.beginPath();x.arc(sx,sy,R*4,0,7);x.fill();x.fillStyle='#fff6d0';x.beginPath();x.arc(sx,sy,R,0,7);x.fill()}
+if(h>=17.5||h<=6.5){const f=((h-18+24)%24)/12,[mx,my]=arc(f);x.fillStyle='#f4f1e6';x.beginPath();x.arc(mx,my,R*.8,0,7);x.fill();x.fillStyle=top;x.beginPath();x.arc(mx+R*.35,my-R*.15,R*.7,0,7);x.fill()}
+hills(H*.8,H*.03,mix('#2e4a3a','#0c1410',night),0);hills(H*.86,H*.025,mix('#1f3a2a','#060a08',night),2);
+x.strokeStyle='rgba(255,255,255,.12)';x.setLineDash([4,8]);x.beginPath();for(let f=0;f<=1;f+=.01){const [a,b]=arc(f);f?x.lineTo(a,b):x.moveTo(a,b)}x.stroke();x.setLineDash([]);
+document.getElementById('t').textContent=d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+document.getElementById('d').textContent=d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'});requestAnimationFrame(draw)}
+draw();
+</script></body></html>

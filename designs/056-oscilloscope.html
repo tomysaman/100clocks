@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Oscilloscope</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:radial-gradient(ellipse at 50% 40%,#4a4c50,#1a1b1d 75%);font-family:Arial,Helvetica,sans-serif}
+svg{position:fixed;inset:0;width:100%;height:100%}
+foreignObject canvas{width:100%;height:100%;display:block}
+</style></head><body>
+<svg viewBox="0 0 1000 620" preserveAspectRatio="xMidYMid meet">
+<defs>
+<linearGradient id="case" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#cfd2cc"/><stop offset="1" stop-color="#9ea29a"/></linearGradient>
+<linearGradient id="panel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a5a7a"/><stop offset="1" stop-color="#2a4460"/></linearGradient>
+<radialGradient id="knob" cx="38%" cy="32%"><stop offset="0" stop-color="#6a6c72"/><stop offset=".6" stop-color="#2a2b2e"/><stop offset="1" stop-color="#121214"/></radialGradient>
+<radialGradient id="knobS" cx="38%" cy="32%"><stop offset="0" stop-color="#f4f5f6"/><stop offset=".6" stop-color="#a8adb4"/><stop offset="1" stop-color="#5a5e66"/></radialGradient>
+<linearGradient id="bnc" x1="0" x2="1"><stop offset="0" stop-color="#7a7e86"/><stop offset=".5" stop-color="#f0f2f4"/><stop offset="1" stop-color="#6a6e76"/></linearGradient>
+<filter id="ds" x="-10%" y="-10%" width="120%" height="130%"><feDropShadow dx="0" dy="16" stdDeviation="14" flood-color="#000" flood-opacity=".6"/></filter>
+<filter id="ks" x="-40%" y="-40%" width="180%" height="180%"><feDropShadow dx="2" dy="3" stdDeviation="2" flood-color="#000" flood-opacity=".55"/></filter>
+<radialGradient id="crtGlass" cx="35%" cy="25%" r="80%"><stop offset="0" stop-color="#fff" stop-opacity=".14"/><stop offset=".4" stop-color="#fff" stop-opacity=".02"/><stop offset="1" stop-color="#000" stop-opacity=".25"/></radialGradient>
+</defs>
+<g filter="url(#ds)"><rect x="40" y="40" width="920" height="540" rx="14" fill="url(#case)"/></g>
+<rect x="40" y="40" width="920" height="22" rx="10" fill="#e4e6e0"/><g id="vents"></g>
+<rect x="60" y="80" width="880" height="480" rx="6" fill="url(#panel)"/>
+<!-- CRT -->
+<rect x="80" y="100" width="520" height="420" rx="18" fill="#1a1c1e"/><rect x="90" y="110" width="500" height="400" rx="14" fill="#0b0d0e"/>
+<foreignObject x="100" y="120" width="480" height="380"><canvas xmlns="http://www.w3.org/1999/xhtml" id="c" width="960" height="760"></canvas></foreignObject>
+<rect x="100" y="120" width="480" height="380" rx="10" fill="url(#crtGlass)"/>
+<g fill="#8a8e96"><circle cx="96" cy="116" r="4"/><circle cx="584" cy="116" r="4"/><circle cx="96" cy="504" r="4"/><circle cx="584" cy="504" r="4"/></g>
+<text x="340" y="540" text-anchor="middle" font-size="13" fill="#dfe6ee" letter-spacing="4" font-weight="bold">CHRONOSCOPE 2246</text>
+<text x="590" y="540" text-anchor="end" font-size="9" fill="#9fb4c8" letter-spacing="1">100 MHz · 2 CH</text>
+<!-- controls -->
+<g id="ctl" font-size="9" fill="#dfe6ee" text-anchor="middle" letter-spacing=".5"></g>
+</svg>
+<script>
+const NS="http://www.w3.org/2000/svg",$=id=>document.getElementById(id);
+const el=(t,a,p)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);p.appendChild(e);return e};
+for(let i=0;i<30;i++)el('rect',{x:300+i*14,y:46,width:8,height:10,rx:2,fill:'#9ea29a'},$('vents'));
+const C=$('ctl');const knobs={};
+function knob(id,cx,cy,r,label,silver){const g=el('g',{transform:`translate(${cx} ${cy})`},C);for(let i=0;i<11;i++){const a=(-135+i*27)*Math.PI/180;el('line',{x1:Math.sin(a)*(r+4),y1:-Math.cos(a)*(r+4),x2:Math.sin(a)*(r+8),y2:-Math.cos(a)*(r+8),stroke:'#cfdbe6','stroke-width':1},g)}
+const k=el('g',{filter:'url(#ks)'},g);el('circle',{r,fill:silver?'url(#knobS)':'url(#knob)'},k);for(let i=0;i<24;i++)el('line',{y1:-r,y2:-r+3,stroke:'rgba(0,0,0,.35)','stroke-width':1,transform:`rotate(${i*15})`},k);
+el('line',{y1:-r*.85,y2:-r*.3,stroke:silver?'#222':'#fff','stroke-width':2.4,'stroke-linecap':'round'},k);el('text',{y:r+22},g).textContent=label;knobs[id]=k;return k}
+el('text',{x:690,y:110,'font-size':10,'font-weight':'bold'},C).textContent='VERTICAL';el('text',{x:850,y:110,'font-size':10,'font-weight':'bold'},C).textContent='HORIZONTAL';
+el('line',{x1:620,x2:920,y1:116,y2:116,stroke:'#9fb4c8'},C);
+knob('v1',650,170,22,'CH1 HOURS');knob('v2',730,170,22,'CH2 MINUTES');knob('h1',850,175,30,'SEC/DIV',true);
+knob('p1',650,270,14,'POSITION');knob('p2',730,270,14,'POSITION');knob('h2',830,270,14,'POSITION');knob('h3',890,270,14,'TRIG LEVEL');
+knob('in',650,360,14,'INTENSITY');knob('fo',730,360,14,'FOCUS');
+// push buttons
+[['CH1',800],['CH2',840],['ADD',880],['XY',920]].forEach(([t,x0],i)=>{el('rect',{x:x0-16,y:340,width:32,height:16,rx:3,fill:i<2?'#e9e2c8':'#8a96a4',filter:'url(#ks)'},C);el('text',{x:x0,y:372},C).textContent=t});
+// BNC inputs and the probe calibrator
+[[650,'CH1 · 1MΩ'],[740,'CH2 · 1MΩ'],[850,'EXT TRIG']].forEach(([x0,t])=>{const g=el('g',{transform:`translate(${x0} 460)`},C);el('circle',{r:16,fill:'url(#bnc)',filter:'url(#ks)'},g);el('circle',{r:9,fill:'#1a1a1c'},g);el('circle',{r:3,fill:'url(#bnc)'},g);el('rect',{x:-19,y:-3,width:6,height:6,fill:'url(#bnc)'},g);el('text',{y:34},g).textContent=t});
+el('rect',{x:900,y:410,width:10,height:24,fill:'url(#bnc)'},C);el('text',{x:905,y:448},C).textContent='CAL';
+el('circle',{cx:920,cy:520,r:6,fill:'#ff3a2a',id:'pwr'},C);el('text',{x:890,y:524,'text-anchor':'end'},C).textContent='POWER';
+// CRT drawing
+const S={a:[[0,0],[1,0]],b:[[1,0],[1,1]],c:[[1,1],[1,2]],d:[[1,2],[0,2]],e:[[0,2],[0,1]],f:[[0,1],[0,0]],g:[[0,1],[1,1]]};
+const D={0:'abcdef',1:'bc',2:'abged',3:'abgcd',4:'fgbc',5:'afgcd',6:'afgedc',7:'abc',8:'abcdefg',9:'abcdfg'};
+const cv=$('c'),x=cv.getContext('2d'),W=960,H=760;
+function path(str){const pts=[],cw=W/(str.length*1.55+1)*.9,ch=cw,ox=(W-(str.length*1.55-.55)*cw)/2,oy=H*.4-ch;
+[...str].forEach((k,i)=>{const X=ox+i*1.55*cw;if(k===':'){[[.5,.6],[.5,1.4]].forEach(([a,b])=>{pts.push(null);for(let t=0;t<=12;t++){const an=t/12*Math.PI*2;pts.push([X+a*cw+Math.cos(an)*cw*.06,oy+b*ch+Math.sin(an)*cw*.06])}});return}
+for(const s of D[k]){const [[x1,y1],[x2,y2]]=S[s];pts.push(null);for(let t=0;t<=10;t++)pts.push([X+(x1+(x2-x1)*t/10)*cw,oy+(y1+(y2-y1)*t/10)*ch])}});return pts}
+let pts=[],last='',idx=0;
+function grat(){x.strokeStyle='rgba(140,200,160,.22)';x.lineWidth=1.4;for(let k=0;k<=10;k++){x.beginPath();x.moveTo(W*k/10,0);x.lineTo(W*k/10,H);x.stroke()}for(let k=0;k<=8;k++){x.beginPath();x.moveTo(0,H*k/8);x.lineTo(W,H*k/8);x.stroke()}
+x.strokeStyle='rgba(140,200,160,.3)';for(let k=0;k<50;k++){x.beginPath();x.moveTo(W*k/50,H/2-6);x.lineTo(W*k/50,H/2+6);x.stroke()}for(let k=0;k<40;k++){x.beginPath();x.moveTo(W/2-6,H*k/40);x.lineTo(W/2+6,H*k/40);x.stroke()}}
+function frame(t){const d=new Date(),p=n=>String(n).padStart(2,'0'),str=p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds());if(str!==last){pts=path(str);last=str}
+x.fillStyle='rgba(4,12,8,.28)';x.fillRect(0,0,W,H);grat();
+x.lineCap='round';x.lineJoin='round';
+// glow pass then core pass for the bloom
+for(const [col,lw,blur] of [['rgba(90,255,140,.35)',9,22],['#c8ffd6',2.6,6]]){x.strokeStyle=col;x.lineWidth=lw;x.shadowColor='#3dff7a';x.shadowBlur=blur;x.beginPath();let pen=false;
+for(let k=0;k<pts.length;k++){const q=pts[(idx+k)%pts.length];if(!q){pen=false;continue}const nx=q[0]+(Math.random()-.5)*1.6,ny=q[1]+(Math.random()-.5)*1.6;if(!pen){x.moveTo(nx,ny);pen=true}else x.lineTo(nx,ny)}x.stroke()}
+idx=(idx+7)%Math.max(1,pts.length);
+// CH2: a sine whose frequency is the day of month
+const f=d.getDate();for(const [col,lw,blur] of [['rgba(90,255,140,.3)',7,16],['#c8ffd6',2,4]]){x.strokeStyle=col;x.lineWidth=lw;x.shadowBlur=blur;x.beginPath();for(let X=0;X<=W;X+=3){const y=H*.82+Math.sin(X/W*Math.PI*2*(1+f/4)+t/500)*H*.06;X?x.lineTo(X,y):x.moveTo(X,y)}x.stroke()}
+x.shadowBlur=0;x.fillStyle='rgba(150,255,180,.85)';x.font='26px Consolas,monospace';
+x.fillText(d.toLocaleDateString('en-GB',{weekday:'short',day:'2-digit',month:'short',year:'numeric'}).toUpperCase(),20,36);x.fillText(`CH2  ${1+f/4} cycles · day ${f} of the month`,20,H-18);x.textAlign='right';x.fillText('1 s/DIV',W-20,36);x.textAlign='left';
+// knobs follow the time
+knobs.v1.setAttribute('transform',`rotate(${-135+270*(d.getHours()/23)})`);knobs.v2.setAttribute('transform',`rotate(${-135+270*(d.getMinutes()/59)})`);knobs.h1.setAttribute('transform',`rotate(${-135+270*(d.getSeconds()/59)})`);
+requestAnimationFrame(frame)}
+requestAnimationFrame(frame);
+</script></body></html>

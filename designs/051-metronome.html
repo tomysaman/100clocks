@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Metronome</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#20181a;font-family:Georgia,serif}
+svg{position:fixed;inset:0;width:100%;height:100%}
+.tip{position:fixed;left:12px;bottom:10px;font:12px system-ui;color:#a89070}
+</style></head><body>
+<svg viewBox="0 0 1000 640" preserveAspectRatio="xMidYMid meet">
+<defs>
+<filter id="wood" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".012 .18" numOctaves="3" seed="6" result="t"/><feColorMatrix in="t" values="0 0 0 0 .18 0 0 0 0 .07 0 0 0 0 .02 0 0 0 .8 0" result="g"/><feComposite in="g" in2="SourceGraphic" operator="in" result="gc"/><feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="gc"/></feMerge></filter>
+<linearGradient id="body" x1="0" x2="1"><stop offset="0" stop-color="#2e1008"/><stop offset=".35" stop-color="#7a2e14"/><stop offset=".6" stop-color="#5a200c"/><stop offset="1" stop-color="#220a04"/></linearGradient>
+<linearGradient id="brass" x1="0" x2="1"><stop offset="0" stop-color="#7a5a18"/><stop offset=".45" stop-color="#f6dc8a"/><stop offset=".6" stop-color="#c9a24a"/><stop offset="1" stop-color="#6a4a10"/></linearGradient>
+<linearGradient id="rod" x1="0" x2="1"><stop offset="0" stop-color="#7a7e86"/><stop offset=".5" stop-color="#f0f2f4"/><stop offset="1" stop-color="#6a6e76"/></linearGradient>
+<linearGradient id="scale" x1="0" x2="1"><stop offset="0" stop-color="#e8d8a8"/><stop offset=".5" stop-color="#fbf0cc"/><stop offset="1" stop-color="#d8c490"/></linearGradient>
+<filter id="ds" x="-30%" y="-10%" width="160%" height="130%"><feDropShadow dx="10" dy="14" stdDeviation="12" flood-color="#000" flood-opacity=".6"/></filter>
+<filter id="ss" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="2" dy="3" stdDeviation="2" flood-color="#000" flood-opacity=".5"/></filter>
+<radialGradient id="lamp" cx="30%" cy="15%" r="80%"><stop offset="0" stop-color="#6a4a3a"/><stop offset="1" stop-color="#140c0a"/></radialGradient>
+</defs>
+<rect x="-600" y="-200" width="2200" height="1100" fill="url(#lamp)"/>
+<rect x="-600" y="560" width="2200" height="200" fill="#2a1a10"/><rect x="-600" y="560" width="2200" height="3" fill="#5a3a20"/>
+<!-- sheet music on the table -->
+<g transform="translate(640 520) rotate(-6)"><rect width="300" height="110" fill="#f4eedc"/><g id="staff" stroke="#555" stroke-width=".8"></g></g>
+<ellipse cx="380" cy="580" rx="170" ry="18" fill="#000" opacity=".5"/>
+<!-- pyramid body -->
+<g filter="url(#ds)"><path d="M300 570 L340 110 Q350 70 380 70 Q410 70 420 110 L460 570 Z" fill="url(#body)" filter="url(#wood)"/></g>
+<path d="M300 570 L340 110 Q350 70 380 70 Q410 70 420 110 L460 570 Z" fill="none" stroke="#1a0602" stroke-width="2"/>
+<rect x="290" y="560" width="180" height="16" rx="3" fill="#1e0804"/>
+<!-- recess and tempo scale -->
+<path d="M362 130 L398 130 L408 480 L352 480 Z" fill="#140602"/>
+<path d="M366 140 L394 140 L402 470 L358 470 Z" fill="url(#scale)"/>
+<g id="tempo" font-size="9" fill="#3a2010" text-anchor="middle"></g>
+<!-- pendulum (rod + sliding weight), pivot low in the case -->
+<g id="pend"><rect x="378" y="110" width="4" height="380" fill="url(#rod)"/>
+<g id="weight" filter="url(#ss)"><path d="M366 0 h28 l4 10 l-4 14 h-28 l-4 -14z" fill="url(#brass)"/><rect x="378" y="6" width="4" height="12" fill="#4a3410"/></g></g>
+<rect x="352" y="478" width="56" height="30" rx="3" fill="#1e0804"/><circle cx="380" cy="490" r="7" fill="url(#brass)"/>
+<!-- winding key -->
+<g transform="translate(470 420)"><rect x="-4" y="-4" width="20" height="8" fill="url(#brass)"/><path d="M14 -14 h10 a10 10 0 0 1 0 28 h-10z" fill="url(#brass)"/></g>
+<!-- front plate -->
+<g transform="translate(380 535)"><rect x="-56" y="-16" width="112" height="30" rx="4" fill="url(#brass)"/><text y="5" text-anchor="middle" font-size="13" fill="#3a2406" letter-spacing="3">MÆLZEL</text></g>
+<!-- time readout -->
+<g transform="translate(700 260)"><text id="t" text-anchor="middle" font-size="96" fill="#f1dcb0"></text>
+<text id="d" y="48" text-anchor="middle" font-size="22" fill="#d8c09a" font-style="italic"></text>
+<text id="bpm" y="88" text-anchor="middle" font-size="15" fill="#a89070" letter-spacing="2"></text></g>
+</svg>
+<div class="tip">60 BPM: one tick per second · the weight rises through the hour (higher = faster on a real metronome) · click to mute or unmute</div>
+<script>
+const NS="http://www.w3.org/2000/svg",$=id=>document.getElementById(id);
+const el=(t,a,p)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);p.appendChild(e);return e};
+// tempo marks: the classic Maelzel scale, labelled with minutes 0–60 on the side
+const marks=[40,44,48,52,56,60,63,66,69,72,76,80,84,88,92,96,100,104,108,112,116,120,126,132,138,144,152,160,168,176,184,192,200,208];
+const TOP=150,bot=460,yFor=i=>bot-(bot-TOP)*i/(marks.length-1);
+marks.forEach((m,i)=>{const y=yFor(i);el('line',{x1:366,x2:374,y1:y,y2:y,stroke:'#3a2010'},$('tempo'));el('text',{x:384,y:y+2.5,'font-size':7},$('tempo')).textContent=m});
+for(let k=0;k<=60;k+=10){const y=bot-(bot-TOP)*k/60;const bx=340-(y-110)*40/460,rx=362-(y-130)*10/340;el('text',{x:(bx+rx)/2+1,y:y+2.5,'font-size':6.5,fill:'#e8c870','text-anchor':'middle'},$('tempo')).textContent=k+'′'}
+for(let i=0;i<5;i++)el('line',{x1:10,x2:290,y1:20+i*7,y2:20+i*7},$('staff'));for(let i=0;i<5;i++)el('line',{x1:10,x2:290,y1:70+i*7,y2:70+i*7},$('staff'));
+for(let k=0;k<14;k++){const nx=30+k*19,ny=20+((k*3)%9)*3.5;el('ellipse',{cx:nx,cy:ny,rx:4,ry:3,fill:'#222',stroke:'none'},$('staff'));el('line',{x1:nx+4,x2:nx+4,y1:ny,y2:ny-16,'stroke-width':1},$('staff'))}
+let ac,muted=true;try{muted=localStorage.getItem('metro-muted')!=='0'}catch(e){}
+addEventListener('pointerdown',()=>{muted=!muted;try{localStorage.setItem('metro-muted',muted?'1':'0')}catch(e){}try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();ac.resume()}catch(e){}});
+function click(acc){if(muted||!ac)return;const o=ac.createOscillator(),g=ac.createGain(),t0=ac.currentTime;o.frequency.value=acc?1600:1100;g.gain.setValueAtTime(.25,t0);g.gain.exponentialRampToValueAtTime(.001,t0+.05);o.connect(g).connect(ac.destination);o.start(t0);o.stop(t0+.06)}
+let lastS=-1;
+function tick(){const d=new Date(),s=d.getSeconds()+d.getMilliseconds()/1000,m=d.getMinutes()+s/60,p=n=>String(n).padStart(2,'0');
+// swing: one beat per second, extreme position on each whole second (when it ticks)
+const a=Math.sin((s%2)*Math.PI-Math.PI/2)*-15;$('pend').setAttribute('transform',`rotate(${a} 380 490)`);
+// weight slides up the rod through the hour
+const wy=bot-(bot-TOP)*m/60-12;$('weight').setAttribute('transform',`translate(0 ${wy})`);
+if(d.getSeconds()!==lastS){lastS=d.getSeconds();click(lastS%4===0)}
+$('t').textContent=p(d.getHours())+':'+p(d.getMinutes());$('d').textContent=d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+$('bpm').textContent=`${p(d.getSeconds())} s · ♩ = 60 · ${muted?'muted':'sound on'}`;requestAnimationFrame(tick)}
+tick();
+</script></body></html>

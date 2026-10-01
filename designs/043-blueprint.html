@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Blueprint</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#0d4a8a;font-family:"Courier New",monospace;color:#dbe9ff}
+body{background-image:linear-gradient(rgba(255,255,255,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.08) 1px,transparent 1px),linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);background-size:10vmin 10vmin,10vmin 10vmin,2vmin 2vmin,2vmin 2vmin}
+.wrap{height:100%;display:flex;align-items:center;justify-content:center}
+svg{width:min(96vw,150vh);height:min(62vw,96vh)}
+text{font-family:"Courier New",monospace;fill:#dbe9ff}
+.ln{stroke:#dbe9ff;fill:none}
+</style></head><body>
+<div class="wrap"><svg viewBox="0 0 300 194" id="s">
+<rect x="2" y="2" width="296" height="190" class="ln" stroke-width=".6"/>
+<g transform="translate(95 95)">
+<circle r="72" class="ln" stroke-width=".8"/><circle r="66" class="ln" stroke-width=".3" stroke-dasharray="2 1.5"/><circle r="4" class="ln" stroke-width=".5"/>
+<line x1="-84" x2="84" class="ln" stroke-width=".2" stroke-dasharray="6 2 1 2"/><line y1="-84" y2="84" class="ln" stroke-width=".2" stroke-dasharray="6 2 1 2"/>
+<g id="tk"></g>
+<g id="hh"><path d="M-3 8 L-2 -38 L0 -42 L2 -38 L3 8Z" class="ln" stroke-width=".7" fill="rgba(219,233,255,.12)"/></g>
+<g id="mh"><path d="M-2 10 L-1.2 -60 L0 -64 L1.2 -60 L2 10Z" class="ln" stroke-width=".7" fill="rgba(219,233,255,.12)"/></g>
+<g id="sh"><line y1="14" y2="-66" class="ln" stroke-width=".4"/></g>
+<path id="arc" class="ln" stroke-width=".4"/><text id="arct" font-size="4.2"></text>
+<line x1="-72" y1="80" x2="72" y2="80" class="ln" stroke-width=".3" marker-start="url(#a)" marker-end="url(#a)"/><text y="78" text-anchor="middle" font-size="4">Ø 144.00</text>
+</g>
+<defs><marker id="a" viewBox="0 0 6 6" refX="3" refY="3" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M0 0 L6 3 L0 6Z" fill="#dbe9ff"/></marker></defs>
+<g transform="translate(186 20)" font-size="5">
+<text font-size="6">DETAIL A — TIME OF DAY</text>
+<text y="22" font-size="22" id="t"></text>
+<text y="34" id="sec"></text>
+<text y="50">HOUR HAND ∠</text><text x="62" y="50" id="ha"></text>
+<text y="58">MINUTE HAND ∠</text><text x="62" y="58" id="ma"></text>
+<text y="66">SECOND HAND ∠</text><text x="62" y="66" id="sa"></text>
+</g>
+<g transform="translate(180 130)" font-size="4.5">
+<rect width="112" height="56" class="ln" stroke-width=".5"/><line y1="14" x2="112" y2="14" class="ln" stroke-width=".3"/><line y1="28" x2="112" y2="28" class="ln" stroke-width=".3"/><line y1="42" x2="112" y2="42" class="ln" stroke-width=".3"/><line x1="34" x2="34" y2="56" class="ln" stroke-width=".3"/>
+<text x="3" y="9">PROJECT</text><text x="38" y="9">CHRONOMETER MK-I</text>
+<text x="3" y="23">DATE</text><text x="38" y="23" id="d"></text>
+<text x="3" y="37">WEEKDAY</text><text x="38" y="37" id="w"></text>
+<text x="3" y="51">SHEET</text><text x="38" y="51" id="sheet"></text>
+</g>
+</svg></div>
+<script>
+const NS="http://www.w3.org/2000/svg",tk=document.getElementById('tk');
+for(let i=0;i<60;i++){const l=document.createElementNS(NS,'line');l.setAttribute('y1',-72);l.setAttribute('y2',i%5?-69:-64);l.setAttribute('class','ln');l.setAttribute('stroke-width',i%5?.3:.7);l.setAttribute('transform',`rotate(${i*6})`);tk.appendChild(l);
+if(i%5==0){const t=document.createElementNS(NS,'text'),a=i*Math.PI/30;t.setAttribute('x',Math.sin(a)*58);t.setAttribute('y',-Math.cos(a)*58+1.6);t.setAttribute('font-size',5);t.setAttribute('text-anchor','middle');t.textContent=String(i/5||12);tk.appendChild(t)}}
+const $=id=>document.getElementById(id);
+function tick(){const d=new Date(),s=d.getSeconds(),m=d.getMinutes()+s/60,h=d.getHours()%12+m/60,ha=h*30,ma=m*6,sa=s*6,p=n=>String(n).padStart(2,'0');
+$('hh').setAttribute('transform',`rotate(${ha})`);$('mh').setAttribute('transform',`rotate(${ma})`);$('sh').setAttribute('transform',`rotate(${sa})`);
+// dimension arc between hour and minute hands
+const r=24,a1=(ha-90)*Math.PI/180,a2=(ma-90)*Math.PI/180,diff=((ma-ha)%360+360)%360;
+$('arc').setAttribute('d',`M${Math.cos(a1)*r} ${Math.sin(a1)*r} A${r} ${r} 0 ${diff>180?1:0} 1 ${Math.cos(a2)*r} ${Math.sin(a2)*r}`);
+const am=a1+diff/2*Math.PI/180;$('arct').setAttribute('x',Math.cos(am)*(r+6)-6);$('arct').setAttribute('y',Math.sin(am)*(r+6)+1.5);$('arct').textContent=diff.toFixed(1)+'°';
+$('t').textContent=p(d.getHours())+':'+p(d.getMinutes());$('sec').textContent='+'+p(s)+' s  TOL ±0.5 s';
+$('ha').textContent=ha.toFixed(2)+'°';$('ma').textContent=ma.toFixed(2)+'°';$('sa').textContent=sa.toFixed(2)+'°';
+$('d').textContent=d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());$('w').textContent=d.toLocaleDateString('en',{weekday:'long'}).toUpperCase();
+const doy=Math.floor((new Date(d.getFullYear(),d.getMonth(),d.getDate())-new Date(d.getFullYear(),0,0))/864e5);$('sheet').textContent=doy+' OF 365'}
+tick();setInterval(tick,250);
+</script></body></html>

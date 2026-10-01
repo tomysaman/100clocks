@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Swiss Poster</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#f2efe8;color:#111;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif}
+.g{position:fixed;inset:4vmin;display:grid;grid-template-columns:repeat(12,1fr);grid-template-rows:repeat(8,1fr);gap:1vmin}
+.hh,.mm{font-weight:900;line-height:.78;letter-spacing:-.07em;font-size:min(36vw,58vh)}
+.hh{grid-column:1/8;grid-row:1/6;align-self:start}
+.mm{grid-column:5/13;grid-row:4/9;align-self:end;justify-self:end;color:#e3261b}
+.circ{grid-column:9/12;grid-row:1/4;align-self:center;justify-self:center;width:min(22vw,34vh);aspect-ratio:1;border-radius:50%;background:#111;position:relative}
+.circ i{position:absolute;left:50%;top:50%;width:46%;height:.8vmin;background:#f2efe8;transform-origin:0 50%;margin-top:-.4vmin}
+.info{grid-column:1/5;grid-row:7/9;align-self:end;font-size:clamp(10px,1.7vmin,17px);line-height:1.35;text-transform:uppercase;letter-spacing:.04em}
+.info b{display:block;font-size:2.2em;letter-spacing:-.03em;text-transform:none}
+.rule{grid-column:1/13;grid-row:6/7;align-self:center;height:.6vmin;background:#111}
+.sec{grid-column:12/13;grid-row:1/2;justify-self:end;font-weight:700;font-size:clamp(12px,2.6vmin,26px)}
+@media (max-aspect-ratio:1/1){.hh,.mm{font-size:min(56vw,30vh)}.hh{grid-column:1/13}.mm{grid-column:1/13}.circ{grid-column:8/13;grid-row:5/7;width:min(30vw,18vh)}.info{grid-column:1/8}}
+</style></head><body>
+<div class="g"><div class="hh" id="h"></div><div class="circ"><i id="sh"></i></div><div class="rule"></div><div class="mm" id="m"></div><div class="sec" id="s"></div>
+<div class="info"><b id="wd"></b><span id="d"></span><br><span id="w"></span></div></div>
+<script>
+function tick(){const d=new Date(),p=n=>String(n).padStart(2,'0');
+document.getElementById('h').textContent=p(d.getHours());document.getElementById('m').textContent=p(d.getMinutes());document.getElementById('s').textContent=p(d.getSeconds());
+document.getElementById('sh').style.transform=`rotate(${(d.getSeconds()+d.getMilliseconds()/1000)*6-90}deg)`;
+document.getElementById('wd').textContent=d.toLocaleDateString(undefined,{weekday:'long'});
+document.getElementById('d').textContent=d.toLocaleDateString(undefined,{day:'numeric',month:'long',year:'numeric'});
+const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())),n=t.getUTCDay()||7;t.setUTCDate(t.getUTCDate()+4-n);
+document.getElementById('w').textContent='Kalenderwoche '+Math.ceil(((t-Date.UTC(t.getUTCFullYear(),0,1))/864e5+1)/7);requestAnimationFrame(tick)}
+tick();
+</script></body></html>

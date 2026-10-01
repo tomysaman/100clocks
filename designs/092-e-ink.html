@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>E-Ink Display</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#3a3a3a;font-family:Georgia,"Times New Roman",serif}
+.wrap{height:100%;display:flex;align-items:center;justify-content:center}
+.dev{width:min(92vw,140vh);aspect-ratio:1.45;background:#d8d6cf;border-radius:2.4vmin;padding:3.5vmin;box-sizing:border-box;box-shadow:0 2vmin 5vmin rgba(0,0,0,.5);container-type:size}
+.scr{position:relative;width:100%;height:100%;background:#e9e7df;color:#1c1c1c;display:grid;grid-template-columns:1.5fr 1fr;grid-template-rows:auto 1fr auto;overflow:hidden;filter:contrast(1.05)}
+.scr::after{content:"";position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='1.2'/%3E%3C/filter%3E%3Crect width='80' height='80' filter='url(%23n)' opacity='.06'/%3E%3C/svg%3E");pointer-events:none}
+.hd{grid-column:1/3;display:flex;justify-content:space-between;padding:2cqh 3cqw;border-bottom:.4cqh solid #1c1c1c;font-size:3.4cqh}
+.t{display:flex;align-items:center;justify-content:center;font-size:30cqh;font-weight:bold;letter-spacing:-.03em;border-right:.4cqh solid #1c1c1c}
+.cal{padding:2cqh 2cqw;font-size:3.2cqh;display:flex;flex-direction:column;justify-content:center}
+.cal table{border-collapse:collapse;width:100%;text-align:center}
+.cal th{font-weight:normal;font-size:.8em;padding-bottom:.6cqh}
+.cal td{padding:.5cqh 0}.cal td.td{background:#1c1c1c;color:#e9e7df}
+.cal .mo{text-align:center;font-weight:bold;margin-bottom:1cqh}
+.ft{grid-column:1/3;border-top:.4cqh solid #1c1c1c;padding:1.6cqh 3cqw;font-size:3cqh;display:flex;justify-content:space-between}
+.flash{animation:fl .6s steps(3)}
+@keyframes fl{0%{filter:invert(1)}33%{filter:invert(0)}66%{filter:invert(1)}100%{filter:invert(0)}}
+</style></head><body>
+<div class="wrap"><div class="dev"><div class="scr" id="scr">
+<div class="hd"><span id="wd"></span><span id="bat">▮▮▮▯ 74%</span></div>
+<div class="t" id="t"></div><div class="cal" id="cal"></div>
+<div class="ft"><span id="dd"></span><span>refreshes once a minute</span></div>
+</div></div></div>
+<script>
+let lastM=-1;
+function render(d){const p=n=>String(n).padStart(2,'0'),y=d.getFullYear(),m=d.getMonth();
+document.getElementById('t').textContent=p(d.getHours())+':'+p(d.getMinutes());
+document.getElementById('wd').textContent=d.toLocaleDateString(undefined,{weekday:'long'});
+document.getElementById('dd').textContent=d.toLocaleDateString(undefined,{day:'numeric',month:'long',year:'numeric'});
+const first=(new Date(y,m,1).getDay()+6)%7,dim=new Date(y,m+1,0).getDate();let h=`<div class="mo">${d.toLocaleDateString(undefined,{month:'long',year:'numeric'})}</div><table><tr>${['M','T','W','T','F','S','S'].map(x=>`<th>${x}</th>`).join('')}</tr><tr>`;
+for(let i=0;i<first;i++)h+='<td></td>';for(let k=1;k<=dim;k++){h+=`<td class="${k===d.getDate()?'td':''}">${k}</td>`;if((first+k)%7===0&&k<dim)h+='</tr><tr>'}
+document.getElementById('cal').innerHTML=h+'</tr></table>';
+const s=document.getElementById('scr');s.classList.remove('flash');void s.offsetWidth;s.classList.add('flash')}
+function tick(){const d=new Date();if(d.getMinutes()!==lastM){lastM=d.getMinutes();render(d)}}
+tick();setInterval(tick,1000);
+</script></body></html>

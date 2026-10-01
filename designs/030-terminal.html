@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Terminal</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#1e1e2e;font-family:"Cascadia Mono",Consolas,"Courier New",monospace}
+.win{position:absolute;inset:4vmin;background:#11111b;border-radius:10px;box-shadow:0 2vmin 5vmin rgba(0,0,0,.5);display:flex;flex-direction:column;overflow:hidden}
+.bar{height:32px;background:#181825;display:flex;align-items:center;gap:8px;padding:0 14px;flex:none}
+.bar i{width:12px;height:12px;border-radius:50%}.bar span{color:#6c7086;font-size:12px;margin-left:auto;margin-right:auto}
+.body{flex:1;padding:2vmin 3vmin;color:#cdd6f4;font-size:clamp(10px,1.9vmin,18px);line-height:1.45;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end}
+pre{margin:0;font:inherit;white-space:pre}
+.big{color:#a6e3a1;line-height:1;font-size:clamp(5px,min(1.35vw,2.3vh),18px);margin:1vh 0}
+.p{color:#89b4fa}.u{color:#f9e2af}.c{color:#f5c2e7}
+.cur{display:inline-block;width:.6em;height:1.1em;background:#cdd6f4;vertical-align:text-bottom;animation:b 1s steps(1) infinite}
+@keyframes b{50%{opacity:0}}
+</style></head><body>
+<div class="win"><div class="bar"><i style="background:#f38ba8"></i><i style="background:#f9e2af"></i><i style="background:#a6e3a1"></i><span>user@clock: ~</span></div>
+<div class="body" id="b"></div></div>
+<script>
+const F={'0':[14,17,19,21,25,17,14],'1':[4,12,4,4,4,4,14],'2':[14,17,1,2,4,8,31],'3':[31,2,4,2,1,17,14],'4':[2,6,10,18,31,2,2],'5':[31,16,30,1,1,17,14],'6':[6,8,16,30,17,17,14],'7':[31,1,2,4,8,8,8],'8':[14,17,17,14,17,17,14],'9':[14,17,17,15,1,2,12],':':[0,4,4,0,4,4,0]};
+function big(s){const L=[];for(let r=0;r<7;r++){L.push([...s].map(ch=>[...Array(5)].map((_,k)=>(F[ch][r]>>(4-k)&1)?'██':'  ').join('')).join('  '))}return L.join('\n')}
+const b=document.getElementById('b'),prompt='<span class="p">user@clock</span>:<span class="u">~</span>$ ';
+const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;');
+let hist=[],typing='',phase=0;
+function render(){const d=new Date(),p=n=>String(n).padStart(2,'0');
+b.innerHTML=hist.join('')+`<pre class="big">${big(p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds()))}</pre>`+`<div>${prompt}${esc(typing)}<span class="cur"></span></div>`}
+const cmds=[d=>['date',d.toString()],d=>['cal | head -1',d.toLocaleDateString(undefined,{month:'long',year:'numeric'})],d=>['uptime',` ${d.toLocaleTimeString()} up ${Math.floor(performance.now()/60000)} min,  1 user`],
+d=>['date +%A,\\ %d\\ %B\\ %Y',d.toLocaleDateString('en-GB',{weekday:'long',day:'2-digit',month:'long',year:'numeric'})],d=>['date -u +%FT%TZ',d.toISOString().slice(0,19)+'Z']];
+let ci=0;
+async function loop(){while(true){const d=new Date(),[cmd,out]=cmds[ci++%cmds.length](d);for(const ch of cmd){typing+=ch;render();await new Promise(r=>setTimeout(r,60+Math.random()*80))}
+hist.push(`<div>${prompt}${esc(cmd)}</div><div class="c">${esc(out)}</div>`);if(hist.length>3)hist.shift();typing='';render();await new Promise(r=>setTimeout(r,4000))}}
+render();setInterval(render,1000);loop();
+</script></body></html>

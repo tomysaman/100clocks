@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Timeline Ruler</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#f6d743;color:#1a1a1a;font-family:"Segoe UI",system-ui,sans-serif}
+.wrap{height:100%;display:flex;flex-direction:column;justify-content:center;gap:4vh}
+.t{text-align:center;font-size:clamp(40px,min(16vw,22vh),260px);font-weight:800;letter-spacing:-.04em;line-height:1}
+canvas{width:100%;height:24vh;display:block}
+.d{text-align:center;font-size:clamp(13px,3vmin,30px);font-weight:600}
+.zoom{position:fixed;bottom:14px;right:14px;display:flex;gap:6px}
+.zoom button{font:600 13px system-ui;border:2px solid #1a1a1a;background:transparent;padding:4px 10px;border-radius:4px;cursor:pointer}
+.zoom button.on{background:#1a1a1a;color:#f6d743}
+</style></head><body>
+<div class="wrap"><div class="t" id="t"></div><canvas id="c"></canvas><div class="d" id="d"></div></div>
+<div class="zoom" id="z"><button data-z="1">1 h</button><button data-z="6">6 h</button><button data-z="24">24 h</button></div>
+<script>
+const c=document.getElementById('c'),x=c.getContext('2d');let span=1;try{span=+localStorage.getItem('ruler-span')||1}catch(e){}
+document.querySelectorAll('#z button').forEach(b=>{b.onclick=()=>{span=+b.dataset.z;try{localStorage.setItem('ruler-span',span)}catch(e){}mark()}});
+function mark(){document.querySelectorAll('#z button').forEach(b=>b.classList.toggle('on',+b.dataset.z===span))}mark();
+function size(){const b=c.getBoundingClientRect(),p=devicePixelRatio||1;c.width=b.width*p;c.height=b.height*p}addEventListener('resize',size);size();
+function draw(){const d=new Date(),W=c.width,H=c.height,now=d.getTime(),pxPerMs=W/(span*3600e3),mid=W/2;
+x.clearRect(0,0,W,H);x.fillStyle='#1a1a1a';x.fillRect(0,H*.5-1,W,2);
+const step=span===1?60e3:span===6?300e3:900e3,lab=[300e3,600e3,900e3,1800e3,3600e3,3*3600e3,6*3600e3].find(v=>v>=step&&v*pxPerMs>=H*.11*3.6)||6*3600e3;
+const start=Math.floor((now-mid/pxPerMs)/step)*step;
+x.textAlign='center';x.font=`600 ${H*.11}px Segoe UI`;
+for(let t=start;t<now+mid/pxPerMs+step;t+=step){const X=mid+(t-now)*pxPerMs,tt=new Date(t),big=(t-tt.getTimezoneOffset()*60e3)%lab===0,hl=tt.getMinutes()===0;
+x.fillRect(X-(hl?1.5:.75),H*.5-(big?H*.22:H*.1),hl?3:1.5,big?H*.22:H*.1);
+if(big){x.fillText(String(tt.getHours()).padStart(2,'0')+':'+String(tt.getMinutes()).padStart(2,'0'),X,H*.2)}
+if(tt.getHours()===0&&tt.getMinutes()===0){x.font=`700 ${H*.1}px Segoe UI`;x.fillText(tt.toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short'}),X,H*.85);x.font=`600 ${H*.11}px Segoe UI`}}
+x.fillStyle='#e0301e';x.beginPath();x.moveTo(mid-H*.07,H*.95);x.lineTo(mid+H*.07,H*.95);x.lineTo(mid,H*.62);x.fill();x.fillRect(mid-1.5,H*.05,3,H*.6);
+document.getElementById('t').textContent=d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+document.getElementById('d').textContent=d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'});requestAnimationFrame(draw)}
+draw();
+</script></body></html>

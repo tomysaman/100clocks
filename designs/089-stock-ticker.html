@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Stock Ticker</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#0b0e13;color:#d6dde6;font-family:"Consolas","Cascadia Mono",monospace}
+.wrap{position:fixed;inset:0;display:flex;flex-direction:column}
+.tape{flex:none;height:6vh;display:flex;align-items:center;background:#111823;border-bottom:1px solid #223;overflow:hidden;white-space:nowrap;font-size:clamp(11px,2.4vh,22px)}
+.tape div{display:inline-block;animation:sc 40s linear infinite;padding-left:100%}
+@keyframes sc{to{transform:translateX(-100%)}}
+.up{color:#26d07c}.dn{color:#ff5a5f}
+.main{flex:1;display:flex;flex-direction:column;justify-content:center;padding:0 5vw;gap:1vh;min-height:0}
+.sym{font-size:clamp(12px,2.6vmin,26px);color:#8a99ad}
+.px{font-size:clamp(40px,min(14vw,20vh),220px);font-weight:bold;color:#fff;line-height:1;font-variant-numeric:tabular-nums}
+.chg{font-size:clamp(14px,3.4vmin,34px)}
+canvas{width:100%;height:30vh}
+.foot{flex:none;display:flex;justify-content:space-between;padding:1.4vh 3vw;border-top:1px solid #223;font-size:clamp(10px,1.9vmin,18px);color:#8a99ad}
+</style></head><body>
+<div class="wrap"><div class="tape"><div id="tape"></div></div>
+<div class="main"><div class="sym">NYSE: TIME · Real-time quote</div><div class="px" id="px"></div><div class="chg up" id="chg"></div><canvas id="c"></canvas></div>
+<div class="foot"><span id="d"></span><span>MARKET <b class="up" id="mk"></b></span><span>VOL <span id="vol"></span></span></div></div>
+<script>
+const c=document.getElementById('c'),x=c.getContext('2d');function size(){const b=c.getBoundingClientRect(),p=devicePixelRatio||1;c.width=b.width*p;c.height=b.height*p}addEventListener('resize',size);size();
+let lastMin=-1;
+function tape(d){const p=n=>String(n).padStart(2,'0'),it=[['HRS',d.getHours(),1],['MIN',d.getMinutes(),1],['DAY',d.getDate(),0],['MON',d.getMonth()+1,1],['YR',d.getFullYear(),1],['WEEK',Math.ceil(d.getDate()/7),0],['DOY',Math.floor((d-new Date(d.getFullYear(),0,0))/864e5),1],['NOON',Math.abs(12-d.getHours()),d.getHours()<12?1:0]];
+return it.map(([s,v,u])=>`<span>${s} <b>${v}</b> <span class="${u?'up':'dn'}">${u?'▲':'▼'} ${(Math.random()*3).toFixed(2)}%</span></span>`).join(' &nbsp;&nbsp;·&nbsp;&nbsp; ')}
+function draw(){const d=new Date(),p=n=>String(n).padStart(2,'0'),W=c.width,H=c.height;
+document.getElementById('px').textContent=p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds());
+const pct=((d.getHours()*3600+d.getMinutes()*60+d.getSeconds())/86400*100);document.getElementById('chg').textContent=`▲ +${d.getSeconds()} s (${pct.toFixed(2)}% of day)`;
+if(d.getMinutes()!==lastMin){lastMin=d.getMinutes();document.getElementById('tape').innerHTML=tape(d)}
+// candlestick chart: one candle per minute of the last hour (deterministic pseudo prices around the minute value)
+x.clearRect(0,0,W,H);const n=60,cw=W/n;const now=Math.floor(Date.now()/60000);
+const rnd=s=>{const v=Math.sin(s*12.9898)*43758.5453;return v-Math.floor(v)};
+let prices=[];for(let i=0;i<n;i++){const m=now-n+1+i,base=(m%1440)/1440+.004*Math.sin(m/7)+.003*Math.sin(m/2.3)+.002*rnd(m+9);prices.push(base)}
+const lo=Math.min(...prices)-.003,hi=Math.max(...prices)+.003,Y=v=>H-(v-lo)/(hi-lo)*H*.9-H*.05;
+x.strokeStyle='rgba(255,255,255,.05)';for(let i=1;i<4;i++){x.beginPath();x.moveTo(0,H*i/4);x.lineTo(W,H*i/4);x.stroke()}
+prices.forEach((v,i)=>{const m=now-n+1+i,o=v-.0006+rnd(m)*.0004,cl=v+(i===n-1?d.getSeconds()/60*.0007:.0007),h=Math.max(o,cl)+rnd(m+1)*.0008,l=Math.min(o,cl)-rnd(m+2)*.0008,up=cl>=o;
+x.strokeStyle=x.fillStyle=up?'#26d07c':'#ff5a5f';x.beginPath();x.moveTo(i*cw+cw/2,Y(h));x.lineTo(i*cw+cw/2,Y(l));x.stroke();x.fillRect(i*cw+cw*.2,Math.min(Y(o),Y(cl)),cw*.6,Math.max(1,Math.abs(Y(o)-Y(cl))))});
+document.getElementById('d').textContent=d.toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+document.getElementById('mk').textContent=d.getDay()%6?'OPEN':'CLOSED (WEEKEND)';document.getElementById('vol').textContent=(Date.now()/1000|0).toLocaleString();requestAnimationFrame(draw)}
+draw();
+</script></body></html>
