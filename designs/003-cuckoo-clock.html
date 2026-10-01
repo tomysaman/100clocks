@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cuckoo Clock</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;font-family:Georgia,serif}
+body{background:#d9c9a3 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='120'%3E%3Cpath d='M40 10 C55 30 55 50 40 60 C25 50 25 30 40 10Z M0 70 C15 90 15 110 0 120 M80 70 C65 90 65 110 80 120' fill='%23a08a5c' fill-opacity='.18'/%3E%3C/svg%3E")}
+body::after{content:"";position:fixed;inset:0;background:radial-gradient(ellipse at 50% 35%,rgba(255,240,210,.35),rgba(60,40,20,.45) 80%);pointer-events:none}
+svg{position:fixed;inset:0;width:100%;height:100%;z-index:1}
+.tip{position:fixed;left:12px;bottom:10px;font:12px system-ui;color:#4a3820;z-index:2}
+</style></head><body>
+<svg id="s" viewBox="0 -10 300 470" preserveAspectRatio="xMidYMid meet">
+<defs>
+<filter id="wood" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".01 .25" numOctaves="3" seed="8" result="t"/><feColorMatrix in="t" values="0 0 0 0 .18 0 0 0 0 .08 0 0 0 0 .02 0 0 0 .75 0" result="g"/><feComposite in="g" in2="SourceGraphic" operator="in" result="gc"/><feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="gc"/></feMerge></filter>
+<linearGradient id="wd" x1="0" x2="1"><stop offset="0" stop-color="#4a2a12"/><stop offset=".5" stop-color="#7a4a22"/><stop offset="1" stop-color="#3e220c"/></linearGradient>
+<linearGradient id="leafG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8a5a2c"/><stop offset=".5" stop-color="#5a3414"/><stop offset="1" stop-color="#2e1a08"/></linearGradient>
+<linearGradient id="shingle" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6a4020"/><stop offset="1" stop-color="#3a200c"/></linearGradient>
+<radialGradient id="face" cx="45%" cy="40%"><stop offset="0" stop-color="#fbf3dc"/><stop offset="1" stop-color="#e2cfa2"/></radialGradient>
+<linearGradient id="brass" x1="0" x2="1"><stop offset="0" stop-color="#7a5a18"/><stop offset=".45" stop-color="#f4d77a"/><stop offset=".6" stop-color="#c9a24a"/><stop offset="1" stop-color="#6a4a10"/></linearGradient>
+<radialGradient id="cone" cx="40%" cy="30%"><stop offset="0" stop-color="#8a5a2a"/><stop offset="1" stop-color="#3a2008"/></radialGradient>
+<filter id="ds" x="-20%" y="-10%" width="140%" height="130%"><feDropShadow dx="6" dy="10" stdDeviation="7" flood-color="#2a1808" flood-opacity=".55"/></filter>
+<filter id="ls" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="1.5" dy="2.5" stdDeviation="1.4" flood-color="#1a0c02" flood-opacity=".6"/></filter>
+<clipPath id="door"><rect x="135" y="80" width="30" height="30"/></clipPath>
+<clipPath id="roofc"><path d="M50 128 L150 40 L250 128 Z"/></clipPath>
+<path id="leaf" d="M0 0 C6 -10 18 -14 30 -12 C22 -6 18 2 10 6 C16 6 22 10 26 16 C14 18 6 12 0 0Z"/>
+</defs>
+<!-- chains and pine-cone weights -->
+<g id="chains"></g>
+<!-- pendulum: carved leaf on a wooden rod -->
+<g id="pend"><rect x="148.5" y="250" width="3" height="120" fill="#5a3414"/>
+<g transform="translate(150 382)" filter="url(#ls)"><path d="M0 -26 C16 -18 20 0 0 26 C-20 0 -16 -18 0 -26Z" fill="url(#leafG)"/><path d="M0 -22 V22 M0 -8 L8 -14 M0 0 L10 -6 M0 8 L9 2 M0 -8 L-8 -14 M0 0 L-10 -6 M0 8 L-9 2" stroke="#2e1a08" stroke-width="1"/></g></g>
+<g filter="url(#ds)">
+<!-- case -->
+<rect x="70" y="122" width="160" height="140" rx="4" fill="url(#wd)" filter="url(#wood)"/>
+<rect x="70" y="250" width="160" height="14" fill="#3a200c"/><rect x="64" y="258" width="172" height="8" rx="2" fill="#4a2a12"/>
+<!-- roof with shingles -->
+<path d="M50 128 L150 40 L250 128 Z" fill="url(#shingle)"/>
+<g clip-path="url(#roofc)" id="shingles"></g>
+<path d="M42 132 L150 34 L258 132" fill="none" stroke="#2a1606" stroke-width="7" stroke-linecap="round"/>
+<path d="M42 132 L150 34 L258 132" fill="none" stroke="#8a5a2c" stroke-width="1.6" transform="translate(0 -2.5)"/>
+</g>
+<!-- carved leaves framing the case -->
+<g id="carving" filter="url(#ls)"></g>
+<!-- carved bird on the roof peak -->
+<g transform="translate(150 30)" filter="url(#ls)"><path d="M-18 6 C-14 -10 6 -14 16 -6 L26 -10 L20 -2 C22 6 14 14 0 14 C-10 14 -18 12 -18 6Z" fill="url(#leafG)"/><circle cx="12" cy="-4" r="1.6" fill="#1a0c02"/>
+<path d="M-18 6 L-30 2 L-26 10Z" fill="#4a2a10"/><path d="M-6 4 C0 -2 8 0 10 6" fill="none" stroke="#2a1606" stroke-width="1.2"/></g>
+<!-- bird door and bird -->
+<rect x="131" y="76" width="38" height="38" rx="2" fill="#2a1606"/>
+<g id="bclip" clip-path="url(#door)"><g id="bird">
+<ellipse cx="150" cy="96" rx="12" ry="8" fill="#6b4a2a"/><circle cx="140" cy="91" r="6" fill="#7a5530"/><path d="M134 90 l-7 1.5 l7 2z" fill="#f2b33d"/><circle cx="139" cy="89.5" r="1.2" fill="#111"/>
+<path d="M156 92 q10 -5 14 0 q-7 2 -14 5z" fill="#4a3018"/><path d="M144 99 q6 -3 12 0" stroke="#3a2412" fill="none"/></g></g>
+<g id="doors"><path d="M133 78 h17 v34 h-17z" fill="#7a4a22" stroke="#3a200c" stroke-width=".8"/><path d="M150 78 h17 v34 h-17z" fill="#7a4a22" stroke="#3a200c" stroke-width=".8"/>
+<path d="M137 82 h9 v26 h-9z M154 82 h9 v26 h-9z" fill="none" stroke="#4a2a12" stroke-width=".8"/><circle cx="147.5" cy="95" r="1" fill="url(#brass)"/><circle cx="152.5" cy="95" r="1" fill="url(#brass)"/></g>
+<!-- dial -->
+<g transform="translate(150 188)">
+<circle r="50" fill="#2a1606"/><circle r="47" fill="url(#brass)"/><circle r="43" fill="url(#face)"/>
+<circle r="38" fill="none" stroke="#3a2a14" stroke-width=".5"/><circle r="34" fill="none" stroke="#3a2a14" stroke-width=".5"/>
+<g id="ticks"></g><g id="nums" font-size="8" text-anchor="middle" dominant-baseline="central" fill="#2a1a08" font-family="'Times New Roman',serif"></g>
+<!-- ornate hands -->
+<g id="hh" filter="url(#ls)"><path d="M-1.6 6 L-1 -14 C-6 -16 -6 -22 0 -24 C6 -22 6 -16 1 -14 L1.6 6 Z M0 -24 L-1 -27 L0 -30 L1 -27Z" fill="#1d1208"/><circle cy="-19" r="2.2" fill="#e8d4a4"/></g>
+<g id="mh" filter="url(#ls)"><path d="M-1.3 8 L-.8 -26 C-4 -28 -4 -32 0 -33 C4 -32 4 -28 .8 -26 L1.3 8 Z M0 -33 L-.9 -38 L0 -41 L.9 -38 Z" fill="#1d1208"/><circle cy="-29.5" r="1.4" fill="#e8d4a4"/></g>
+<circle r="3" fill="url(#brass)"/>
+</g>
+<!-- date board hanging under the case -->
+<g transform="translate(150 280)"><line x1="-30" y1="-14" x2="-26" y2="0" stroke="#3e2410" stroke-width="1"/><line x1="30" y1="-14" x2="26" y2="0" stroke="#3e2410" stroke-width="1"/>
+<path d="M-44 0 h88 l4 12 l-4 12 h-88 l-4 -12z" fill="#a87442" stroke="#5a3518" stroke-width="1.2" filter="url(#wood)"/>
+<text id="d1" y="10" text-anchor="middle" font-size="8" fill="#2c1808" font-style="italic"></text>
+<text id="d2" y="20" text-anchor="middle" font-size="6.2" fill="#3e2410"></text></g>
+<text id="dt" x="150" y="450" text-anchor="middle" font-size="11" fill="#4a3820" letter-spacing="2"></text>
+</svg>
+<div class="tip" id="tip"></div>
+<script>
+// Black Forest cuckoo clock. The bird calls the hour count on the hour and once at half past; click its door to hear it every minute.
+const NS="http://www.w3.org/2000/svg",$=id=>document.getElementById(id);
+const el=(t,a,p)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);p.appendChild(e);return e};
+// overlapping wooden shingles
+for(let r=0;r<10;r++){const y=44+r*9.4;for(let k=-14;k<14;k++){const sx=150+k*12+(r%2)*6;el('path',{d:`M${sx-6} ${y} h12 v8 q-6 5 -12 0z`,fill:r%2?'#5a3414':'#4e2c10',stroke:'#2a1606','stroke-width':.6},$('shingles'))}}
+// carved leaves: a wreath around the case and the gable
+const C=$('carving');const leaf=(x,y,r,s)=>{const tr=`translate(${x} ${y}) rotate(${r}) scale(${s})`;el('use',{href:'#leaf',fill:'url(#leafG)',transform:tr},C);el('path',{d:'M2 0 C10 -6 18 -9 26 -10',fill:'none',stroke:'#2a1606','stroke-width':.7,transform:tr},C)};
+for(let i=0;i<7;i++){leaf(72,140+i*17,-30-i*4,.9);leaf(228,140+i*17,-150+i*4,.9)}
+for(let i=0;i<6;i++)leaf(100+i*20,262,10+i*4,.8);
+leaf(118,64,-140,.9);leaf(182,64,-40,.9);leaf(100,82,-150,.8);leaf(200,82,-30,.8);
+// dial ticks and numerals
+for(let i=0;i<60;i++)el('line',{y1:-38,y2:i%5?-36:-34,stroke:'#2a1a08','stroke-width':i%5?.4:1,transform:`rotate(${i*6})`},$('ticks'));
+['XII','I','II','III','IIII','V','VI','VII','VIII','IX','X','XI'].forEach((r,i)=>{const a=i*Math.PI/6,x=Math.sin(a)*27,y=-Math.cos(a)*27;el('text',{x,y,transform:`rotate(${i*30} ${x} ${y})`},$('nums')).textContent=r});
+let every=false;try{every=localStorage.getItem('cuckoo-every')==='1'}catch(e){}
+function tip(){$('tip').textContent=every?'cuckoo every minute · click the bird door for hourly':'cuckoo on the hour and half hour · click the bird door to hear it every minute'}tip();
+$('doors').style.cursor='pointer';$('doors').onclick=$('bird').onclick=()=>{every=!every;try{localStorage.setItem('cuckoo-every',every?'1':'0')}catch(e){}tip();if(every)call(1)};
+let ac,busy=false;
+function coo(){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=='running')return;[[0,698],[.28,587]].forEach(([dt,f])=>{const o=ac.createOscillator(),g=ac.createGain(),t0=ac.currentTime+dt;o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(0,t0);g.gain.linearRampToValueAtTime(.18,t0+.02);g.gain.exponentialRampToValueAtTime(.001,t0+.25);o.connect(g).connect(ac.destination);o.start(t0);o.stop(t0+.3)})}catch(e){}}
+async function call(n){if(busy)return;busy=true;const doors=$('doors'),bird=$('bird'),bc=$('bclip'),w=ms=>new Promise(r=>setTimeout(r,ms)),out=k=>`translate(150 96) scale(${k}) translate(-150 -96)`;
+doors.style.opacity=0;bc.removeAttribute('clip-path');bc.parentNode.appendChild(bc);for(let i=0;i<n;i++){bird.setAttribute('transform',out(1.7));coo();await w(450);bird.setAttribute('transform',out(1.25));await w(350)}
+bird.setAttribute('transform','');await w(200);bc.setAttribute('clip-path','url(#door)');doors.parentNode.insertBefore(bc,doors);doors.style.opacity=1;busy=false}
+document.addEventListener('pointerdown',()=>{try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();ac.resume()}catch(e){}},{once:true});
+// chains of oval links and scaled pine cones; the hour weight drops over 12 h, the minute weight over an hour
+function cone(x,y){let s=`<g transform="translate(${x} ${y})" filter="url(#ls)"><rect x="-2" y="-2" width="4" height="6" fill="url(#brass)"/><path d="M0 4 C11 7 12 22 10 34 C8 44 4 50 0 54 C-4 50 -8 44 -10 34 C-12 22 -11 7 0 4Z" fill="url(#cone)"/>`;
+for(let r=0;r<7;r++)for(let k=-2;k<=2;k++){const yy=10+r*6.4,xx=k*4+(r%2)*2,wid=10-Math.abs(r-3)*1.2;if(Math.abs(xx)>wid)continue;s+=`<path d="M${xx-2.6} ${yy} q2.6 4 5.2 0" fill="none" stroke="#2a1404" stroke-width=".9"/><path d="M${xx-2} ${yy+.6} q2 2.4 4 0" fill="none" stroke="#a87442" stroke-width=".4" opacity=".6"/>`}
+return s+'</g>'}
+function chains(h,m){const hy=280+(h%12)/12*90,my=280+m/60*90;let s='';[[96,hy],[204,my]].forEach(([x,y])=>{for(let yy=262;yy<y;yy+=5)s+=`<ellipse cx="${x}" cy="${yy}" rx="${((yy/5)|0)%2?1.2:2.2}" ry="2.6" fill="none" stroke="url(#brass)" stroke-width="1"/>`;s+=cone(x,y)});$('chains').innerHTML=s}
+let lastKey='';
+function tick(){const d=new Date(),s=d.getSeconds()+d.getMilliseconds()/1000,m=d.getMinutes()+s/60,h=d.getHours()%12+m/60;
+$('hh').setAttribute('transform',`rotate(${h*30})`);$('mh').setAttribute('transform',`rotate(${m*6})`);
+$('pend').setAttribute('transform',`rotate(${Math.sin(s*Math.PI)*6} 150 250)`);chains(d.getHours()+m/60,m);
+const key=d.getHours()+':'+d.getMinutes();if(key!==lastKey){if(lastKey){if(every)call(1);else if(d.getMinutes()===0)call(d.getHours()%12||12);else if(d.getMinutes()===30)call(1)}lastKey=key}
+$('d1').textContent=d.toLocaleDateString(undefined,{weekday:'long'});$('d2').textContent=d.toLocaleDateString(undefined,{day:'numeric',month:'long',year:'numeric'});
+$('dt').textContent=d.toLocaleTimeString();requestAnimationFrame(tick)}
+tick();
+</script></body></html>

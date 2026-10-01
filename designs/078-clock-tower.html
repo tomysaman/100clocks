@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Clock Tower</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;font-family:"Palatino Linotype",Palatino,Georgia,serif}
+body{background:#0b1430;transition:background 2s}
+svg{position:fixed;inset:0;width:100%;height:100%;overflow:visible}
+</style></head><body>
+<svg id="s" viewBox="0 -75 1600 1075" preserveAspectRatio="xMidYMax meet">
+<defs>
+<linearGradient id="sky" gradientUnits="userSpaceOnUse" x1="0" y1="-150" x2="0" y2="1000"><stop id="sk0" offset="0"/><stop id="sk1" offset=".75"/><stop id="sk2" offset="1"/></linearGradient>
+<pattern id="brick" width="28" height="14" patternUnits="userSpaceOnUse"><rect width="28" height="14" fill="var(--stone)"/><rect x="1" y="1" width="12" height="5.5" fill="#fff" opacity=".06"/><rect x="15" y="1" width="12" height="5.5" fill="#000" opacity=".06"/><rect x="8" y="8" width="12" height="5" fill="#fff" opacity=".04"/><path d="M0 7 H28 M0 13.5 H28 M14 0 V7 M7 7 V14 M21 7 V14" stroke="rgba(0,0,0,.22)" stroke-width="1.2"/><path d="M0 .6 H28" stroke="rgba(255,255,255,.08)"/></pattern>
+<pattern id="slate" width="16" height="12" patternUnits="userSpaceOnUse"><rect width="16" height="12" fill="#2f5650"/><path d="M0 12 A8 8 0 0 1 16 12 M-8 6 A8 8 0 0 1 8 6 M8 6 A8 8 0 0 1 24 6" fill="none" stroke="rgba(0,0,0,.35)" stroke-width="1.2"/><path d="M2 11 A6 6 0 0 1 8 6" fill="none" stroke="rgba(255,255,255,.12)"/></pattern>
+<filter id="cloudBlur" x="-20%" y="-50%" width="140%" height="200%"><feGaussianBlur stdDeviation="6"/></filter>
+<pattern id="cobble" width="22" height="12" patternUnits="userSpaceOnUse"><rect width="22" height="12" fill="var(--street)"/><ellipse cx="6" cy="3.5" rx="5" ry="2.6" fill="#fff" opacity=".07"/><ellipse cx="17" cy="9" rx="5" ry="2.6" fill="#fff" opacity=".05"/></pattern>
+<linearGradient id="shade" x1="0" x2="1"><stop offset="0" stop-color="#000" stop-opacity="0"/><stop offset=".7" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".35"/></linearGradient>
+<radialGradient id="faceG" cx="50%" cy="45%"><stop offset="0" stop-color="var(--face1)"/><stop offset="1" stop-color="var(--face2)"/></radialGradient>
+<radialGradient id="glow"><stop offset="0" stop-color="#ffe9a8" stop-opacity=".55"/><stop offset="1" stop-color="#ffe9a8" stop-opacity="0"/></radialGradient>
+<radialGradient id="lampG"><stop offset="0" stop-color="#ffd27a" stop-opacity=".8"/><stop offset="1" stop-color="#ffd27a" stop-opacity="0"/></radialGradient>
+<linearGradient id="gold" x1="0" x2="1"><stop offset="0" stop-color="#8a6420"/><stop offset=".5" stop-color="#f4d77a"/><stop offset="1" stop-color="#8a6420"/></linearGradient>
+<linearGradient id="roofG" x1="0" x2="1"><stop offset="0" stop-color="#2a4a46"/><stop offset=".5" stop-color="#4f7d72"/><stop offset="1" stop-color="#1e3a36"/></linearGradient>
+<path id="bird" d="M-8 0 Q-4 -5 0 0 Q4 -5 8 0" fill="none" stroke="#2b2b35" stroke-width="1.8" stroke-linecap="round"/>
+</defs>
+<rect x="-2000" y="-1500" width="5600" height="2600" fill="url(#sky)"/>
+<g id="stars"></g>
+<g id="sunmoon"></g>
+<g id="clouds" opacity=".8" filter="url(#cloudBlur)"></g>
+<!-- far skyline -->
+<g id="far"></g>
+<!-- near buildings -->
+<g id="near"></g>
+<!-- the tower -->
+<g id="tower">
+<rect x="690" y="330" width="220" height="700" fill="url(#brick)"/>
+<rect x="690" y="330" width="220" height="700" fill="url(#shade)"/>
+<!-- corner buttresses with stone quoins -->
+<rect x="676" y="300" width="24" height="730" fill="url(#brick)"/><rect x="900" y="300" width="24" height="730" fill="url(#brick)"/><g id="quoins"></g>
+<rect x="900" y="300" width="24" height="730" fill="#000" opacity=".28"/>
+<!-- cornice -->
+<rect x="662" y="292" width="276" height="16" fill="var(--trim)"/><rect x="668" y="560" width="264" height="12" fill="var(--trim)"/>
+<!-- belfry -->
+<g><rect x="706" y="208" width="188" height="86" fill="url(#brick)"/>
+<path d="M730 294 V246 a18 18 0 0 1 36 0 V294 Z M782 294 V246 a18 18 0 0 1 36 0 V294 Z M834 294 V246 a18 18 0 0 1 36 0 V294 Z" fill="#141422"/>
+<g id="bell"><path d="M788 262 Q788 250 800 250 Q812 250 812 262 L815 278 H785Z" fill="url(#gold)"/><circle cx="800" cy="281" r="3" fill="url(#gold)"/></g></g>
+<rect x="698" y="200" width="204" height="10" fill="var(--trim)"/>
+<!-- spire -->
+<path d="M698 202 L800 36 L902 202 Z" fill="url(#roofG)"/><path d="M698 202 L800 36 L902 202 Z" fill="url(#slate)" opacity=".75"/><path d="M800 36 L902 202 L800 202Z" fill="#000" opacity=".2"/>
+<path d="M800 36 L800 202" stroke="rgba(0,0,0,.25)" stroke-width="2"/>
+<path d="M698 202 L800 36" stroke="rgba(255,255,255,.18)" stroke-width="2"/>
+<g fill="url(#roofG)"><path d="M664 300 L676 240 L688 300Z"/><path d="M912 300 L924 240 L936 300Z"/></g>
+<line x1="800" y1="36" x2="800" y2="-34" stroke="url(#gold)" stroke-width="3"/><circle cx="800" cy="-36" r="4" fill="url(#gold)"/><path id="flag" fill="#8c1d24"/>
+<!-- clock -->
+<circle cx="800" cy="430" r="150" fill="url(#glow)" id="halo"/>
+<rect x="702" y="332" width="196" height="196" fill="var(--trim)" opacity=".85"/><rect x="708" y="338" width="184" height="184" fill="none" stroke="#000" stroke-opacity=".25" stroke-width="2"/><g fill="url(#gold)" opacity=".9"><path d="M712 342 h30 q-26 4 -30 30z"/><path d="M888 342 h-30 q26 4 30 30z"/><path d="M712 518 h30 q-26 -4 -30 -30z"/><path d="M888 518 h-30 q26 -4 30 -30z"/></g><circle cx="800" cy="430" r="94" fill="none" stroke="var(--trim)" stroke-width="6"/>
+<circle cx="800" cy="430" r="90" fill="url(#gold)"/>
+<circle cx="800" cy="430" r="84" fill="#2a2620"/>
+<circle cx="800" cy="430" r="80" fill="url(#faceG)"/>
+<g id="ticks"></g>
+<g id="nums" font-size="13" text-anchor="middle" dominant-baseline="central" fill="#1a1712" font-family="'Times New Roman',serif" font-weight="bold"></g>
+<g id="hh"><path d="M797 438 L798 392 Q800 382 802 392 L803 438Z" fill="#14120e"/><circle cx="800" cy="398" r="5" fill="none" stroke="#14120e" stroke-width="2"/></g>
+<g id="mh"><path d="M798 442 L799 366 Q800 356 801 366 L802 442Z" fill="#14120e"/></g>
+<circle cx="800" cy="430" r="5" fill="url(#gold)"/>
+<!-- banner with the date -->
+<g id="banner"><path d="M708 586 H892 L880 618 L892 650 H708 L720 618 Z" fill="#8c1d24"/><path d="M708 586 H892 L880 618 L892 650 H708 L720 618 Z" fill="none" stroke="#d9b45a" stroke-width="1.5"/>
+<text id="bd" x="800" y="604" text-anchor="middle" font-size="13" fill="#f4e6c0" letter-spacing="2"></text>
+<text id="bt" x="800" y="641" text-anchor="middle" font-size="13" fill="#ffd98a" letter-spacing="2"></text>
+<text id="bd2" x="800" y="622" text-anchor="middle" font-size="11" fill="#f4e6c0" letter-spacing="1"></text></g>
+<!-- tall arched windows -->
+<g id="twin"></g>
+<!-- balcony under the clock -->
+<rect x="690" y="570" width="220" height="6" fill="var(--trim)"/><g id="rail"></g>
+<!-- stone plinth and steps -->
+<rect x="664" y="930" width="272" height="56" fill="var(--trim)"/><rect x="656" y="924" width="288" height="8" fill="var(--trim)"/><rect x="740" y="968" width="120" height="8" fill="var(--trim)" opacity=".9"/><rect x="730" y="976" width="140" height="9" fill="var(--trim)"/>
+<!-- door -->
+<path d="M770 1000 V930 a30 30 0 0 1 60 0 V1000 Z" fill="#2a1a10"/><path d="M770 1000 V930 a30 30 0 0 1 60 0" fill="none" stroke="var(--trim)" stroke-width="6"/>
+</g>
+<!-- trees beside the tower -->
+<g id="trees"></g>
+<!-- street: lamps -->
+<g id="lamps"></g>
+<rect x="-2000" y="985" width="5600" height="200" fill="url(#cobble)"/><rect x="-2000" y="985" width="5600" height="4" fill="var(--trim)"/>
+<g id="birds"></g>
+<g id="people"></g>
+<g id="pigeons"></g>
+</svg>
+<script>
+const NS="http://www.w3.org/2000/svg",$=id=>document.getElementById(id);
+const el=(t,a,p)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);p.appendChild(e);return e};
+const rnd=(()=>{let s=7;return()=>(s=(s*16807)%2147483647)/2147483647})();
+// clock face
+for(let i=0;i<60;i++)el('line',{x1:800,y1:354,x2:800,y2:i%5?358:363,stroke:'#1a1712','stroke-width':i%5?1:2.6,transform:`rotate(${i*6} 800 430)`},$('ticks'));
+['XII','I','II','III','IIII','V','VI','VII','VIII','IX','X','XI'].forEach((r,i)=>{const a=i*Math.PI/6,x=800+Math.sin(a)*60,y=430-Math.cos(a)*60;el('text',{x,y,transform:`rotate(${i*30} ${x} ${y})`},$('nums')).textContent=r});
+// tower windows
+for(const y of [680,790,870]){el('path',{d:`M782 ${y+64} V${y+18} Q782 ${y} 800 ${y-6} Q818 ${y} 818 ${y+18} V${y+64} Z`,fill:'var(--trim)'},$('twin'));el('path',{d:`M786 ${y+60} V${y+18} Q786 ${y+4} 800 ${y-1} Q814 ${y+4} 814 ${y+18} V${y+60} Z`,class:'win',fill:'#1b1b2a'},$('twin'));el('line',{x1:800,x2:800,y1:y+2,y2:y+60,stroke:'var(--trim)','stroke-width':2},$('twin'));el('line',{x1:786,x2:814,y1:y+30,y2:y+30,stroke:'var(--trim)','stroke-width':1.5},$('twin'))}
+for(const bx of [676,900])for(let y=310;y<985;y+=36)el('rect',{x:bx+((y/36|0)%2?0:-4),y,width:28+((y/36|0)%2?0:4),height:16,fill:'var(--trim)',opacity:.9},$('quoins'));
+for(const [tx,sc] of [[600,1],[1010,1.1],[470,.8],[1150,.85]]){const g=el('g',{transform:`translate(${tx} 985) scale(${sc})`},$('trees'));el('rect',{x:-6,y:-70,width:12,height:70,fill:'#2a1c12'},g);[[0,-120,52],[-30,-95,38],[30,-95,40],[0,-160,36]].forEach(([a,b,r])=>el('circle',{cx:a,cy:b,r,class:'leaf'},g));el('circle',{cx:-14,cy:-140,r:20,fill:'#fff',opacity:.06},g)}
+// stars
+for(let i=0;i<260;i++)el('circle',{cx:-800+rnd()*3200,cy:-600+rnd()*1300,r:.6+rnd()*1.6,fill:'#fff',opacity:.3+rnd()*.7},$('stars'));
+// clouds
+for(let i=0;i<7;i++){const g=el('g',{class:'cloud'},$('clouds'));g.dataset.x=-800+rnd()*3200;g.dataset.y=60+rnd()*260;g.dataset.v=6+rnd()*10;for(let k=0;k<5;k++)el('ellipse',{cx:k*26-50,cy:(k%2)*-10,rx:40+rnd()*20,ry:20+rnd()*10,fill:'var(--cloud)'},g)}
+// skylines: far (flat colour) and near (with windows that light up at night)
+function skyline(g,y0,hMin,hMax,fill,winP,seed){let x=-900;while(x<2500){const w=50+rnd()*90,h=hMin+rnd()*(hMax-hMin);if(x+w>650&&x<950&&g.id==='near'){x+=w;continue}
+el('rect',{x,y:1000-h-y0,width:w,height:h+y0,fill},g);if(rnd()<.3)el('path',{d:`M${x} ${1000-h-y0} L${x+w/2} ${1000-h-y0-w*.35} L${x+w} ${1000-h-y0}Z`,fill},g);
+if(winP)for(let wy=1000-h-y0+14;wy<985;wy+=22)for(let wx=x+8;wx<x+w-12;wx+=16)el('rect',{x:wx,y:wy,width:8,height:11,class:'w',fill:'#2b2f3a','data-on':rnd()<winP?1:0},g);x+=w+2}}
+skyline($('far'),0,200,420,'var(--far)',0);skyline($('near'),0,90,300,'var(--near)',.45);
+// street lamps
+for(const x of [-300,100,520,1080,1500,1900]){el('circle',{cx:x,cy:880,r:70,fill:'url(#lampG)',class:'lg'},$('lamps'));el('rect',{x:x-3,y:880,width:6,height:110,fill:'#1d1d22'},$('lamps'));el('rect',{x:x-11,y:866,width:22,height:18,rx:3,fill:'#ffe2a0',class:'lb'},$('lamps'))}
+// birds
+for(let k=0;k<=20;k++)el('rect',{x:692+k*10.6,y:548,width:3,height:22,fill:'var(--trim)'},$('rail'));el('rect',{x:690,y:544,width:220,height:5,fill:'var(--trim)'},$('rail'));
+for(const y of [680,790,870])el('rect',{x:778,y:y+62,width:44,height:5,fill:'var(--trim)'},$('twin'));
+for(const [px,flip] of [[680,1],[712,-1],[892,1]]){const g=el('g',{transform:`translate(${px} 292) scale(${flip} 1)`},$('pigeons'));el('ellipse',{cx:0,cy:-6,rx:7,ry:5,fill:'#6a6e78'},g);el('circle',{cx:6,cy:-11,r:3.4,fill:'#7a7e88'},g);el('path',{d:'M9 -11 l3 1 l-3 1z',fill:'#c9a24a'},g);el('path',{d:'M-6 -5 l-6 3 l6 1z',fill:'#4a4e58'},g)}
+const people=Array.from({length:7},(_,i)=>{const g=el('g',{},$('people'));const col=['#2a2a34','#5a2a2a','#2a3a5a','#3a4a2a'][i%4];el('circle',{cy:-34,r:5,fill:'#1a1a20'},g);el('path',{d:'M-6 -28 h12 l2 18 h-16z',fill:col},g);const l1=el('line',{y1:-10,y2:0,stroke:'#1a1a20','stroke-width':3},g),l2=el('line',{y1:-10,y2:0,stroke:'#1a1a20','stroke-width':3},g);if(i%3===0){el('path',{d:'M-14 -40 Q0 -54 14 -40Z',fill:'#1a1a20'},g);el('line',{x1:0,x2:0,y1:-46,y2:-24,stroke:'#1a1a20'},g)}return {g,l1,l2,x:rnd()*2000-200,v:(rnd()<.5?-1:1)*(18+rnd()*14),y:992+rnd()*6}});
+const birds=Array.from({length:6},(_,i)=>{const u=el('use',{href:'#bird'},$('birds'));return {u,x:rnd()*1600,y:120+rnd()*220,v:30+rnd()*30,ph:rnd()*6}});
+// palette keyframes by hour: [sky top, sky mid, horizon, far, near, stone, trim, street, cloud, text]
+const K=[[0,'#070b1f','#14193a','#232a52','#141933','#0c0f20','#5b5a66','#3b3a44','#0b0c14','#2a3050','#d8dcf0'],
+[5.5,'#1a1f4a','#4a3a6a','#c47a6a','#2a2a48','#171a2c','#7a6f74','#4b4450','#14141c','#6a5a7a','#f0e6f0'],
+[7,'#6fa8dc','#a8cdea','#ffd9a8','#7f8fa8','#4a5468','#b9a58a','#7a6448','#3a3a40','#ffffff','#2a2a30'],
+[12,'#3b8fd8','#86c0ec','#d8ecf8','#8ea6c0','#56647a','#c8b392','#806848','#45454c','#ffffff','#1f2a38'],
+[17,'#4a7fc4','#a9c4e6','#ffd2a0','#8090a8','#4a5468','#c09c78','#7a5a3c','#3c3c44','#fff2e6','#2a2a30'],
+[19,'#2a2a5e','#8a4a6a','#f08a5a','#3a3454','#1f1c30','#8a7068','#4e3c38','#18161e','#c88aa0','#f6e6dc'],
+[20.5,'#0e1230','#24224a','#4a3a5e','#1a1a36','#0f1020','#5e5a68','#3b3844','#0c0c14','#2e3254','#d8dcf0'],[24,'#070b1f','#14193a','#232a52','#141933','#0c0f20','#5b5a66','#3b3a44','#0b0c14','#2a3050','#d8dcf0']];
+const hex=h=>[1,3,5].map(i=>parseInt(h.substr(i,2),16)),mix=(a,b,t)=>'rgb('+hex(a).map((v,i)=>Math.round(v+(hex(b)[i]-v)*t)).join(',')+')';
+function palette(h){for(let i=0;i<K.length-1;i++)if(h>=K[i][0]&&h<K[i+1][0]){const t=(h-K[i][0])/(K[i+1][0]-K[i][0]);return K[i].slice(1).map((c,j)=>mix(c,K[i+1][j+1],t))}return K[0].slice(1)}
+let lastWin=-1;
+function tick(t){const d=new Date(),s=d.getSeconds()+d.getMilliseconds()/1000,m=d.getMinutes()+s/60,H=d.getHours()+m/60,h=H%12;
+const P=palette(H),root=document.documentElement.style;
+$('sk0').setAttribute('stop-color',P[0]);$('sk1').setAttribute('stop-color',P[1]);$('sk2').setAttribute('stop-color',P[2]);document.body.style.background=P[0];
+['--far','--near','--stone','--trim','--street','--cloud','--txt'].forEach((k,i)=>root.setProperty(k,P[i+3]));
+const night=H<6||H>=19.5?1:H<7?(7-H):H>18.5?(H-18.5):0;
+root.setProperty('--face1',night>.3?'#fff7d6':'#fbf6ea');root.setProperty('--face2',night>.3?'#f0d890':'#e6dcc4');
+$('stars').setAttribute('opacity',night);document.querySelectorAll('.leaf').forEach(e=>e.setAttribute('fill',mix('#4f7d44','#0d140f',Math.min(1,night))));$('halo').setAttribute('opacity',night);$('clouds').setAttribute('opacity',.8-.5*night);
+document.querySelectorAll('.lg').forEach(e=>e.setAttribute('opacity',night));document.querySelectorAll('.lb').forEach(e=>e.setAttribute('fill',night>.3?'#ffe2a0':'#9a9a9a'));
+// windows switch on/off a few at a time, only when it's dark
+const wk=d.getMinutes();if(wk!==lastWin){lastWin=wk;document.querySelectorAll('.w').forEach((w,i)=>{const on=night>.3&&((w.dataset.on==1)^((i*7+wk)%23===0));w.setAttribute('fill',on?'#ffd98a':'#2b2f3a')});document.querySelectorAll('.win').forEach(w=>w.setAttribute('fill',night>.3?'#ffcf70':'#1b1b2a'))}
+// sun by day, moon by night, crossing the sky
+const sm=$('sunmoon');sm.innerHTML='';const day=H>=6&&H<19,f=day?(H-6)/13:((H-19+24)%24)/11,x=-200+f*2000,y=520-Math.sin(f*Math.PI)*440;
+if(day){el('circle',{cx:x,cy:y,r:90,fill:'#fff3c4',opacity:.25},sm);el('circle',{cx:x,cy:y,r:42,fill:'#fff6d8'},sm)}else{el('circle',{cx:x,cy:y,r:34,fill:'#f4f1e6'},sm);el('circle',{cx:x+14,cy:y-8,r:30,fill:P[0]},sm)}
+document.querySelectorAll('.cloud').forEach(g=>{const cx=((+g.dataset.x+t/1000*g.dataset.v)%3600+3600)%3600-1000;g.setAttribute('transform',`translate(${cx} ${g.dataset.y})`)});
+birds.forEach(b=>{const bx=((b.x+t/1000*b.v)%2400+2400)%2400-400,by=b.y+Math.sin(t/700+b.ph)*12,flap=.6+.4*Math.abs(Math.sin(t/180+b.ph));b.u.setAttribute('transform',`translate(${bx} ${by}) scale(1.4 ${flap*1.4})`);b.u.setAttribute('opacity',1-night)});
+{const w=k=>Math.sin(t/260+k)*5;$('flag').setAttribute('d',`M802 -34 Q822 ${-38+w(0)} 842 ${-34+w(1)} L842 ${-14+w(1)} Q822 ${-18+w(0)} 802 -14 Z`)}
+people.forEach(p=>{p.x+=p.v/60;if(p.x>1900)p.x=-300;if(p.x<-300)p.x=1900;const st=Math.sin(t/160+p.x)*5;p.l1.setAttribute('x2',st);p.l2.setAttribute('x2',-st);p.g.setAttribute('transform',`translate(${p.x} ${p.y}) scale(${p.v<0?-1:1} 1)`);p.g.setAttribute('opacity',night>.6?.85:1)});
+$('bell').setAttribute('transform',`rotate(${d.getMinutes()===0?Math.sin(t/220)*22:0} 800 250)`);
+$('hh').setAttribute('transform',`rotate(${h*30} 800 430)`);$('mh').setAttribute('transform',`rotate(${m*6} 800 430)`);
+$('bd').textContent=d.toLocaleDateString(undefined,{weekday:'long'}).toUpperCase();$('bd2').textContent=d.toLocaleDateString(undefined,{day:'numeric',month:'long',year:'numeric'});
+$('bt').textContent=d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});requestAnimationFrame(tick)}
+// portrait screens: zoom in on the tower
+function fit(){$('s').setAttribute('viewBox',innerWidth/innerHeight<1.05?'470 -75 660 1075':'0 -75 1600 1075')}addEventListener('resize',fit);fit();
+requestAnimationFrame(tick);
+</script></body></html>
