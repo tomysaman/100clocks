@@ -1,510 +1,251 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Flip Clock</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clock designs</title>
 <style>
-  :root {
-    --bg: #0a0a0a;
-    --card: #181818;
-    --card-lower: #141414;
-    --digit: var(--accent, #cfcfcf);
-    --divider: rgba(0, 0, 0, 0.55);
-    --colon: #3a3a3a;
-    --panel-bg: #1c1c1c;
-    --panel-text: #b5b5b5;
-    --panel-border: #2c2c2c;
-    --btn-bg: #262626;
-    --btn-hover: #303030;
-    --shadow: rgba(0, 0, 0, 0.5);
-    --clock-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  }
-  :root.light {
-    --bg: #d8d8d4;
-    --card: #ececea;
-    --card-lower: #e2e2e0;
-    --digit: var(--accent-light, #2a2a2a);
-    --divider: rgba(0, 0, 0, 0.12);
-    --colon: #9a9a96;
-    --panel-bg: #efefec;
-    --panel-text: #444;
-    --panel-border: #c8c8c4;
-    --btn-bg: #dfdfdb;
-    --btn-hover: #d2d2ce;
-    --shadow: rgba(0, 0, 0, 0.18);
-  }
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  html, body {
-    height: 100%;
-    background: var(--bg);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    overflow: hidden;
-    user-select: none;
-    -webkit-user-select: none;
-  }
-
-  .clock {
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: min(3vw, 5vh);
-  }
-
-  .card {
-    position: relative;
-    width: min(42vw, 78vh);
-    height: min(42vw, 78vh);
-    border-radius: min(2.5vw, 4vh);
-    box-shadow: 0 min(0.8vh, 6px) min(3vh, 24px) var(--shadow);
-    perspective: 1200px;
-  }
-  /* middle divider line, like a flip clock hinge */
-  .card::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 50%;
-    height: min(0.5vh, 4px);
-    transform: translateY(-50%);
-    background: var(--divider);
-    z-index: 3;
-  }
-
-  .half {
-    position: absolute;
-    left: 0;
-    width: 100%;
-    height: 50%;
-    overflow: hidden;
-  }
-  .half.top, .flap-top {
-    top: 0;
-    background: var(--card);
-    border-radius: min(2.5vw, 4vh) min(2.5vw, 4vh) 0 0;
-  }
-  .half.bottom, .flap-bottom {
-    bottom: 0;
-    background: var(--card-lower);
-    border-radius: 0 0 min(2.5vw, 4vh) min(2.5vw, 4vh);
-  }
-  .half span {
-    position: absolute;
-    left: 0;
-    width: 100%;
-    height: 200%; /* full card height; the half crops it */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: min(32vw, 60vh);
-    font-weight: 600;
-    line-height: 1;
-    color: var(--digit);
-    font-variant-numeric: tabular-nums;
-    letter-spacing: -0.02em;
-    font-family: var(--clock-font);
-  }
-  .half.top span, .flap-top span { top: 0; }
-  .half.bottom span, .flap-bottom span { top: -100%; }
-
-  /* flip flaps: hidden except during the once-a-minute flip */
-  .flap {
-    display: none;
-    z-index: 2;
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
-  }
-  .flap-top { transform-origin: center bottom; }
-  .flap-bottom { transform-origin: center top; transform: rotateX(90deg); }
-  .card.flipping .flap { display: block; }
-  .card.flipping .flap-top { animation: flip-top 0.6s ease-in both; }
-  .card.flipping .flap-bottom { animation: flip-bottom 0.6s ease-out both; }
-
-  @keyframes flip-top {
-    0%        { transform: rotateX(0); }
-    50%, 100% { transform: rotateX(-90deg); }
-  }
-  @keyframes flip-bottom {
-    0%, 50%   { transform: rotateX(90deg); }
-    100%      { transform: rotateX(0); }
-  }
-
-  .colon {
-    display: flex;
-    flex-direction: column;
-    gap: min(4vw, 8vh);
-    /* flash once every 2 seconds — pure CSS, no JS timer */
-    animation: blink 2s step-end infinite;
-  }
-  .colon span {
-    width: min(2.2vw, 4vh);
-    height: min(2.2vw, 4vh);
-    border-radius: 50%;
-    background: var(--colon);
-  }
-  @keyframes blink {
-    0%, 100% { opacity: 1; }
-    50%      { opacity: 0.15; }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .colon { animation: none; }
-    .card.flipping .flap { display: none; }
-  }
-
-  /* ---- settings ---- */
-  .gear {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    width: 44px;
-    height: 44px;
-    border: none;
-    border-radius: 50%;
-    background: var(--btn-bg);
-    color: var(--panel-text);
-    font-size: 20px;
-    cursor: pointer;
-    opacity: 0.25;
-  }
-  .gear:hover, .gear:focus-visible { opacity: 1; }
-
-  .panel {
-    position: fixed;
-    bottom: 74px;
-    right: 20px;
-    background: var(--panel-bg);
-    border: 1px solid var(--panel-border);
-    border-radius: 12px;
-    padding: 16px;
-    width: 220px;
-    color: var(--panel-text);
-    font-size: 13px;
-    box-shadow: 0 8px 30px var(--shadow);
-    display: none;
-    z-index: 10;
-  }
-  .panel.open { display: block; }
-  .panel h3 {
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    margin-bottom: 8px;
-    opacity: 0.7;
-  }
-  .panel section + section { margin-top: 14px; }
-
-  .swatches { display: flex; gap: 8px; }
-  .swatch {
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    border: 2px solid transparent;
-    cursor: pointer;
-    padding: 0;
-  }
-  .swatch.active { border-color: var(--panel-text); }
-
-  .row-btn {
-    width: 100%;
-    padding: 8px 10px;
-    border: 1px solid var(--panel-border);
-    border-radius: 8px;
-    background: var(--btn-bg);
-    color: var(--panel-text);
-    font-size: 13px;
-    cursor: pointer;
-    text-align: left;
-  }
-  .row-btn:hover { background: var(--btn-hover); }
-
-  select.row-btn {
-    appearance: none;
-    -webkit-appearance: none;
-    background-image: linear-gradient(45deg, transparent 50%, var(--panel-text) 50%),
-                       linear-gradient(135deg, var(--panel-text) 50%, transparent 50%);
-    background-position: right 12px top 55%, right 6px top 55%;
-    background-size: 6px 6px, 6px 6px;
-    background-repeat: no-repeat;
-    padding-right: 26px;
-  }
+	:root { --bg: #f6f4ef; --ink: #1d1b18; --muted: #6b665d; --line: #dcd7cc; --accent: #b3263a; --like: #2e7d4f; }
+	* { box-sizing: border-box; }
+	body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--bg); color: var(--ink); }
+	header { padding: 48px 16px 16px; max-width: 1640px; margin: 0 auto; }
+	h1 { margin: 0 0 8px; font-size: 2rem; }
+	p { margin: 0; color: var(--muted); }
+	.tools { max-width: 1640px; margin: 0 auto; padding: 8px 16px 20px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+	.tools button { font: inherit; font-size: .9rem; padding: 6px 12px; border: 1px solid var(--line); background: #fff; border-radius: 999px; cursor: pointer; color: inherit; }
+	.tools button.on { background: var(--ink); color: #fff; border-color: var(--ink); }
+	.tools .count { color: var(--muted); font-size: .9rem; margin-left: auto; }
+	.tools a { color: var(--accent); font-size: .9rem; }
+	.perl { font-size: .9rem; color: var(--muted); }
+	.pager select { font: inherit; font-size: .9rem; padding: 5px 8px; border: 1px solid var(--line); border-radius: 999px; background: #fff; color: inherit; }
+	.pager { max-width: 1640px; margin: 0 auto; padding: 0 16px 16px; display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; align-items: center; }
+	.pager .pg { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; justify-content: center; }
+	.pager .pr { justify-self: end; }
+	@media (max-width: 760px) { .pager { grid-template-columns: 1fr; } .pager > span:first-child { display: none; } .pager .pr { justify-self: center; } }
+	.pager button { font: inherit; font-size: .9rem; min-width: 36px; padding: 6px 10px; border: 1px solid var(--line); background: #fff; border-radius: 8px; cursor: pointer; color: inherit; }
+	.pager button.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+	.pager button:disabled { opacity: .4; cursor: default; }
+	.pager.bottom { padding-bottom: 48px; }
+	ol { padding-bottom: 16px !important; }
+	ol { list-style: none; padding: 0 16px 64px; margin: 0 auto; max-width: 1640px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
+	@media (max-width: 1100px) { ol { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+	@media (max-width: 700px) { ol { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+	@media (max-width: 440px) { ol { grid-template-columns: 1fr; } }
+	li { position: relative; background: #fff; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; transition: opacity .2s, filter .2s; }
+	li:hover { border-color: var(--accent); }
+	li.liked { border-color: var(--like); box-shadow: 0 0 0 2px var(--like); }
+	li.disliked { background: #ecebe7; border-style: dashed; }
+	li.disliked .thumb, li.disliked .meta { opacity: .45; filter: grayscale(1); transition: opacity .2s; }
+	li.disliked:hover .thumb, li.disliked:hover .meta { opacity: .8; }
+	li.hidden { display: none; }
+	.thumb { display: block; position: relative; aspect-ratio: 16 / 10; background: #222; overflow: hidden; }
+	.thumb iframe { position: absolute; left: 0; top: 0; width: 1280px; height: 800px; border: 0; transform-origin: 0 0; pointer-events: none; }
+	.meta { display: block; padding: 10px 12px 12px; color: inherit; text-decoration: none; }
+	.meta b { display: block; }
+	.meta span { font-size: .85rem; color: var(--muted); }
+	footer { max-width: 1640px; margin: 0 auto; padding: 8px 16px 40px; font-size: .85rem; color: var(--muted); text-align: center; }
+	footer a { color: var(--accent); }
+	.n { color: var(--accent); font-variant-numeric: tabular-nums; margin-right: 6px; }
+	.vote { position: absolute; top: 8px; right: 8px; display: flex; gap: 6px; z-index: 2; }
+	.vote button { width: 34px; height: 34px; border-radius: 50%; border: 0; background: rgba(255,255,255,.92); box-shadow: 0 1px 4px rgba(0,0,0,.3); cursor: pointer; font-size: 16px; line-height: 1; opacity: .85; }
+	.vote button:hover { opacity: 1; transform: scale(1.08); }
+	li.liked .vote .up { background: var(--like); color: #fff; opacity: 1; }
+	li.disliked .vote .down { background: var(--accent); color: #fff; opacity: 1; }
+	dialog { border: 1px solid var(--line); border-radius: 10px; max-width: 560px; width: 92vw; }
+	dialog textarea { width: 100%; height: 220px; font: 13px/1.5 Consolas, monospace; }
 </style>
 </head>
 <body>
-
-<main class="clock">
-  <div class="card" id="card-hh">
-    <div class="half top"><span>--</span></div>
-    <div class="half bottom"><span>--</span></div>
-    <div class="half flap flap-top"><span>--</span></div>
-    <div class="half flap flap-bottom"><span>--</span></div>
-  </div>
-  <div class="colon" aria-hidden="true"><span></span><span></span></div>
-  <div class="card" id="card-mm">
-    <div class="half top"><span>--</span></div>
-    <div class="half bottom"><span>--</span></div>
-    <div class="half flap flap-top"><span>--</span></div>
-    <div class="half flap flap-bottom"><span>--</span></div>
-  </div>
-</main>
-
-<button class="gear" id="gear" aria-label="Settings" title="Settings">&#9881;</button>
-
-<div class="panel" id="panel">
-  <section>
-    <h3>Color</h3>
-    <div class="swatches" id="swatches"></div>
-  </section>
-  <section>
-    <h3>Appearance</h3>
-    <button class="row-btn" id="modeBtn">Switch to light mode</button>
-  </section>
-  <section>
-    <h3>Font</h3>
-    <select class="row-btn" id="fontSelect"></select>
-  </section>
-  <section>
-    <h3>Display</h3>
-    <button class="row-btn" id="fsBtn">Fullscreen (F)</button>
-  </section>
+<header>
+	<h1>Clock designs</h1>
+	<p>100 single-file clocks. Each one shows the time and date and fits on one screen. Previews are live. Click a card to open it, 👍 / 👎 to mark it. Marks are saved in this browser.</p>
+</header>
+<div class="tools" id="tools">
+	<button data-f="all" class="on">All</button>
+	<button data-f="liked">👍 Liked</button>
+	<button data-f="disliked">👎 Disliked</button>
+	<button data-f="none">Unmarked</button>
+	<button id="export">Copy marks</button>
+	<button id="clear">Clear marks</button>
+	<span class="count" id="count"></span>
 </div>
-
+<div class="pager" id="pagerTop"></div>
+<ol id="list"></ol>
+<div class="pager bottom" id="pagerBottom"></div>
+<dialog id="dlg"><p style="margin-bottom:8px">Your marks (copied to the clipboard if allowed):</p><textarea id="out" readonly></textarea><form method="dialog" style="text-align:right;margin-top:8px"><button>Close</button></form></dialog>
 <script>
-(function () {
-  "use strict";
+const D = [
+	['001-analog-classic.html','Classic analog','Gold case, cream face, Roman numerals, date window'],
+	['002-bauhaus-minimal.html','Minimal Bauhaus','Plain face, yellow seconds hand, dark mode toggle'],
+	['003-cuckoo-clock.html','Cuckoo clock','Carved chalet, pine-cone weights, bird calls the hours'],
+	['004-skeleton-gears.html','Skeleton gears','Turning brass gears and a balance wheel'],
+	['005-24-hour-dial.html','24-hour dial','Noon at the top, day and night halves'],
+	['006-seven-segment.html','Seven segment','Red LED digits; colour, 12/24h and seconds settings'],
+	['007-dot-matrix.html','Dot matrix','Amber LED board, date line alternates with seconds'],
+	['008-nixie-tubes.html','Nixie tubes','Glowing orange digits in glass tubes'],
+	['009-stained-glass.html','Stained glass','Gothic rose window; the lit petal is the hour, outer panes the minutes'],
+	['010-lcd-wristwatch.html','LCD wristwatch','Digital watch with backlight and 12/24h buttons'],
+	['011-split-flap-board.html','Split-flap board','Station board flaps for time and date'],
+	['012-word-grid.html','Word grid','Letter grid lights up the words, dots for extra minutes'],
+	['013-sentence-clock.html','Sentence clock','The time as a sentence in a big serif'],
+	['014-roman-numerals.html','Roman numerals','Time and date in Roman numerals, Latin weekday'],
+	['015-binary-leds.html','Binary LEDs','Rows of blue LEDs for hours, minutes and seconds'],
+	['016-bcd-blocks.html','BCD blocks','Binary-coded decimal columns in pastel blocks'],
+	['017-hex-color.html','Hex colour time','Background colour is #HHMMSS'],
+	['018-unix-epoch.html','Unix epoch','Seconds since 1970 with milestone countdown'],
+	['019-ferris-wheel.html','Ferris wheel','Fairground wheel; the gondola at the top is the hour'],
+	['020-lighthouse.html','Lighthouse','Beam sweeps once a minute; sea and sky follow the day'],
+	['021-mars-sol.html','Mars sol','Coordinated Mars Time and sol number'],
+	['022-neon-rings.html','Neon rings','Concentric glowing progress rings'],
+	['023-progress-bars.html','Progress bars','Year, month, week, day, hour, minute as bars'],
+	['024-pie-trio.html','Pie trio','Three filling pie charts'],
+	['025-aquarium.html','Aquarium','Planted tank with neon tetras and jellyfish; the diver holds an LED clock'],
+	['026-particle-digits.html','Particle digits','Particles fly into the digits, mouse scatters them'],
+	['027-grandfather-pendulum.html','Grandfather clock','Wooden case with a swinging pendulum'],
+	['028-hourglass.html','Hourglass','Sand runs out once a minute'],
+	['029-water-tank.html','Water tank','Water level rises through the hour'],
+	['030-terminal.html','Terminal','Shell typing date commands, block-letter time'],
+	['031-dos-commander.html','DOS commander','Blue two-panel file manager with a calendar'],
+	['032-handheld-console.html','Handheld console','Green-screen game boy with a walking sprite'],
+	['033-digital-rain.html','Digital rain','Falling green glyphs reveal the time'],
+	['034-falling-blocks.html','Falling blocks','Tetris-style blocks drop into digits'],
+	['035-chinese-shichen.html','Shichen dial','Chinese two-hour periods and lunar date'],
+	['036-sundial.html','Sundial','Stone dial with a moving shadow'],
+	['037-orrery.html','Orrery','Planets orbit for hours, minutes, days'],
+	['038-sky-arc.html','Sky arc','Sun and moon cross a sky that changes colour'],
+	['039-tear-off-calendar.html','Tear-off calendar','Daily page you can tear off'],
+	['040-typewriter.html','Typewriter','Time typed out each minute on paper'],
+	['041-neon-sign.html','Neon sign','Flickering neon on brick, colour presets'],
+	['042-chalkboard.html','Chalkboard','Chalk-drawn clock face and date'],
+	['043-blueprint.html','Blueprint','Technical drawing with hand angles'],
+	['044-morse-lamp.html','Morse lamp','Lamp blinks the time in Morse'],
+	['045-braille.html','Braille','Embossed Braille cells'],
+	['046-tally-marks.html','Tally marks','Hand-scratched tallies'],
+	['047-soroban-abacus.html','Soroban abacus','Wooden 13-rod soroban set to the date and time'],
+	['048-barcode.html','Barcode','Valid EAN-13 of the date and time'],
+	['049-pip-dice.html','Pip dice','Nine-pip dice faces for digits'],
+	['050-snow-globe.html','Snow globe','Village and clock tower inside; click to shake'],
+	['051-metronome.html','Metronome','Wooden metronome ticking at 60 BPM; weight rises with the hour'],
+	['052-swiss-poster.html','Swiss poster','Huge black and red numerals on a grid'],
+	['053-number-strips.html','Number strips','Columns of digits slide into place'],
+	['054-odometer.html','Odometer','Rolling drums like a car counter'],
+	['055-radar-sweep.html','Radar sweep','Green radar, blips for hour and minute'],
+	['056-oscilloscope.html','Oscilloscope','Beam traces the digits on a CRT'],
+	['057-year-spiral.html','Year spiral','365 dots spiral, today highlighted'],
+	['058-candle-clock.html','Candle clock','Candle burns down through the day'],
+	['059-timeline-ruler.html','Timeline ruler','Scrolling ruler with 1h/6h/24h zoom'],
+	['060-dashboard-tiles.html','Dashboard tiles','Coloured tiles: date, week, moon, progress'],
+	['061-vu-meters.html','VU meters','Analog needles for hours and minutes'],
+	['062-thermometers.html','Thermometers','Mercury columns for H, M, S'],
+	['063-zen-garden.html','Zen garden','Time raked into sand around three stones'],
+	['064-star-clock.html','Star clock','Big Dipper turns around Polaris'],
+	['065-rotating-dial.html','Rotating dial','Giant dial turns under a fixed pointer'],
+	['066-car-dashboard.html','Car dashboard','Tacho for hours, speedo for minutes'],
+	['067-cassette-tape.html','Cassette tape','Tape winds from reel to reel over the day; deck counter shows the time'],
+	['068-moon-phase.html','Moon phase','Current lunar phase and next full moon'],
+	['069-countdowns.html','Countdowns','To midnight, weekend, Christmas, New Year'],
+	['070-periodic-table.html','Periodic time','Elements whose atomic numbers are the time'],
+	['071-emoji.html','Emoji clock','Clock emoji and a row of hour squares'],
+	['072-world-clocks.html','World clocks','Grid of city clocks, choose cities'],
+	['073-world-time-ring.html','World time ring','24-city ring around an analog face'],
+	['074-world-calendars.html','World calendars','Today in twelve calendar systems'],
+	['075-numeral-systems.html','Numeral systems','Time in 20 scripts, cycles or pick one'],
+	['076-maya-numerals.html','Maya numerals','Bar-and-dot digits and Long Count'],
+	['077-glitch.html','Glitch','RGB split and corrupted digits'],
+	['078-clock-tower.html','Clock tower','City clock tower; sky, lights and windows follow the time of day'],
+	['079-newspaper.html','The Daily Clock','Front page with time headline'],
+	['080-receipt.html','Receipt','Thermal receipt printed each minute'],
+	['081-lava-lamp.html','Lava lamp','Merging wax blobs, chrome base, four colour themes'],
+	['082-vinyl-record.html','Vinyl record','Turntable; the tonearm tracks across the record through the hour'],
+	['083-piano-chime.html','Piano chime','Hour key lit, plays the time'],
+	['084-dominoes.html','Dominoes','Double-nine dominoes for H, M, S'],
+	['085-playing-cards.html','Playing cards','Hour card plus minute cards'],
+	['086-isometric-blocks.html','Isometric blocks','3D cubes stack into digits'],
+	['087-rotating-cube.html','Rotating cube','Cube turns to hours, minutes, date faces'],
+	['088-sticky-notes.html','Sticky notes','Notes on cork with a to-do list'],
+	['089-stock-ticker.html','Stock ticker','Quote screen with candles and tape'],
+	['090-heart-monitor.html','Heart monitor','ECG trace beating each second'],
+	['091-code-editor.html','Code editor','Live JSON in an editor window'],
+	['092-e-ink.html','E-ink display','Paper screen refreshing once a minute'],
+	['093-kanji-vertical.html','Kanji vertical','Japanese vertical writing'],
+	['094-phyllotaxis.html','Phyllotaxis','One sunflower seed per minute of the day'],
+	['095-liquid-text.html','Liquid text','Digits fill with liquid over the minute'],
+	['096-kinetic-type.html','Kinetic type','Words animate in each minute'],
+	['097-chronograph-complications.html','Grand complication','Sub-dials for day, month, seconds, moon'],
+	['098-newtons-cradle.html','Newton\'s cradle','Balls click once a second'],
+	['099-pocket-watch.html','Pocket watch','Enamel dial, blued hands, chain; gold, silver or rose gold'],
+	['100-flow-field.html','Flow field','Generative lines, new pattern every minute']
+];
+const DIR = 'designs/';
+const KEY = 'clock-designs-marks';
+let marks = {}; try { marks = JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) {}
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(marks)); } catch (e) {} };
+let filter = 'all', page = 1, per = 10;
+try { per = +localStorage.getItem('clock-designs-perpage') || 10; page = +localStorage.getItem('clock-designs-page') || 1; } catch (e) {}
+const list = document.getElementById('list');
 
-  function makeCard(id) {
-    var card = document.getElementById(id);
-    var spans = card.getElementsByTagName("span");
-    var c = {
-      card: card,
-      top: spans[0],
-      bottom: spans[1],
-      flapTop: spans[2],
-      flapBottom: spans[3],
-      value: null
-    };
-    card.addEventListener("animationend", function (e) {
-      if (e.animationName === "flip-bottom") {
-        c.bottom.textContent = c.value;
-        card.classList.remove("flipping");
-      }
-    });
-    return c;
-  }
+D.forEach(([file, title, desc], i) => {
+	const li = document.createElement('li'); li.dataset.file = file;
+	li.innerHTML = `<a class="thumb" href="${DIR + file}"><iframe loading="lazy" tabindex="-1" title="${title}"></iframe></a>
+		<div class="vote"><button class="up" title="Like">👍</button><button class="down" title="Dislike">👎</button></div>
+		<a class="meta" href="${DIR + file}"><b><span class="n">${String(i + 1).padStart(2, '0')}</span>${title}</b><span>${desc}</span></a>`;
+	li.querySelector('.up').onclick = () => toggle(file, 'liked');
+	li.querySelector('.down').onclick = () => toggle(file, 'disliked');
+	list.appendChild(li);
+});
 
-  function setValue(c, val) {
-    if (c.value === val) return;
-    var old = c.value;
-    c.value = val;
-    // No animation on first render or in a hidden tab
-    if (old === null || document.hidden) {
-      c.card.classList.remove("flipping");
-      c.top.textContent = val;
-      c.bottom.textContent = val;
-      return;
-    }
-    // Top half shows the new value immediately; the top flap (old value)
-    // folds down over it, then the bottom flap (new value) folds into place.
-    c.flapTop.textContent = old;
-    c.flapBottom.textContent = val;
-    c.top.textContent = val;
-    c.bottom.textContent = old;
-    c.card.classList.remove("flipping");
-    void c.card.offsetWidth; // restart animation if one was in progress
-    c.card.classList.add("flipping");
-  }
+function toggle(file, v) { if (marks[file] === v) delete marks[file]; else marks[file] = v; save(); render(); }
+function render() {
+	let n = { liked: 0, disliked: 0 };
+	[...list.children].forEach(li => {
+		const m = marks[li.dataset.file];
+		li.classList.toggle('liked', m === 'liked'); li.classList.toggle('disliked', m === 'disliked');
+		if (m) n[m]++;
+		li.dataset.match = (filter === 'liked' ? m === 'liked' : filter === 'disliked' ? m === 'disliked' : filter === 'none' ? !m : true) ? 1 : '';
+	});
+	// pagination: only the cards on the current page are shown, so only their previews run
+	const match = [...list.children].filter(li => li.dataset.match), pages = Math.max(1, Math.ceil(match.length / per));
+	page = Math.min(Math.max(1, page), pages);
+	[...list.children].forEach(li => li.classList.add('hidden'));
+	match.slice((page - 1) * per, page * per).forEach(li => li.classList.remove('hidden'));
+	try { localStorage.setItem('clock-designs-perpage', per); localStorage.setItem('clock-designs-page', page); } catch (e) {}
+	pager(pages, match.length);
+	document.getElementById('count').textContent = `${n.liked} liked · ${n.disliked} disliked · ${D.length - n.liked - n.disliked} unmarked`;
+	scale();
+}
+function pager(pages, total) {
+	const from = total ? (page - 1) * per + 1 : 0, to = Math.min(page * per, total);
+	let h = `<button data-p="${page - 1}" ${page === 1 ? 'disabled' : ''}>‹ Prev</button>`;
+	for (let i = 1; i <= pages; i++) h += `<button data-p="${i}" class="${i === page ? 'on' : ''}">${i}</button>`;
+	h += `<button data-p="${page + 1}" ${page === pages ? 'disabled' : ''}>Next ›</button><span style="color:var(--muted);font-size:.9rem;margin-left:8px">${from}–${to} of ${total}</span>`;
+	const perHtml = `<label class="perl">Per page <select>${[10, 20, 50, 100].map(v => `<option ${v === per ? 'selected' : ''}>${v}</option>`).join('')}</select></label>`;
+	['pagerTop', 'pagerBottom'].forEach(id => { const el = document.getElementById(id); el.innerHTML = `<span></span><div class="pg">${h}</div><div class="pr">${id === 'pagerTop' ? perHtml : ''}</div>`;
+		const sel = el.querySelector('select'); if (sel) sel.onchange = () => { const first = (page - 1) * per; per = +sel.value; page = Math.floor(first / per) + 1; render(); }; el.querySelectorAll('button').forEach(b => b.onclick = () => { page = +b.dataset.p; render(); if (id === 'pagerBottom') document.getElementById('pagerTop').scrollIntoView(); }); });
+}
+if (![10, 20, 50, 100].includes(per)) per = 10;
+document.querySelectorAll('#tools [data-f]').forEach(b => b.onclick = () => {
+	page = 1; filter = b.dataset.f; document.querySelectorAll('#tools [data-f]').forEach(x => x.classList.toggle('on', x === b)); render();
+});
+document.getElementById('clear').onclick = () => { if (confirm('Clear all likes and dislikes?')) { marks = {}; save(); render(); } };
+document.getElementById('export').onclick = () => {
+	const pick = v => D.filter(d => marks[d[0]] === v).map(d => d[0]);
+	const txt = `Liked (${pick('liked').length}):\n${pick('liked').join('\n')}\n\nDisliked (${pick('disliked').length}):\n${pick('disliked').join('\n')}`;
+	document.getElementById('out').value = txt;
+	try { navigator.clipboard.writeText(txt); } catch (e) {}
+	document.getElementById('dlg').showModal();
+};
 
-  var cardHH = makeCard("card-hh");
-  var cardMM = makeCard("card-mm");
-  var timer = null;
-
-  function render() {
-    var d = new Date();
-    var h = d.getHours(), m = d.getMinutes();
-    setValue(cardHH, (h < 10 ? "0" : "") + h);
-    setValue(cardMM, (m < 10 ? "0" : "") + m);
-  }
-
-  // Update once per minute: sleep until the next minute boundary, no polling.
-  function schedule() {
-    var now = Date.now();
-    var wait = 60000 - (now % 60000) + 50; // +50ms guard past the boundary
-    timer = setTimeout(function () {
-      render();
-      schedule();
-    }, wait);
-  }
-
-  document.addEventListener("visibilitychange", function () {
-    if (document.hidden) {
-      clearTimeout(timer);
-      timer = null;
-    } else {
-      render();
-      schedule();
-    }
-  });
-
-  render();
-  schedule();
-
-  /* ---- settings ---- */
-  var THEMES = [
-    { name: "default", dark: "#cfcfcf", light: "#2a2a2a" },
-    { name: "amber",   dark: "#d4a24e", light: "#8a5f14" },
-    { name: "green",   dark: "#7fbf7f", light: "#2e6b2e" },
-    { name: "cyan",    dark: "#6cb8c4", light: "#1f6570" },
-    { name: "rose",    dark: "#c98a96", light: "#8c3b4a" },
-    { name: "violet",  dark: "#a48ec9", light: "#5b3f8c" }
-  ];
-  // Top 100 Google Fonts by live popularity ranking (fonts.google.com/metadata/fonts).
-  var FONTS = [
-    "Roboto", "Open Sans", "Google Sans", "Inter", "Montserrat", "Poppins", "Noto Sans JP",
-    "Roboto Mono", "Lato", "DM Sans", "Arimo", "Archivo Black", "Noto Sans KR", "Noto Sans",
-    "Kanit", "Merriweather", "Manrope", "Playfair Display", "Roboto Condensed", "Noto Sans TC",
-    "Oswald", "Black Ops One", "PT Sans", "Saira", "Figtree", "Bricolage Grotesque", "Ubuntu",
-    "Share Tech", "Plus Jakarta Sans", "Smooch Sans", "IBM Plex Sans", "Mulish", "Raleway",
-    "Karla", "Heebo", "Fira Sans", "Noto Serif", "Nunito Sans", "Nunito", "Fjalla One",
-    "Lobster Two", "Changa One", "Rubik", "JetBrains Mono", "Roboto Slab", "Libre Baskerville",
-    "Libre Franklin", "Noto Serif JP", "Source Code Pro", "Space Grotesk", "Prompt",
-    "Cormorant Garamond", "Josefin Sans", "Quicksand", "Outfit", "EB Garamond", "Nanum Gothic",
-    "Anton", "Barlow", "Alfa Slab One", "Jost", "Roboto Flex", "Cabin", "Bebas Neue",
-    "Instrument Serif", "Dosis", "Bitter", "Sora", "Schibsted Grotesk", "Mukta",
-    "Noto Sans Telugu", "Work Sans", "Ramabhadra", "Rajdhani", "Hind Siliguri", "Exo 2",
-    "M PLUS Rounded 1c", "Anek Telugu", "Fredoka", "Orbitron", "Urbanist", "Lilita One",
-    "Caveat", "Lora", "Overpass", "IBM Plex Mono", "Crimson Text", "Inconsolata", "Geist",
-    "Oxygen", "Fraunces", "DM Serif Display", "Source Serif 4", "Tajawal", "Source Sans 3",
-    "Slabo 27px", "Bungee", "Pacifico", "Noto Sans Arabic", "Assistant"
-  ];
-  var SYSTEM_FONT_STACK = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
-  var fontLinkEl = null;
-
-  function loadGoogleFont(family) {
-    if (!fontLinkEl) {
-      fontLinkEl = document.createElement("link");
-      fontLinkEl.rel = "stylesheet";
-      document.head.appendChild(fontLinkEl);
-    }
-    fontLinkEl.href = "https://fonts.googleapis.com/css2?family=" +
-      family.replace(/ /g, "+") + ":wght@400;600;700&display=swap";
-  }
-
-  var STORE_KEY = "flipclock-prefs";
-  var prefs = { theme: "default", light: false, font: "" };
-  try {
-    var saved = JSON.parse(localStorage.getItem(STORE_KEY));
-    if (saved && typeof saved === "object") {
-      if (typeof saved.theme === "string") prefs.theme = saved.theme;
-      if (typeof saved.light === "boolean") prefs.light = saved.light;
-      if (typeof saved.font === "string") prefs.font = saved.font;
-    }
-  } catch (e) { /* corrupted or unavailable storage: use defaults */ }
-
-  function save() {
-    try { localStorage.setItem(STORE_KEY, JSON.stringify(prefs)); } catch (e) {}
-  }
-
-  var root = document.documentElement;
-  var modeBtn = document.getElementById("modeBtn");
-  var swatchesEl = document.getElementById("swatches");
-  var fontSelect = document.getElementById("fontSelect");
-
-  function applyPrefs() {
-    var t = THEMES[0];
-    for (var i = 0; i < THEMES.length; i++) {
-      if (THEMES[i].name === prefs.theme) { t = THEMES[i]; break; }
-    }
-    root.style.setProperty("--accent", t.dark);
-    root.style.setProperty("--accent-light", t.light);
-    root.classList.toggle("light", prefs.light);
-    modeBtn.textContent = prefs.light ? "Switch to dark mode" : "Switch to light mode";
-    var btns = swatchesEl.children;
-    for (var j = 0; j < btns.length; j++) {
-      btns[j].classList.toggle("active", btns[j].dataset.theme === prefs.theme);
-    }
-
-    if (prefs.font) {
-      loadGoogleFont(prefs.font);
-      root.style.setProperty("--clock-font", '"' + prefs.font + '", sans-serif');
-    } else {
-      root.style.setProperty("--clock-font", SYSTEM_FONT_STACK);
-    }
-    fontSelect.value = prefs.font;
-  }
-
-  THEMES.forEach(function (t) {
-    var b = document.createElement("button");
-    b.className = "swatch";
-    b.dataset.theme = t.name;
-    b.style.background = t.dark;
-    b.title = t.name;
-    b.setAttribute("aria-label", "Color: " + t.name);
-    b.addEventListener("click", function () {
-      prefs.theme = t.name;
-      save();
-      applyPrefs();
-    });
-    swatchesEl.appendChild(b);
-  });
-
-  modeBtn.addEventListener("click", function () {
-    prefs.light = !prefs.light;
-    save();
-    applyPrefs();
-  });
-
-  (function () {
-    var defOpt = document.createElement("option");
-    defOpt.value = "";
-    defOpt.textContent = "System Default";
-    fontSelect.appendChild(defOpt);
-    FONTS.forEach(function (name) {
-      var opt = document.createElement("option");
-      opt.value = name;
-      opt.textContent = name;
-      fontSelect.appendChild(opt);
-    });
-  })();
-  fontSelect.addEventListener("change", function () {
-    prefs.font = fontSelect.value;
-    save();
-    applyPrefs();
-  });
-
-  applyPrefs();
-
-  /* panel open/close */
-  var gear = document.getElementById("gear");
-  var panel = document.getElementById("panel");
-  gear.addEventListener("click", function (e) {
-    e.stopPropagation();
-    panel.classList.toggle("open");
-  });
-  panel.addEventListener("click", function (e) { e.stopPropagation(); });
-  document.addEventListener("click", function () {
-    panel.classList.remove("open");
-  });
-
-  /* fullscreen */
-  function toggleFullscreen() {
-    if (document.fullscreenElement) {
-      document.exitFullscreen();
-    } else if (document.documentElement.requestFullscreen) {
-      document.documentElement.requestFullscreen();
-    }
-  }
-  document.getElementById("fsBtn").addEventListener("click", toggleFullscreen);
-  document.addEventListener("dblclick", toggleFullscreen);
-  document.addEventListener("keydown", function (e) {
-    if (e.key === "f" || e.key === "F") toggleFullscreen();
-  });
-})();
+// live previews: scale each 1280×800 page down to the card, and only run the ones on screen
+function scale() { document.querySelectorAll('.thumb').forEach(t => { const f = t.firstElementChild; f.style.transform = `scale(${t.clientWidth / 1280})`; }); }
+addEventListener('resize', scale);
+const io = new IntersectionObserver(es => es.forEach(e => {
+	const f = e.target.querySelector('iframe'), file = e.target.closest('li').dataset.file;
+	if (e.isIntersecting) { if (f.getAttribute('src') !== DIR + file) f.src = DIR + file; }
+	else if (f.getAttribute('src') === DIR + file) f.src = 'about:blank';
+}), { rootMargin: '300px 0px' });
+document.querySelectorAll('.thumb').forEach(t => io.observe(t));
+render();
 </script>
+<footer>Designs generated by Claude (Opus 5.5) · <a href="simple/index.html">the original simple flip clock</a></footer>
 </body>
 </html>
