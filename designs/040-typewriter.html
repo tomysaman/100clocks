@@ -2,28 +2,89 @@
 <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Typewriter</title><link rel="icon" href="../favicon.svg" type="image/svg+xml"><link rel="icon" href="../favicon-32.png" sizes="32x32" type="image/png">
 <style>
-html,body{margin:0;height:100%;overflow:hidden;background:#3a3230;font-family:"Courier New",Courier,monospace}
-.wrap{height:100%;display:flex;align-items:flex-end;justify-content:center}
-.paper{position:relative;width:min(88vw,900px);height:92vh;background:#fbf8ef;box-shadow:0 0 4vmin rgba(0,0,0,.5);padding:6vh 6%;box-sizing:border-box;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden}
-.paper::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(transparent 0 calc(1.6em - 1px),rgba(120,150,200,.12) calc(1.6em - 1px) 1.6em);font-size:clamp(13px,2.4vmin,24px);pointer-events:none}
-.line{font-size:clamp(13px,2.4vmin,24px);line-height:1.6;color:#2a2a2a;white-space:pre-wrap;opacity:.85}
-.big{font-size:clamp(34px,min(10vw,14vh),150px);line-height:1.1;color:#111;letter-spacing:-.02em;margin:2vh 0;text-shadow:.03em .02em 0 rgba(0,0,0,.15)}
+html,body{margin:0;height:100%;overflow:hidden;background:radial-gradient(ellipse at 50% 30%,#4a403c,#2a2422 70%);font-family:"Courier New",Courier,monospace}
+/* the typewriter is --W wide and .462·W tall; the paper comes out from behind its platen */
+.stage{--W:min(96vw,110vh);position:fixed;inset:0}
+.paper{position:absolute;left:50%;transform:translateX(-50%);top:3vh;bottom:calc(var(--W)*.462*.727);width:calc(var(--W)*.58);background:#fbf8ef;box-shadow:0 0 3vmin rgba(0,0,0,.5);padding:0 6% calc(var(--W)*.045);box-sizing:border-box;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden}
+.paper::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(transparent 0 calc(1.6em - 1px),rgba(120,150,200,.12) calc(1.6em - 1px) 1.6em);font-size:max(11px,calc(var(--W)*.019));pointer-events:none}
+.line{font-size:max(11px,calc(var(--W)*.019));line-height:1.6;color:#2a2a2a;white-space:pre-wrap;opacity:.85}
+.big{font-size:min(calc(var(--W)*.11),14vh);line-height:1.1;color:#111;letter-spacing:-.02em;margin:1.5vh 0;text-shadow:.03em .02em 0 rgba(0,0,0,.15)}
 .cur{display:inline-block;width:.55em;border-bottom:.12em solid #c0392b;animation:b 1s steps(1) infinite}
 @keyframes b{50%{opacity:0}}
-.roller{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:min(96vw,980px);height:6vh;background:linear-gradient(#111,#333 40%,#111);border-radius:1vh 1vh 0 0}
+#tw{position:absolute;left:50%;transform:translateX(-50%);bottom:0;width:var(--W);height:calc(var(--W)*.462);display:block}
+.key{transition:transform .06s}
+.key.down{transform:translateY(5px)}
+#bar.hit{animation:strike .12s ease-out}
+@keyframes strike{0%{opacity:0}40%{opacity:1}100%{opacity:0}}
 </style></head><body>
-<div class="wrap"><div class="paper" id="p"><div id="log"></div><div class="big" id="big"></div><div class="line" id="cur"></div></div></div>
-<div class="roller"></div>
+<div class="stage">
+<div class="paper" id="p"><div id="log"></div><div class="big" id="big"></div><div class="line" id="cur"></div></div>
+<svg id="tw" viewBox="0 0 1000 462" aria-hidden="true">
+<defs>
+<linearGradient id="roll" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a3a3a"/><stop offset=".35" stop-color="#151515"/><stop offset="1" stop-color="#050505"/></linearGradient>
+<linearGradient id="chrome" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f4f4f4"/><stop offset=".5" stop-color="#9a9a9a"/><stop offset="1" stop-color="#d8d8d8"/></linearGradient>
+<linearGradient id="body" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2f4a3e"/><stop offset=".25" stop-color="#1f342b"/><stop offset="1" stop-color="#0e1a15"/></linearGradient>
+<linearGradient id="deck" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1a2b23"/><stop offset="1" stop-color="#0b140f"/></linearGradient>
+<radialGradient id="keytop" cx="45%" cy="35%" r="70%"><stop offset="0" stop-color="#3b3b3b"/><stop offset="1" stop-color="#0c0c0c"/></radialGradient>
+<filter id="ds" x="-10%" y="-10%" width="120%" height="140%"><feDropShadow dx="0" dy="8" stdDeviation="8" flood-opacity=".55"/></filter>
+</defs>
+<!-- carriage: platen roller with knobs, return lever, paper bail -->
+<rect x="96" y="96" width="808" height="16" rx="4" fill="url(#chrome)"/>
+<rect x="150" y="98" width="700" height="44" rx="20" fill="url(#roll)"/>
+<g fill="url(#chrome)"><rect x="104" y="100" width="46" height="40" rx="8"/><rect x="850" y="100" width="46" height="40" rx="8"/></g>
+<g fill="#1a1a1a"><rect x="66" y="96" width="40" height="48" rx="12"/><rect x="894" y="96" width="40" height="48" rx="12"/></g>
+<g stroke="#2c2c2c" stroke-width="2">
+<line x1="74" y1="102" x2="74" y2="138"/><line x1="86" y1="102" x2="86" y2="138"/><line x1="98" y1="102" x2="98" y2="138"/>
+<line x1="902" y1="102" x2="902" y2="138"/><line x1="914" y1="102" x2="914" y2="138"/><line x1="926" y1="102" x2="926" y2="138"/></g>
+<path d="M110 100 L60 58 Q50 48 36 52" fill="none" stroke="url(#chrome)" stroke-width="9" stroke-linecap="round"/>
+<rect x="210" y="104" width="580" height="6" rx="3" fill="url(#chrome)"/>
+<g fill="#222"><rect x="330" y="101" width="22" height="12" rx="5"/><rect x="648" y="101" width="22" height="12" rx="5"/></g>
+<!-- machine body -->
+<g filter="url(#ds)">
+<path d="M130 142 L870 142 Q902 142 912 172 L972 430 Q978 452 954 452 L46 452 Q22 452 28 430 L88 172 Q98 142 130 142Z" fill="url(#body)"/>
+</g>
+<path d="M140 150 L860 150" stroke="#5f8a76" stroke-opacity=".5" stroke-width="2"/>
+<!-- typebar basket and ribbon -->
+<path d="M330 146 Q500 238 670 146Z" fill="#070b09"/>
+<g id="bars" stroke="#8a8a8a" stroke-width="2.4" stroke-linecap="round" opacity=".75"></g>
+<rect x="440" y="140" width="120" height="12" rx="3" fill="#7a1f1f"/><rect x="440" y="140" width="120" height="5" rx="2" fill="#1a1a1a"/>
+<g fill="url(#chrome)"><circle cx="380" cy="170" r="20"/><circle cx="620" cy="170" r="20"/></g>
+<g fill="#222"><circle cx="380" cy="170" r="13"/><circle cx="620" cy="170" r="13"/></g>
+<g fill="#c9c9c9"><circle cx="380" cy="170" r="3"/><circle cx="620" cy="170" r="3"/></g>
+<line id="bar" x1="500" y1="222" x2="500" y2="142" stroke="#d6d6d6" stroke-width="4" stroke-linecap="round" opacity="0"/>
+<text x="500" y="214" text-anchor="middle" font-family="Georgia,serif" font-size="15" letter-spacing="6" fill="#d9b562">CHRONOTYPE</text>
+<!-- keyboard well -->
+<path d="M120 220 L880 220 L932 446 L68 446Z" fill="url(#deck)"/>
+<g id="keys"></g>
+</svg>
+</div>
 <script>
 const log=document.getElementById('log'),big=document.getElementById('big'),cur=document.getElementById('cur');
 const p=n=>String(n).padStart(2,'0');let lastMin=-1,typing=false;
-async function type(el,text,speed){for(let i=1;i<=text.length;i++){el.innerHTML=text.slice(0,i).replace(/</g,'&lt;')+'<span class="cur"></span>';await new Promise(r=>setTimeout(r,speed+Math.random()*speed))}}
+// keyboard: four staggered rows of round keys and a space bar
+const NS="http://www.w3.org/2000/svg",K={},keys=document.getElementById('keys');
+const el=(t,a,par)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);par.appendChild(e);return e};
+// keys are 34 wide on a 52 pitch; rows sit 45 apart and shift half a key, so every neighbour, sideways or diagonal, is 52 apart
+[['1234567890-',244,201],['QWERTYUIOP',289,227],['ASDFGHJKL;',334,253],['ZXCVBNM,.:',379,279]].forEach(([row,y,x0])=>{const step=52;
+[...row].forEach((c,i)=>{const x=x0+i*step,g=el('g',{class:'key'},keys);
+el('rect',{x:x-2.5,y:y,width:5,height:23,fill:'#1a1a1a'},g);
+el('circle',{cx:x,cy:y,r:17,fill:'url(#chrome)'},g);el('circle',{cx:x,cy:y,r:14.5,fill:'url(#keytop)'},g);
+el('text',{x,y:y+5,'text-anchor':'middle','font-size':14,'font-family':'Courier New,monospace','font-weight':'bold',fill:'#f1ead8'},g).textContent=c;K[c]=g})});
+{const g=el('g',{class:'key'},keys);el('rect',{x:330,y:414,width:340,height:30,rx:12,fill:'url(#chrome)'},g);el('rect',{x:334,y:417,width:332,height:24,rx:10,fill:'url(#keytop)'},g);K[' ']=g}
+// typebars fanned out in the basket; one flicks up to the platen on each keystroke
+const bars=document.getElementById('bars');for(let i=0;i<=28;i++){const a=Math.PI*(.06+.88*i/28);el('line',{x1:500-Math.cos(a)*165,y1:146+Math.sin(a)*14,x2:500-Math.cos(a)*40,y2:146+Math.sin(a)*60},bars)}
+const bar=document.getElementById('bar');
+function press(c){const k=K[c.toUpperCase()];if(!k)return;k.classList.add('down');setTimeout(()=>k.classList.remove('down'),90);
+if(c!==' '){bar.classList.remove('hit');void bar.getBBox();bar.classList.add('hit')}}
+async function type(el,text,speed){for(let i=1;i<=text.length;i++){press(text[i-1]);el.innerHTML=text.slice(0,i).replace(/</g,'&lt;')+'<span class="cur"></span>';await new Promise(r=>setTimeout(r,speed+Math.random()*speed))}}
 async function minuteEntry(d){typing=true;
 const prev=big.textContent;if(prev){const l=document.createElement('div');l.className='line';l.textContent=`— at ${prev.replace(/\s+/g,' ')} the minute passed.`;log.appendChild(l);while(log.children.length>4)log.firstChild.remove()}
 await type(big,`${p(d.getHours())}:${p(d.getMinutes())}`,90);big.innerHTML=big.textContent;
 await type(cur,`${d.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}. `,35);typing=false}
+let lastSec=-1;
 function tick(){const d=new Date();if(d.getMinutes()!==lastMin&&!typing){lastMin=d.getMinutes();minuteEntry(d)}
-else if(!typing){const base=cur.textContent.split('.')[0]+'. ';cur.innerHTML=base+'·'.repeat(Math.floor(d.getSeconds()/5))+' '+p(d.getSeconds())+' s<span class="cur"></span>'}}
+else if(!typing){const base=cur.textContent.split('.')[0]+'. ';if(d.getSeconds()!==lastSec){lastSec=d.getSeconds();if(d.getSeconds()%5===0)press('.')}
+cur.innerHTML=base+'·'.repeat(Math.floor(d.getSeconds()/5))+' '+p(d.getSeconds())+' s<span class="cur"></span>'}}
 {const n=new Date();for(let k=4;k>0;k--){const t=new Date(n-k*60000),l=document.createElement('div');l.className='line';l.textContent=`— at ${p(t.getHours())}:${p(t.getMinutes())} the minute passed.`;log.appendChild(l)}}
 tick();setInterval(tick,500);
 </script></body></html>

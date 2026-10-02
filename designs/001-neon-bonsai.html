@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Neon Bonsai</title><link rel="icon" href="../favicon.svg" type="image/svg+xml"><link rel="icon" href="../favicon-32.png" sizes="32x32" type="image/png">
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#070b10;color:#cfe6ff;font-family:"Segoe UI",system-ui,-apple-system,sans-serif}
+canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
+header{position:fixed;left:3vw;top:2.4vh;display:flex;align-items:baseline;gap:18px;flex-wrap:wrap;pointer-events:none}
+h1{margin:0;font-size:clamp(16px,2vw,24px);font-weight:700;letter-spacing:.42em;color:#f2f8ff;text-shadow:0 0 10px rgba(120,220,255,.55)}
+.sub{font-size:clamp(9px,.95vw,12px);letter-spacing:.28em;color:#8fa8bf}
+.time{position:fixed;right:3vw;top:2vh;text-align:right;pointer-events:none}
+.time b{display:block;font-weight:300;font-size:clamp(28px,4.4vw,56px);letter-spacing:.08em;color:#bff1ff;text-shadow:0 0 12px rgba(80,210,255,.8),0 0 30px rgba(255,90,180,.35)}
+.time b small{font-size:.42em;color:#ff9ccf;margin-left:.3em;text-shadow:0 0 10px rgba(255,90,180,.7)}
+.time span{font-size:clamp(9px,.95vw,12px);letter-spacing:.24em;color:#8fa8bf;text-transform:uppercase}
+.hints{position:fixed;right:3vw;bottom:calc(14vh + 2px);text-align:right;font-size:clamp(8px,.85vw,11px);letter-spacing:.22em;color:#5f7d93;line-height:2;pointer-events:none}
+.bar{position:fixed;left:0;right:0;bottom:2.2vh;display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:10px 10px;padding:0 16px}
+.bar button{font:inherit;font-size:clamp(11px,1.05vw,13px);letter-spacing:.24em;text-transform:uppercase;padding:.75em 1.4em;border-radius:999px;cursor:pointer;background:rgba(8,16,24,.75);color:#cfe6ff;border:1px solid rgba(120,200,255,.28);transition:background .2s,color .2s,box-shadow .2s}
+.bar button:hover{border-color:rgba(120,220,255,.6)}
+.bar button.on{background:#58d8ff;color:#04202c;border-color:#58d8ff;box-shadow:0 0 18px rgba(88,216,255,.55)}
+.bar #grow{color:#f3d98a;border-color:#b8954a;margin-right:14px}
+.bar #grow:hover{box-shadow:0 0 14px rgba(243,217,138,.35)}
+.wind{display:flex;align-items:center;gap:12px;font-size:clamp(10px,.95vw,12px);letter-spacing:.24em;color:#8fa8bf;margin-right:14px}
+input[type=range]{-webkit-appearance:none;appearance:none;width:clamp(90px,12vw,150px);height:2px;background:linear-gradient(90deg,#2a6f8f,#58d8ff);border-radius:2px;outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#0b1a24;border:2px solid #bff1ff;box-shadow:0 0 8px rgba(120,220,255,.8);cursor:pointer}
+input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;background:#0b1a24;border:2px solid #bff1ff;cursor:pointer}
+@media (max-width:640px){.hints{display:none}.time{top:64px;left:3vw;right:auto;text-align:left}.bar #grow,.wind{margin-right:0}}
+</style></head><body>
+<canvas id="c"></canvas>
+<header><h1>NEON BONSAI</h1><span class="sub">LIVING TREE INSTRUMENT · 盆栽</span></header>
+<div class="time"><b id="t"></b><span id="d"></span></div>
+<div class="hints">CLICK A BRANCH — PRUNE ✂<br>BLOSSOMS FILL THE HOUR · FIREFLIES COUNT IT<br>WATCH THE POOL REFLECT</div>
+<div class="bar">
+<button id="grow">Grow</button>
+<label class="wind">WIND <input type="range" id="wind" min="0" max="100" value="30"></label>
+<button data-s="spring">Spring</button><button data-s="summer">Summer</button><button data-s="autumn">Autumn</button><button data-s="winter">Winter</button>
+</div>
+<script>
+// Time: blossoms open one by one across the hour and fall into the pool on the hour,
+// the number of fireflies is the hour (1–12), and each second drips a ripple on the pool.
+const cv=document.getElementById('c'),ctx=cv.getContext('2d'),$=id=>document.getElementById(id);
+const KEY='neon-bonsai';let store={};try{store=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(store))}catch(e){}};
+const SEASONS={spring:['#ff9ccf','#ffc2e2'],summer:['#7dffb2','#c4ff8a'],autumn:['#ffa64d','#ff5a3c'],winter:['#e9f4ff','#bfe3ff']};
+const monthSeason=m=>m<2||m==11?'winter':m<5?'spring':m<8?'summer':'autumn';
+let season=store.season||monthSeason(new Date().getMonth()),wind=store.wind??30,seed=store.seed||(Math.random()*1e9|0);
+$('wind').value=wind;
+const MAXD=9,DEPTH_COL=['#ff3d9a','#ff4fb0','#c66bff','#9b7dff','#7a8fff','#5aa6ff','#45c4ff','#3fd2ff','#3fd8ff','#48e0ff'],DEPTH_W=[13,8.5,5.6,4,3,2.2,1.6,1.25,1,.85];
+let W=0,H=0,DPR=1,waterY=0,L0=0,S=1;
+function resize(){DPR=Math.min(2,devicePixelRatio||1);W=innerWidth;H=innerHeight;cv.width=W*DPR;cv.height=H*DPR;
+waterY=H*.86;L0=Math.min(waterY*.2,W*(W<700?.2:.14));S=L0/110}
+addEventListener('resize',resize);resize();
+// glow sprites, one per colour, so hundreds of blossoms cost one drawImage each
+const sprites={};function sprite(col){if(sprites[col])return sprites[col];const c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d'),r=g.createRadialGradient(32,32,0,32,32,32);
+r.addColorStop(0,col);r.addColorStop(.25,col+'99');r.addColorStop(.5,col+'33');r.addColorStop(1,col+'00');g.fillStyle=r;g.fillRect(0,0,64,64);return sprites[col]=c}
+// tree: built once per seed, only the sway is animated
+let tree,nodes,blooms,growStart=0;
+function build(){let s=seed>>>0;const rnd=()=>{s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
+nodes=[];blooms=[];
+function make(d,a,len,abs){const n={d,a,len,kids:[],ph:rnd()*6.28,pruned:false,bl:[]};nodes.push(n);
+if(d>=7||(d==MAXD)){const p=d==MAXD?.6:.22;if(rnd()<p)n.bl.push({ox:(rnd()-.5)*6,oy:(rnd()-.5)*6,r:0})}
+if(d<MAXD){const k=d>=3&&rnd()<.18?3:2,spread=d==0?.42+rnd()*.08:.32+rnd()*.32;
+for(let i=0;i<k;i++){let ca=k==2?(i?1:-1)*spread*(.75+rnd()*.35):(i-1)*spread*(.9+rnd()*.2)+(i==1?(rnd()-.5)*.2:0);
+const ab=abs+ca;if(Math.abs(ab)>1.75)ca-=Math.sign(ab)*(Math.abs(ab)-1.75)*.85;
+const f=d==0?.62:d<3?.66+rnd()*.08:.74+rnd()*.1;n.kids.push(make(d+1,ca,len*f,abs+ca))}}return n}
+tree=make(0,(rnd()-.5)*.06,1,0);
+nodes.forEach(n=>n.bl.forEach(b=>blooms.push(b)));
+// shuffled ranks decide the order blossoms open during the hour
+for(let i=blooms.length-1;i>0;i--){const j=rnd()*(i+1)|0;[blooms[i],blooms[j]]=[blooms[j],blooms[i]]}blooms.forEach((b,i)=>b.r=i);
+growStart=performance.now()}
+build();
+// particles: petals, snow, prune sparks; ripples on the pool
+let parts=[],ripples=[],flies=[],motes=[];
+for(let i=0;i<40;i++)motes.push({x:Math.random(),y:Math.random()*.8,a:.15+Math.random()*.35,s:.6+Math.random()*1.2,v:(Math.random()-.5)*.00002});
+function fly(){return{x:W*(.25+Math.random()*.5),y:waterY*(.25+Math.random()*.6),vx:0,vy:0,ph:Math.random()*6.28}}
+let segs=[],drawn=[],hover=null,lastHour=-1,lastSec=-1;
+function setSeason(s){season=s;document.querySelectorAll('[data-s]').forEach(b=>b.classList.toggle('on',b.dataset.s==s))}
+setSeason(season);
+document.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{setSeason(b.dataset.s);store.season=season;save()});
+$('wind').oninput=e=>{wind=+e.target.value;store.wind=wind;save()};
+$('grow').onclick=()=>{seed=Math.random()*1e9|0;store.seed=seed;save();build()};
+// pruning
+function hit(x,y){let best=null,bd=1e9;for(const g of segs){if(g.n.d==0)continue;const dx=g.x2-g.x1,dy=g.y2-g.y1,l=dx*dx+dy*dy||1,t=Math.max(0,Math.min(1,((x-g.x1)*dx+(y-g.y1)*dy)/l)),px=g.x1+dx*t-x,py=g.y1+dy*t-y,dd=Math.sqrt(px*px+py*py);
+if(dd<Math.max(7,g.w)&&dd<bd){bd=dd;best=g.n}}return best}
+cv.addEventListener('pointermove',e=>{hover=hit(e.clientX,e.clientY);cv.style.cursor=hover?'pointer':'default'});
+cv.addEventListener('pointerleave',()=>hover=null);
+cv.addEventListener('click',e=>{const n=hit(e.clientX,e.clientY);if(!n)return;
+const sub=[];(function walk(m){sub.push(m);m.kids.forEach(walk)})(n);
+for(const g of segs)if(sub.includes(g.n)&&Math.random()<.5)parts.push({x:g.x2,y:g.y2,vx:(Math.random()-.5)*1.2,vy:-Math.random()*1.2,col:DEPTH_COL[g.n.d],sz:1.5+Math.random()*2,life:1,spark:1});
+n.pruned=true;hover=null});
+const P=n=>String(n).padStart(2,'0');
+function frame(now){const d=new Date(),h=d.getHours(),m=d.getMinutes(),sec=d.getSeconds()+d.getMilliseconds()/1000;
+const frac=(m+sec/60)/60,hour12=h%12||12,wv=wind/100,[c1,c2]=SEASONS[season];
+// text
+$('t').innerHTML=`${P(h)}:${P(m)}<small>${P(d.getSeconds())}</small>`;
+$('d').textContent=d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long'})+' · '+season;
+ctx.setTransform(DPR,0,0,DPR,0,0);ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1;
+// sky
+const bg=ctx.createRadialGradient(W/2,waterY*.45,0,W/2,waterY*.45,Math.max(W,H)*.75);bg.addColorStop(0,'#0d1822');bg.addColorStop(1,'#05080c');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+for(const o of motes){o.x=(o.x+o.v+1)%1;ctx.fillStyle=`rgba(130,160,190,${o.a*(.6+.4*Math.sin(now/1500+o.x*40))})`;ctx.beginPath();ctx.arc(o.x*W,o.y*waterY,o.s,0,7);ctx.fill()}
+// tree
+const gt=Math.min(1,(now-growStart)/4200),grow=1-Math.pow(1-gt,2),gust=Math.sin(now/2600)*.6+Math.sin(now/1100)*.4;
+segs=[];drawn=[];const paths=DEPTH_COL.map(()=>new Path2D()),hl=new Path2D();let hoverOn=false;
+(function walk(n,x,y,abs,hov){if(n.pruned)return;const gf=Math.max(0,Math.min(1,grow*(MAXD+1)-n.d));if(gf<=0)return;
+const sw=wv*(.015+.08*n.d/MAXD)*(Math.sin(now*.0012*(1+wv)+n.ph)*.6+gust*.7);
+const a=abs+n.a+sw,len=n.len*L0*gf,x2=x+Math.sin(a)*len,y2=y-Math.cos(a)*len,w=Math.max(.7,DEPTH_W[n.d]*S);
+const isHov=hov||n===hover;(isHov?hl:paths[n.d]).moveTo(x,y);(isHov?hl:paths[n.d]).lineTo(x2,y2);
+segs.push({n,x1:x,y1:y,x2,y2,w});
+for(const b of n.bl){const open=Math.max(0,Math.min(1,(frac*blooms.length-b.r)/1.5))*(gf>=1?1:0);if(open>0)drawn.push({x:x2+b.ox*S,y:y2+b.oy*S,o:open,r:b.r})}
+if(gf>=1)for(const k of n.kids)walk(k,x2,y2,a,isHov)})(tree,W/2,waterY-14*S,0,false);
+ctx.lineCap='round';ctx.globalCompositeOperation='lighter';
+for(let i=0;i<=MAXD;i++){const w=Math.max(.7,DEPTH_W[i]*S);ctx.strokeStyle=DEPTH_COL[i];
+ctx.globalAlpha=.09;ctx.lineWidth=w*3.2;ctx.stroke(paths[i])}
+// core strokes drawn normally so overlapping joints don't flare
+ctx.globalCompositeOperation='source-over';for(let i=0;i<=MAXD;i++){ctx.strokeStyle=DEPTH_COL[i];ctx.globalAlpha=.95;ctx.lineWidth=Math.max(.7,DEPTH_W[i]*S);ctx.stroke(paths[i])}ctx.globalCompositeOperation='lighter';
+if(hover){ctx.strokeStyle='#fff';ctx.globalAlpha=.25;ctx.lineWidth=6*S+2;ctx.stroke(hl);ctx.globalAlpha=.9;ctx.lineWidth=1.4;ctx.stroke(hl)}
+// blossoms
+const sp1=sprite(c1),sp2=sprite(c2),bs=Math.max(5,9*S);
+for(const b of drawn){const z=bs*(.4+.6*b.o);ctx.globalAlpha=.6*b.o;ctx.drawImage(b.r%3?sp1:sp2,b.x-z/2,b.y-z/2,z,z)}
+ctx.globalCompositeOperation='source-over';for(const b of drawn){ctx.globalAlpha=b.o;ctx.fillStyle=b.r%3?c1:c2;ctx.beginPath();ctx.arc(b.x,b.y,Math.max(1.1,1.9*S)*b.o,0,7);ctx.fill()}ctx.globalCompositeOperation='lighter';
+// on the hour every open blossom drops into the pool
+if(lastHour>=0&&h!==lastHour)for(const b of prevDrawn)parts.push({x:b.x,y:b.y,vx:(Math.random()-.5)*.6,vy:Math.random()*.3,col:b.r%3?c1:c2,sz:2+Math.random()*2,life:1});
+lastHour=h;prevDrawn=drawn;
+// seasonal drift: occasional petals or leaves, snow in winter
+if(drawn.length&&season!='winter'&&season!='summer'&&Math.random()<(season=='autumn'?.06:.03)){const b=drawn[Math.random()*drawn.length|0];parts.push({x:b.x,y:b.y,vx:0,vy:.2,col:season=='autumn'?c2:c1,sz:2+Math.random()*1.5,life:1})}
+if(season=='winter'&&Math.random()<.5)parts.push({x:Math.random()*W,y:-5,vx:0,vy:.4+Math.random()*.5,col:'#e9f4ff',sz:1+Math.random()*1.6,life:1,snow:1});
+// fireflies: one per hour on the 12-hour dial
+while(flies.length<hour12)flies.push(fly());if(flies.length>hour12)flies.length=hour12;
+const gold=sprite('#ffd36b');for(const f of flies){f.vx+=(Math.random()-.5)*.08;f.vy+=(Math.random()-.5)*.08;f.vx*=.97;f.vy*=.97;f.x+=f.vx;f.y+=f.vy;
+if(f.x<W*.1||f.x>W*.9)f.vx-=Math.sign(f.x-W/2)*.1;if(f.y<waterY*.15||f.y>waterY-20)f.vy-=Math.sign(f.y-waterY*.55)*.1;
+const fl=.55+.45*Math.sin(now/380+f.ph),z=16*Math.max(.7,S);ctx.globalAlpha=fl;ctx.drawImage(gold,f.x-z/2,f.y-z/2,z,z)}
+// particles
+ctx.globalAlpha=1;
+for(let i=parts.length-1;i>=0;i--){const p=parts[i];p.vy+=p.snow?0:.012;p.vy=Math.min(p.vy,p.snow?1:1.4);p.vx+=(wv*.03*(gust+.4))-p.vx*.02;p.x+=p.vx+Math.sin(now/600+i)*.25;p.y+=p.vy;
+if(p.spark)p.life-=.006;
+if(p.y>=waterY){if(!p.snow||Math.random()<.2)ripples.push({x:p.x,t:now,big:0});parts.splice(i,1);continue}
+if(p.life<=0||p.x<-20||p.x>W+20){parts.splice(i,1);continue}
+const z=p.sz*4*Math.max(.7,S);ctx.globalAlpha=.8*p.life;ctx.drawImage(sprite(p.col),p.x-z/2,p.y-z/2,z,z)}
+if(parts.length>900)parts.splice(0,parts.length-900);
+// one drip per second on the pool, under the tree's reflection
+if(d.getSeconds()!==lastSec){lastSec=d.getSeconds();ripples.push({x:W/2+(Math.random()-.5)*L0*2.4,t:now,big:1})}
+ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1;
+// pool with a rippling mirrored reflection
+const pg=ctx.createLinearGradient(0,waterY,0,H);pg.addColorStop(0,'#0a1720');pg.addColorStop(1,'#03070a');ctx.fillStyle=pg;ctx.fillRect(0,waterY,W,H-waterY);
+ctx.globalCompositeOperation='lighter';const band=2,ph=H-waterY;
+for(let y=waterY;y<H;y+=band){const k=(y-waterY)/ph,src=waterY-(y-waterY)*3.4-band*3.4;if(src<0)break;
+const off=Math.sin(y*.11+now*.003)*(1+k*5)+Math.sin(y*.037-now*.0017)*2;ctx.globalAlpha=.55*(1-k*.6);
+ctx.drawImage(cv,0,src*DPR,W*DPR,band*3.4*DPR,off,y,W,band)}
+ctx.globalAlpha=1;
+for(let i=ripples.length-1;i>=0;i--){const r=ripples[i],age=(now-r.t)/(r.big?2600:1600);if(age>1){ripples.splice(i,1);continue}
+const rx=(r.big?60:22)*Math.max(.6,S)*age+2;ctx.strokeStyle=`rgba(120,220,255,${(1-age)*(r.big?.35:.25)})`;ctx.lineWidth=1;
+ctx.beginPath();ctx.ellipse(r.x,waterY+ph*.32,rx,rx*.16,0,0,7);ctx.stroke()}
+ctx.globalCompositeOperation='source-over';
+ctx.strokeStyle='rgba(120,200,240,.35)';ctx.lineWidth=1;ctx.beginPath();for(let x=0;x<=W;x+=8){const y=waterY+Math.sin(x*.012+now*.0012)*1.4+Math.sin(x*.031-now*.0021)*.8;x?ctx.lineTo(x,y):ctx.moveTo(x,y)}ctx.stroke();
+requestAnimationFrame(frame)}
+let prevDrawn=[];
+requestAnimationFrame(frame);
+</script></body></html>

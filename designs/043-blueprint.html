@@ -11,15 +11,20 @@ text{font-family:"Courier New",monospace;fill:#dbe9ff}
 </style></head><body>
 <div class="wrap"><svg viewBox="0 0 300 194" id="s">
 <rect x="2" y="2" width="296" height="190" class="ln" stroke-width=".6"/>
-<g transform="translate(95 95)">
-<circle r="72" class="ln" stroke-width=".8"/><circle r="66" class="ln" stroke-width=".3" stroke-dasharray="2 1.5"/><circle r="4" class="ln" stroke-width=".5"/>
+<!-- isometric view: each layer of the clock is drawn flat, then projected with a per-depth matrix -->
+<g transform="translate(92 100)" id="iso">
+<g id="caseBody"></g>
+<g id="Lback" class="ln" stroke-width=".35" stroke-dasharray="2 1.4"><circle r="12"/></g>
+<g id="Lcase"><circle r="72" class="ln" stroke-width=".8"/><circle r="66" class="ln" stroke-width=".3" stroke-dasharray="2 1.5"/>
 <line x1="-84" x2="84" class="ln" stroke-width=".2" stroke-dasharray="6 2 1 2"/><line y1="-84" y2="84" class="ln" stroke-width=".2" stroke-dasharray="6 2 1 2"/>
-<g id="tk"></g>
-<g id="hh"><path d="M-3 8 L-2 -38 L0 -42 L2 -38 L3 8Z" class="ln" stroke-width=".7" fill="rgba(219,233,255,.12)"/></g>
-<g id="mh"><path d="M-2 10 L-1.2 -60 L0 -64 L1.2 -60 L2 10Z" class="ln" stroke-width=".7" fill="rgba(219,233,255,.12)"/></g>
-<g id="sh"><line y1="14" y2="-66" class="ln" stroke-width=".4"/></g>
-<path id="arc" class="ln" stroke-width=".4"/><text id="arct" font-size="4.2"></text>
-<line x1="-72" y1="80" x2="72" y2="80" class="ln" stroke-width=".3" marker-start="url(#a)" marker-end="url(#a)"/><text y="78" text-anchor="middle" font-size="4">Ø 144.00</text>
+<g id="tk"></g><path id="arc" class="ln" stroke-width=".4"/><text id="arct" font-size="4.2"></text>
+<line x1="-72" y1="80" x2="72" y2="80" class="ln" stroke-width=".3" marker-start="url(#a)" marker-end="url(#a)"/><text y="78" text-anchor="middle" font-size="4">Ø 144.00</text></g>
+<g id="Lbezel"><circle r="72" class="ln" stroke-width=".5"/><circle r="69" class="ln" stroke-width=".25"/></g>
+<g id="arbor"></g>
+<g id="Lh"><g id="hh"><path d="M-3 8 L-2 -38 L0 -42 L2 -38 L3 8Z" class="ln" stroke-width=".7" fill="rgba(219,233,255,.12)"/><circle r="4" class="ln" stroke-width=".5" fill="#0d4a8a"/></g></g>
+<g id="Lm"><g id="mh"><path d="M-2 10 L-1.2 -60 L0 -64 L1.2 -60 L2 10Z" class="ln" stroke-width=".7" fill="rgba(219,233,255,.12)"/><circle r="3" class="ln" stroke-width=".5" fill="#0d4a8a"/></g></g>
+<g id="Ls"><g id="sh"><line y1="14" y2="-66" class="ln" stroke-width=".4"/><circle r="1.8" class="ln" stroke-width=".4" fill="#0d4a8a"/></g></g>
+<g id="dims"></g>
 </g>
 <defs><marker id="a" viewBox="0 0 6 6" refX="3" refY="3" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M0 0 L6 3 L0 6Z" fill="#dbe9ff"/></marker></defs>
 <g transform="translate(186 20)" font-size="5">
@@ -30,6 +35,7 @@ text{font-family:"Courier New",monospace;fill:#dbe9ff}
 <text y="58">MINUTE HAND ∠</text><text x="62" y="58" id="ma"></text>
 <text y="66">SECOND HAND ∠</text><text x="62" y="66" id="sa"></text>
 </g>
+<text x="8" y="9" font-size="3.6" opacity=".8">ISOMETRIC VIEW · SCALE 1:1 · VIEWED FROM UPPER LEFT</text>
 <g transform="translate(180 130)" font-size="4.5">
 <rect width="112" height="56" class="ln" stroke-width=".5"/><line y1="14" x2="112" y2="14" class="ln" stroke-width=".3"/><line y1="28" x2="112" y2="28" class="ln" stroke-width=".3"/><line y1="42" x2="112" y2="42" class="ln" stroke-width=".3"/><line x1="34" x2="34" y2="56" class="ln" stroke-width=".3"/>
 <text x="3" y="9">PROJECT</text><text x="38" y="9">CHRONOMETER MK-I</text>
@@ -43,6 +49,37 @@ const NS="http://www.w3.org/2000/svg",tk=document.getElementById('tk');
 for(let i=0;i<60;i++){const l=document.createElementNS(NS,'line');l.setAttribute('y1',-72);l.setAttribute('y2',i%5?-69:-64);l.setAttribute('class','ln');l.setAttribute('stroke-width',i%5?.3:.7);l.setAttribute('transform',`rotate(${i*6})`);tk.appendChild(l);
 if(i%5==0){const t=document.createElementNS(NS,'text'),a=i*Math.PI/30;t.setAttribute('x',Math.sin(a)*58);t.setAttribute('y',-Math.cos(a)*58+1.6);t.setAttribute('font-size',5);t.setAttribute('text-anchor','middle');t.textContent=String(i/5||12);tk.appendChild(t)}}
 const $=id=>document.getElementById(id);
+// orthographic projection: dial in the x–y plane, z toward the viewer; slow sway of the view so the depth reads
+const DEPTH=[['Lback',-16],['Lcase',0],['Lbezel',3.5],['Lh',5],['Lm',8],['Ls',11]];
+let yaw=0,pitch=0;
+function P(x,y,z){const cy=Math.cos(yaw),sy=Math.sin(yaw),cp=Math.cos(pitch),sp=Math.sin(pitch);
+const x1=x*cy+z*sy,z1=-x*sy+z*cy;return [x1,y*cp-z1*sp]}
+const mat=z=>{const o=P(0,0,z),ex=P(1,0,z),ey=P(0,1,z);return `matrix(${ex[0]-o[0]} ${ex[1]-o[1]} ${ey[0]-o[0]} ${ey[1]-o[1]} ${o[0]} ${o[1]})`};
+const pt=(x,y,z)=>P(x,y,z).map(v=>v.toFixed(2)).join(' ');
+function project(t){yaw=-.48+.1*Math.sin(t/9000);pitch=.5+.04*Math.sin(t/13000);
+for(const [id,z] of DEPTH)$(id).setAttribute('transform',mat(z));
+// case side: silhouette lines where the rim is tangent to the depth direction, visible back rim solid, hidden part dashed
+const R=72,zb=-16,v=[P(0,0,zb)[0]-P(0,0,0)[0],P(0,0,zb)[1]-P(0,0,0)[1]];let lo=1e9,hi=-1e9,tl=0,th=0;const vis=[],hid=[];
+for(let i=0;i<360;i++){const a=i*Math.PI/180,f=P(Math.cos(a)*R,Math.sin(a)*R,0),c=f[0]*v[1]-f[1]*v[0];if(c<lo){lo=c;tl=a}if(c>hi){hi=c;th=a}
+const k=P(Math.cos(a)*R,Math.sin(a)*R,zb),dot=f[0]*v[0]+f[1]*v[1];(dot>0?vis:hid).push(k)}
+const seg=a=>`M${pt(Math.cos(a)*R,Math.sin(a)*R,0)} L${pt(Math.cos(a)*R,Math.sin(a)*R,zb)}`;
+let h='';for(const a of [tl,th])h+=`<path d="${seg(a)}" class="ln" stroke-width=".8"/>`;
+// back rim, split into its visible arc and hidden arc
+const arcs=(pts,cls)=>{let d='';for(let i=0;i<360;i++){const a=i*Math.PI/180,f=P(Math.cos(a)*R,Math.sin(a)*R,0),k=P(Math.cos(a)*R,Math.sin(a)*R,zb),on=(f[0]*v[0]+f[1]*v[1]>0)===cls;if(on)d+=(d&&lastOn?' L':' M')+k.map(n=>n.toFixed(2)).join(' ');lastOn=on}return d};let lastOn=false;
+h+=`<path d="${arcs(0,true)}" class="ln" stroke-width=".8"/>`;lastOn=false;h+=`<path d="${arcs(0,false)}" class="ln" stroke-width=".35" stroke-dasharray="2 1.4"/>`;
+// crown at 3 o'clock: a short cylinder along +x
+const cr=(x,ang)=>pt(x,Math.cos(ang)*5,-6+Math.sin(ang)*5);let c1='',c2='';for(let i=0;i<=24;i++){const g=i/24*Math.PI*2;c1+=(i?' L':'M')+cr(72,g);c2+=(i?' L':'M')+cr(82,g)}
+h+=`<path d="${c2}" class="ln" stroke-width=".5" fill="rgba(219,233,255,.08)"/><path d="M${cr(72,-Math.PI/2)} L${cr(82,-Math.PI/2)} M${cr(72,Math.PI/2)} L${cr(82,Math.PI/2)}" class="ln" stroke-width=".5"/>`;
+for(let i=0;i<6;i++){const g=i/6*Math.PI*2;h+=`<path d="M${cr(74,g)} L${cr(82,g)}" class="ln" stroke-width=".2"/>`}
+$('caseBody').innerHTML=h;
+// arbor: the shared post the hands sit on
+$('arbor').innerHTML=`<path d="M${pt(0,0,0)} L${pt(0,0,12)}" class="ln" stroke-width="1.6" stroke-linecap="round"/><path d="M${pt(0,0,0)} L${pt(0,0,12)}" stroke="#0d4a8a" stroke-width=".7" stroke-linecap="round"/>`;
+// thickness dimension at 9 o'clock with extension lines
+const e0=P(-72,0,0),e1=P(-72,0,zb),off=[-14,4],q=(p,s)=>`${(p[0]+off[0]*s).toFixed(2)} ${(p[1]+off[1]*s).toFixed(2)}`;
+$('dims').innerHTML=`<path d="M${q(e0,.15)} L${q(e0,1.15)} M${q(e1,.15)} L${q(e1,1.15)}" class="ln" stroke-width=".2"/>
+<line x1="${q(e0,1).split(' ')[0]}" y1="${q(e0,1).split(' ')[1]}" x2="${q(e1,1).split(' ')[0]}" y2="${q(e1,1).split(' ')[1]}" class="ln" stroke-width=".3" marker-start="url(#a)" marker-end="url(#a)"/>
+<text x="${(e0[0]+e1[0])/2+off[0]-3}" y="${(e0[1]+e1[1])/2+off[1]+2}" font-size="3.6" text-anchor="end">16.00</text>
+<path d="M${pt(0,0,12)} L${q(P(0,0,12),0)} l-52 -62 h-22" class="ln" stroke-width=".2"/><text x="${P(0,0,12)[0]-74}" y="${P(0,0,12)[1]-63.5}" font-size="3.4">ARBOR · 3 HANDS STACKED</text>`}
 function tick(){const d=new Date(),s=d.getSeconds(),m=d.getMinutes()+s/60,h=d.getHours()%12+m/60,ha=h*30,ma=m*6,sa=s*6,p=n=>String(n).padStart(2,'0');
 $('hh').setAttribute('transform',`rotate(${ha})`);$('mh').setAttribute('transform',`rotate(${ma})`);$('sh').setAttribute('transform',`rotate(${sa})`);
 // dimension arc between hour and minute hands
@@ -54,4 +91,5 @@ $('ha').textContent=ha.toFixed(2)+'°';$('ma').textContent=ma.toFixed(2)+'°';$(
 $('d').textContent=d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());$('w').textContent=d.toLocaleDateString('en',{weekday:'long'}).toUpperCase();
 const doy=Math.floor((new Date(d.getFullYear(),d.getMonth(),d.getDate())-new Date(d.getFullYear(),0,0))/864e5);$('sheet').textContent=doy+' OF 365'}
 tick();setInterval(tick,250);
+project(0);setInterval(()=>project(performance.now()),100);
 </script></body></html>

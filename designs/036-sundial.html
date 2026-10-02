@@ -18,6 +18,7 @@ svg{position:fixed;inset:0;width:100%;height:100%}
 <linearGradient id="gnoR" x1="0" x2="1"><stop offset="0" stop-color="#f0d49a"/><stop offset="1" stop-color="#b88a4e"/></linearGradient>
 <filter id="soft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="1.6"/></filter>
 <filter id="ds" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="5" dy="7" stdDeviation="5" flood-color="#0a1404" flood-opacity=".55"/></filter>
+<radialGradient id="moonglow" gradientUnits="userSpaceOnUse" cx="0" cy="0" r="330"><stop offset="0" stop-color="#e4eeff" stop-opacity=".75"/><stop offset=".4" stop-color="#a9c2f2" stop-opacity=".32"/><stop offset="1" stop-color="#9fb6e8" stop-opacity="0"/></radialGradient>
 <filter id="engr"><feOffset dx=".35" dy=".45" in="SourceAlpha" result="o"/><feFlood flood-color="#f6dca0" flood-opacity=".55"/><feComposite in2="o" operator="in" result="hl"/><feMerge><feMergeNode in="hl"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
 </defs>
 <rect x="-900" y="-700" width="1800" height="1400" fill="#4a6a2e" filter="url(#lawn)"/>
@@ -44,7 +45,13 @@ svg{position:fixed;inset:0;width:100%;height:100%}
 <g id="gno"><path d="M0 4 L-3.2 4 L-1.6 -66 Z" fill="url(#gnoL)"/><path d="M0 4 L3.2 4 L1.6 -66 Z" fill="url(#gnoR)"/><path d="M-1.6 -66 L1.6 -66 L0 6Z" fill="#c9a060"/><path d="M0 -66 L0 4" stroke="#fff3c8" stroke-width=".5" opacity=".8"/>
 <circle cy="-46" r="5" fill="none" stroke="url(#gnoR)" stroke-width="1.8"/></g>
 <circle r="4.2" fill="url(#rim)"/><circle r="1.4" fill="#3a2410"/>
+<!-- night: blue dusk over the garden, moonlight falling from the moon's side -->
+<g id="night" opacity="0" pointer-events="none">
+<rect x="-900" y="-700" width="1800" height="1400" fill="#0b1a44" opacity=".55" style="mix-blend-mode:multiply"/><rect x="-900" y="-700" width="1800" height="1400" fill="#2a4a9a" opacity=".6" style="mix-blend-mode:color"/>
+<rect id="mglow" x="-900" y="-700" width="1800" height="1400" fill="url(#moonglow)" style="mix-blend-mode:screen"/>
+</g>
 <text id="tt" x="0" y="150" text-anchor="middle" font-size="10" fill="#f4ecd6" letter-spacing="2"></text>
+<g id="moon" opacity="0" transform="translate(-36 146.5) scale(.62)"><circle r="7" fill="#1c2540"/><path id="mlit" fill="#eef3ff"/><circle r="7" fill="none" stroke="#eef3ff" stroke-opacity=".35" stroke-width=".4"/></g>
 <text id="dd" x="0" y="161" text-anchor="middle" font-size="6" fill="#e8ddc0" font-style="italic"></text>
 </svg>
 <script>
@@ -64,13 +71,30 @@ const R=['VI','VII','VIII','IX','X','XI','XII','I','II','III','IV','V','VI'];
 for(let q=6*4;q<=18*4;q++){const h=q/4,a=ang(h),full=q%4===0,half=q%2===0;const r1=full?60:half?84:88;
 el('line',{x1:Math.sin(a)*r1,y1:-Math.cos(a)*r1,x2:Math.sin(a)*92,y2:-Math.cos(a)*92,stroke:'#2e1c0a','stroke-width':full?.9:.45},$('lines'));
 if(full){const x=Math.sin(a)*81,y=-Math.cos(a)*81;el('text',{x,y,transform:`rotate(${a*180/Math.PI} ${x} ${y})`},$('nums')).textContent=R[h-6]}}
+// moon: age since a known new moon gives the phase; it trails the sun by 24 h × age / 29.53
+const SYN=29.530588853,NEW=Date.UTC(2000,0,6,18,14);
+function moonPath(age){const f=age/SYN,r=7,k=Math.cos(f*2*Math.PI)*r,wax=f<.5;
+// lit limb plus terminator ellipse
+return `M0 ${-r} A${r} ${r} 0 0 ${wax?1:0} 0 ${r} A${Math.abs(k)} ${r} 0 0 ${(k>0)===wax?0:1} 0 ${-r}Z`}
+const PH=['new moon','waxing crescent','first quarter','waxing gibbous','full moon','waning gibbous','last quarter','waning crescent'];
 function tick(){const d=new Date(),h=d.getHours()+d.getMinutes()/60+d.getSeconds()/3600,day=h>=6&&h<=18,elev=Math.max(0,Math.sin((h-6)/12*Math.PI));
-// shadow: points away from the sun along the hour line; long in morning and evening, short at noon
-if(day){const a=ang(h),len=64+60*(1-elev),w=1.6+3*(1-elev);const sx=Math.sin(a),sy=-Math.cos(a);
-$('sh').setAttribute('points',`${-sy*w} ${sx*w} ${sx*len} ${sy*len} ${sy*w} ${-sx*w}`);$('sh').setAttribute('opacity',(.25+.4*elev).toFixed(2))}else $('sh').setAttribute('opacity',0);
-// daylight: brightness of the scene
-const light=day?.55+.45*elev:.25;document.querySelector('svg').style.filter=`brightness(${light}) saturate(${day?1:.4})${day?'':' hue-rotate(190deg)'}`;
+const age=((d-NEW)/864e5%SYN+SYN)%SYN,illum=(1-Math.cos(age/SYN*2*Math.PI))/2;
+// at night the moon throws the shadow; its hour on the dial is the clock hour minus its lag behind the sun
+const hm=((h-age/SYN*24)%24+24)%24,mElev=Math.max(0,Math.sin((hm-6)/12*Math.PI)),mUp=hm>=6&&hm<=18;
+// shadow: points away from the light along the hour line; long in morning and evening, short at noon
+const sh=$('sh'),src=day?h:hm,e=day?elev:mElev;
+if(day||mUp){const a=ang(src),len=64+60*(1-e),w=1.6+3*(1-e);const sx=Math.sin(a),sy=-Math.cos(a);
+sh.setAttribute('points',`${-sy*w} ${sx*w} ${sx*len} ${sy*len} ${sy*w} ${-sx*w}`);
+sh.setAttribute('fill',day?'#1a1006':'#02060f');sh.setAttribute('opacity',(day?.25+.4*elev:.4+.45*Math.max(.35,illum)).toFixed(2));
+// moonlight comes from the side opposite the shadow
+$('mglow').setAttribute('transform',`translate(${-sx*210} ${-sy*190})`)}
+else{sh.setAttribute('opacity',0);$('mglow').setAttribute('transform','translate(-170 -150)')}
+// daylight brightness; at night a blue wash with moonlight, never fully dark even at new moon
+const svg=document.querySelector('svg');svg.style.filter=day?`brightness(${.55+.45*elev})`:'brightness(.8) saturate(.8)';
+$('night').setAttribute('opacity',day?0:1);$('mglow').setAttribute('opacity',(.55+.45*Math.max(.3,illum)).toFixed(2));
+$('moon').setAttribute('opacity',day?0:1);$('mlit').setAttribute('d',moonPath(age));
+$('sunwash').setAttribute('opacity',day?.12:0);
 $('tt').textContent=d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
-$('dd').textContent=(day?'':'The sun has set — ')+d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
+$('dd').textContent=(day?'':`Moonlight — ${PH[Math.round(age/SYN*8)%8]}${mUp?'':', moon below the horizon'} — `)+d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
 tick();setInterval(tick,1000);
 </script></body></html>

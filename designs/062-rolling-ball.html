@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rolling Ball Clock</title><link rel="icon" href="../favicon.svg" type="image/svg+xml"><link rel="icon" href="../favicon-32.png" sizes="32x32" type="image/png">
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#211c18;font-family:Georgia,"Times New Roman",serif}
+canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
+.big{display:none}
+@media (max-aspect-ratio:1/1){.big{display:block;position:fixed;left:0;right:0;top:7vh;text-align:center;color:#f0dca8;font-size:14vw;letter-spacing:.04em;z-index:1;text-shadow:0 2px 6px rgba(0,0,0,.5)}
+.big small{display:block;font-size:3.6vw;color:#c9b388;letter-spacing:.2em;text-transform:uppercase;margin-top:1vh}}
+</style></head><body>
+<canvas id="c"></canvas><div class="big" id="big"></div>
+<script>
+// A rolling ball clock. The lift raises one ball per minute (its height is the seconds),
+// then the ball rolls down the rails: minutes (0–4), five-minutes (0–11), hours (1–12).
+// A full rail tips and its balls fall back to the reservoir; the arriving ball carries on down.
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+const VX0=200,VW=820,VH=680,BR=15,GAP=32;let W,H,DPR,K,OX,OY;
+// each rail is two wires: the front one on the drawn line, the back one offset by D (a hint of depth)
+const D=[7,-6],HALF=[D[0]/2,D[1]/2],SH=[12,16];
+const mkRail=(e,c,n,labels,name)=>{const dx=e[0]-c[0],dy=e[1]-c[1],l=Math.hypot(dx,dy),u=[dx/l,dy/l];let nx=u[1],ny=-u[0];if(ny>0){nx=-nx;ny=-ny}return{e,c,n,labels,name,u,nrm:[nx,ny],len:l,tilt:0}};
+const R=[mkRail([828,150],[478,184],4,['1','2','3','4'],'MINUTES'),
+mkRail([436,254],[848,290],11,[5,10,15,20,25,30,35,40,45,50,55],'FIVE MINUTES'),
+mkRail([872,358],[352,400],12,[1,2,3,4,5,6,7,8,9,10,11,12],'HOURS')];
+const RES=mkRail([322,520],[890,550],16,[],''),LIFT={x:905,y0:536,y1:104};
+function slot(r,k,lift=BR){const d=BR+5+k*GAP;return[r.c[0]+r.u[0]*d+r.nrm[0]*lift+HALF[0],r.c[1]+r.u[1]*d+r.nrm[1]*lift+HALF[1]]}
+const entry=r=>[r.e[0]-r.u[0]*14+r.nrm[0]*BR+HALF[0],r.e[1]-r.u[1]*14+r.nrm[1]*BR+HALF[1]];
+const endPt=r=>[r.c[0]+r.nrm[0]*BR-r.u[0]*12+HALF[0],r.c[1]+r.nrm[1]*BR+18];
+function stateOf(d){const m=d.getMinutes(),h=d.getHours()%12||12;return[m%5,Math.floor(m/5),h]}
+let shown=stateOf(new Date()),anim=null,lastMin=new Date().getMinutes();
+// one-minute step: work out where the new ball goes and which rails tip
+function step(prev,next,now){const [a,b,c]=prev,isNext=(a<4?[a+1,b,c]:b<11?[0,b+1,c]:c<12?[0,0,c+1]:[0,0,1]).join()==next.join();
+if(!isNext){shown=next;anim=null;return}
+const path=[[LIFT.x,LIFT.y1],[LIFT.x-30,LIFT.y1+16],entry(R[0])],tips=[],falls=[];
+const dump=(ri,count,from)=>{tips.push(ri);for(let k=from;k<from+count;k++)falls.push({p:slot(R[ri],k),delay:.15+Math.random()*.15})};
+if(a<4)path.push(slot(R[0],a));
+else{dump(0,4,0);path.push(endPt(R[0]),entry(R[1]));
+if(b<11)path.push(slot(R[1],b));
+else{dump(1,11,0);path.push(endPt(R[1]),entry(R[2]));
+if(c<12)path.push(slot(R[2],c));
+else{dump(2,11,1);path.push(endPt(R[2]),entry(RES),slot(RES,reserveCount(next)))}}}
+let L=0;const seg=[];for(let i=1;i<path.length;i++){const l=Math.hypot(path[i][0]-path[i-1][0],path[i][1]-path[i-1][1]);seg.push(l);L+=l}
+anim={t0:now,path,seg,L,dur:L/430,tips,falls,prev,next}}
+const reserveCount=s=>Math.max(3,Math.min(15,26-(s[0]+s[1]+s[2]-1)));
+function along(a,t){let d=Math.min(1,t/a.dur)*a.L;for(let i=0;i<a.seg.length;i++){if(d<=a.seg[i]){const f=d/a.seg[i],p=a.path[i],q=a.path[i+1];return[p[0]+(q[0]-p[0])*f,p[1]+(q[1]-p[1])*f]}d-=a.seg[i]}return a.path[a.path.length-1]}
+
+// ---------- drawing: everything is drawn in view units through one transform ----------
+const view=g=>g.setTransform(DPR*K,0,0,DPR*K,DPR*(OX-VX0*K),DPR*OY);
+const rotAbout=(o,ang)=>p=>{const dx=p[0]-o[0],dy=p[1]-o[1],c=Math.cos(ang),s=Math.sin(ang);return[o[0]+dx*c-dy*s,o[1]+dx*s+dy*c]};
+const add=(p,v,k=1)=>[p[0]+v[0]*k,p[1]+v[1]*k];
+function seg2(g,p,q){g.beginPath();g.moveTo(p[0],p[1]);g.lineTo(q[0],q[1]);g.stroke()}
+// brass wire: dark edge, body, and a thin highlight on its upper side
+function wire(g,p,q,w,dim=0){g.lineCap='round';g.strokeStyle=dim?'#3e2a0c':'#4f360f';g.lineWidth=w+1.4;seg2(g,p,q);
+g.strokeStyle=dim?'#8a6526':'#b98b3b';g.lineWidth=w;seg2(g,p,q);g.strokeStyle=dim?'rgba(240,210,150,.35)':'#f6e0a4';g.lineWidth=w*.32;seg2(g,add(p,[0,-w*.28]),add(q,[0,-w*.28]))}
+function rod(g,x,y0,y1,w){const gr=g.createLinearGradient(x-w/2,0,x+w/2,0);gr.addColorStop(0,'#4a3210');gr.addColorStop(.3,'#f1d48a');gr.addColorStop(.55,'#b98b3b');gr.addColorStop(1,'#3e2a0c');g.fillStyle=gr;g.fillRect(x-w/2,y0,w,y1-y0)}
+function hrod(g,x0,x1,y,w){const gr=g.createLinearGradient(0,y-w/2,0,y+w/2);gr.addColorStop(0,'#f1d48a');gr.addColorStop(.45,'#b98b3b');gr.addColorStop(1,'#3e2a0c');g.fillStyle=gr;g.fillRect(x0,y-w/2,x1-x0,w)}
+function knob(g,x,y,r,a='#f6e0a4',b='#9a7230',c='#3e2a0c'){const gr=g.createRadialGradient(x-r*.35,y-r*.4,r*.1,x,y,r);gr.addColorStop(0,a);gr.addColorStop(.5,b);gr.addColorStop(1,c);g.fillStyle=gr;g.beginPath();g.arc(x,y,r,0,7);g.fill()}
+function screw(g,x,y,r=2.4){knob(g,x,y,r,'#e8d8b0','#8a7650','#3a2c14');g.strokeStyle='rgba(40,25,5,.8)';g.lineWidth=.6;seg2(g,[x-r*.7,y-r*.3],[x+r*.7,y+r*.3])}
+// seeded noise so the wood and plaster textures stay put between redraws
+function rng(s){return()=>{s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+
+// the frame silhouette, drawn once in black for the wall shadow and once for real
+const POSTS=[300,930];
+function frameShapes(g,real){
+for(const x of POSTS){if(real)rod(g,x,84,592,12);else g.fillRect(x-6,84,12,508)}
+if(real)hrod(g,300,930,86,9);else g.fillRect(300,81.5,630,9);
+for(const x of POSTS){if(real)knob(g,x,78,9);else{g.beginPath();g.arc(x,78,9,0,7);g.fill()}}
+// arms from the posts to each rail's two ends
+for(const r of [...R,RES])for(const p of [r.e,r.c]){const x=p[0]>600?930:300;if(real)wire(g,[x,p[1]],p,3.4);else{g.lineWidth=4;seg2(g,[x,p[1]],p)}}
+// lift guide tube
+if(real){rod(g,LIFT.x+16,96,560,4);rod(g,LIFT.x-16,96,560,4)}else{g.fillRect(LIFT.x+14,96,4,464);g.fillRect(LIFT.x-18,96,4,464)}
+for(const r of R){const pl=plaque(r);g.beginPath();pl.poly.forEach((p,i)=>i?g.lineTo(...p):g.moveTo(...p));g.closePath();if(real){const gr=g.createLinearGradient(0,pl.poly[0][1]-10,0,pl.poly[2][1]+10);gr.addColorStop(0,'#f3dc9a');gr.addColorStop(.5,'#c9a053');gr.addColorStop(1,'#8a6526');g.fillStyle=gr;g.fill();g.strokeStyle='#5a3e12';g.lineWidth=.8;g.stroke()}else g.fill()}}
+// brass scale plaque under a rail, its corners and where each number sits
+function plaque(r){const a=slot(r,-.75,-26),b=slot(r,r.n-1+(r.name.length>8?3.6:2.6),-26),n=r.nrm,h=9;return{poly:[add(a,n,h),add(b,n,h),add(b,n,-h),add(a,n,-h)],a,b}}
+let stat=null;
+function buildStatic(){stat=document.createElement('canvas');stat.width=cv.width;stat.height=cv.height;const g=stat.getContext('2d');
+g.setTransform(1,0,0,1,0,0);
+// plaster wall lit from the upper left
+const bg=g.createRadialGradient(W*.32,H*.18,0,W*.45,H*.35,Math.max(W,H)*.95);bg.addColorStop(0,'#7a6450');bg.addColorStop(.45,'#4a3c31');bg.addColorStop(1,'#1a1512');g.fillStyle=bg;g.fillRect(0,0,stat.width,stat.height);
+const n=document.createElement('canvas');n.width=n.height=160;const ng=n.getContext('2d'),nd=ng.createImageData(160,160),rr=rng(3);for(let i=0;i<nd.data.length;i+=4){const v=rr()*255;nd.data[i]=nd.data[i+1]=nd.data[i+2]=v;nd.data[i+3]=14}ng.putImageData(nd,0,0);
+g.fillStyle=g.createPattern(n,'repeat');g.fillRect(0,0,stat.width,stat.height);
+view(g);
+// shelf
+const shelfTop=640,sg=g.createLinearGradient(0,shelfTop,0,VH+400);sg.addColorStop(0,'#6b3d1c');sg.addColorStop(.08,'#4a2810');sg.addColorStop(1,'#140904');g.fillStyle=sg;g.fillRect(VX0-3000,shelfTop,7000,1400);
+g.fillStyle='rgba(255,220,170,.18)';g.fillRect(VX0-3000,shelfTop,7000,1.2);
+const wr=rng(11);g.strokeStyle='rgba(20,8,2,.35)';g.lineWidth=.6;for(let i=0;i<40;i++){const y=shelfTop+4+wr()*120;g.beginPath();g.moveTo(VX0-3000,y);for(let x=VX0-400;x<VX0+VW+400;x+=60)g.lineTo(x,y+Math.sin(x*.01+i)*2);g.stroke()}
+// soft shadow of the frame on the wall, from the lamp at upper left
+const sh=document.createElement('canvas');sh.width=stat.width;sh.height=stat.height;const sgc=sh.getContext('2d');view(sgc);sgc.fillStyle=sgc.strokeStyle='#000';sgc.translate(SH[0],SH[1]);frameShapes(sgc,false);
+g.save();g.setTransform(1,0,0,1,0,0);g.globalAlpha=.42;g.filter=`blur(${6*K*DPR}px)`;g.drawImage(sh,0,0);g.restore();view(g);
+// walnut base: top face, front face with grain, bevel and shadow on the shelf
+g.fillStyle='rgba(0,0,0,.5)';g.filter=`blur(${8*K*DPR}px)`;g.fillRect(250,632,730,16);g.filter='none';
+g.beginPath();g.moveTo(252,586);g.lineTo(958,586);g.lineTo(972,600);g.lineTo(238,600);g.closePath();const tg=g.createLinearGradient(0,586,0,600);tg.addColorStop(0,'#8a5230');tg.addColorStop(1,'#6a3a1c');g.fillStyle=tg;g.fill();
+const fg=g.createLinearGradient(0,600,0,640);fg.addColorStop(0,'#6e3c1c');fg.addColorStop(.5,'#4d2810');fg.addColorStop(1,'#2a1406');g.fillStyle=fg;g.fillRect(238,600,734,40);
+const gr2=rng(5);g.lineWidth=.7;for(let i=0;i<26;i++){const y=601+gr2()*38,a=.12+gr2()*.2;g.strokeStyle=`rgba(${gr2()<.5?'20,8,2':'150,90,50'},${a})`;g.beginPath();g.moveTo(238,y);for(let x=238;x<=972;x+=24)g.lineTo(x,y+Math.sin(x*.02+i*1.7)*1.6+Math.sin(x*.07+i)*.6);g.stroke()}
+g.fillStyle='rgba(255,220,180,.22)';g.fillRect(238,600,734,1.2);
+// nameplate (text is drawn live)
+const pg=g.createLinearGradient(0,607,0,633);pg.addColorStop(0,'#f3dc9a');pg.addColorStop(.5,'#c09440');pg.addColorStop(1,'#7f5c22');g.fillStyle=pg;g.fillRect(420,607,370,26);g.strokeStyle='#4f360f';g.lineWidth=1;g.strokeRect(420.5,607.5,369,25);
+screw(g,428,620);screw(g,782,620);
+// motor housing for the lift
+g.fillStyle='rgba(0,0,0,.35)';g.fillRect(878,566,48,26);
+const mg=g.createLinearGradient(0,556,0,590);mg.addColorStop(0,'#3a2a1e');mg.addColorStop(1,'#120c08');g.fillStyle=mg;g.beginPath();g.roundRect(866,556,58,32,4);g.fill();
+g.strokeStyle='rgba(255,220,170,.18)';g.lineWidth=1;g.beginPath();g.roundRect(866.5,556.5,57,31,4);g.stroke();
+g.fillStyle='#0b0806';g.beginPath();g.arc(908,572,10,0,7);g.fill();
+frameShapes(g,true);
+// engraved numbers and names on the plaques
+g.textAlign='center';g.textBaseline='middle';
+for(const r of R){const pl=plaque(r);let ang=Math.atan2(r.u[1],r.u[0]);if(Math.abs(ang)>Math.PI/2)ang+=Math.PI;
+for(let k=0;k<r.n;k++){const p=slot(r,k,-26);engrave(g,String(r.labels[k]),p,ang,11)}
+const np=slot(r,r.n-1+(r.name.length>8?2.2:1.75),-26);engrave(g,r.name,np,ang,6.2,1);
+for(const p of [slot(r,-.45,-26),slot(r,r.n-1+(r.name.length>8?3.3:2.3),-26)])screw(g,p[0],p[1],2.2)}}
+function engrave(g,t,p,ang,size,spaced){g.save();g.translate(p[0],p[1]);g.rotate(ang);g.font=`${spaced?'bold ':''}${size}px Georgia`;if(spaced&&g.letterSpacing!==undefined)g.letterSpacing='1px';
+g.fillStyle='rgba(255,240,200,.65)';g.fillText(t,.4,.9);g.fillStyle='#3e2a0c';g.fillText(t,0,0);g.restore()}
+// chrome ball: wall reflected above a dark horizon, warm brass reflected below, sharp highlight
+let ballSprite=null,shadowSprite=null,spriteK=0;
+function makeSprites(){const s=Math.ceil(BR*2*K*DPR)+2,c=document.createElement('canvas');c.width=c.height=s;const g=c.getContext('2d'),r=s/2-1,m=s/2;
+g.save();g.beginPath();g.arc(m,m,r,0,7);g.clip();
+let gr=g.createRadialGradient(m,m,r*.1,m,m,r);gr.addColorStop(0,'#c9ced2');gr.addColorStop(.75,'#6e767d');gr.addColorStop(1,'#1c2024');g.fillStyle=gr;g.fillRect(0,0,s,s);
+gr=g.createLinearGradient(0,0,0,s);gr.addColorStop(0,'rgba(255,246,230,.85)');gr.addColorStop(.38,'rgba(220,210,195,.35)');gr.addColorStop(.5,'rgba(30,26,22,.0)');gr.addColorStop(.53,'rgba(25,22,18,.75)');gr.addColorStop(.62,'rgba(40,32,22,.35)');gr.addColorStop(.85,'rgba(190,140,70,.45)');gr.addColorStop(1,'rgba(90,60,25,.6)');
+g.globalCompositeOperation='overlay';g.fillStyle=gr;g.fillRect(0,0,s,s);g.globalCompositeOperation='source-over';
+gr=g.createRadialGradient(m*.68,m*.56,0,m*.68,m*.56,r*.32);gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(.35,'rgba(255,255,255,.75)');gr.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=gr;g.fillRect(0,0,s,s);
+gr=g.createRadialGradient(m*1.3,m*1.45,0,m*1.3,m*1.45,r*.4);gr.addColorStop(0,'rgba(255,225,170,.45)');gr.addColorStop(1,'rgba(255,225,170,0)');g.fillStyle=gr;g.fillRect(0,0,s,s);
+g.restore();g.strokeStyle='rgba(10,12,14,.55)';g.lineWidth=Math.max(1,s*.02);g.beginPath();g.arc(m,m,r-.5,0,7);g.stroke();ballSprite=c;
+const t=document.createElement('canvas');t.width=t.height=s*2;const tg=t.getContext('2d'),sg=tg.createRadialGradient(s,s,0,s,s,s);sg.addColorStop(0,'rgba(0,0,0,.55)');sg.addColorStop(.45,'rgba(0,0,0,.3)');sg.addColorStop(1,'rgba(0,0,0,0)');tg.fillStyle=sg;tg.fillRect(0,0,s*2,s*2);shadowSprite=t}
+const ball=(x,y,a=1)=>{ctx.globalAlpha=a;ctx.drawImage(ballSprite,x-BR,y-BR,BR*2,BR*2);ctx.globalAlpha=1};
+const ballShadow=(x,y,a=1)=>{ctx.globalAlpha=a;ctx.drawImage(shadowSprite,x-BR*1.5+SH[0],y-BR*1.5+SH[1],BR*3,BR*3);ctx.globalAlpha=1};
+function resize(){DPR=Math.min(2,devicePixelRatio||1);W=innerWidth;H=innerHeight;cv.width=W*DPR;cv.height=H*DPR;
+K=Math.min(W/VW,H/VH);if(W<H)K=Math.min(W/VW*1.02,H/VH);OX=(W-VW*K)/2;OY=(H-VH*K)/2+(W<H?H*.08:0);buildStatic();makeSprites()}
+addEventListener('resize',resize);resize();
+const P=n=>String(n).padStart(2,'0');
+function railGeom(r){const rot=rotAbout(r.e,r.tilt);return{f:[rot(r.e),rot(r.c)],b:[add(rot(r.e),D),add(rot(r.c),D)],rot}}
+function frame(ms){const now=ms/1000,d=new Date(),s=d.getSeconds()+d.getMilliseconds()/1000,real=stateOf(d);
+if(d.getMinutes()!==lastMin){lastMin=d.getMinutes();step(shown,real,now)}
+if(anim&&now-anim.t0>anim.dur+.2){shown=anim.next;anim=null}
+ctx.setTransform(1,0,0,1,0,0);ctx.drawImage(stat,0,0);view(ctx);
+const tipT=anim?now-anim.t0:0;
+for(let i=0;i<3;i++){const on=anim&&anim.tips.includes(i);R[i].tilt=on?Math.sin(Math.min(1,tipT/.9)*Math.PI)*.16*(R[i].c[0]<R[i].e[0]?1:-1):0}
+const G=[...R,RES].map(railGeom);
+// gather every visible ball
+const balls=[],counts=anim?anim.prev:shown;
+for(let i=0;i<3;i++){let to=counts[i];if(anim&&anim.tips.includes(i))to=i==2?1:0;for(let k=0;k<to;k++)balls.push(G[i].rot(slot(R[i],k)))}
+const rc=reserveCount(shown);for(let k=0;k<rc;k++)balls.push(slot(RES,k));
+const liftY=anim&&tipT<anim.dur?LIFT.y0:LIFT.y0-(LIFT.y0-LIFT.y1)*(s/60);
+if(anim)balls.push(along(anim,tipT));
+// shadows on the wall: rails, then balls
+ctx.lineCap='round';
+for(const g of G){ctx.strokeStyle='rgba(0,0,0,.13)';ctx.lineWidth=9;seg2(ctx,add(g.f[0],SH),add(g.f[1],SH));ctx.strokeStyle='rgba(0,0,0,.12)';ctx.lineWidth=4;seg2(ctx,add(g.f[0],SH),add(g.f[1],SH))}
+for(const b of balls)ballShadow(b[0],b[1],.8);ballShadow(LIFT.x,liftY,.8);
+// falling balls drop behind the rails into the return
+if(anim)for(const f of anim.falls){const t=tipT-f.delay;if(t<0)continue;const y=f.p[1]+.5*1600*t*t;if(y<700)ball(f.p[0]+(f.p[0]<600?-1:1)*t*40,y,Math.max(0,.9-t*.55))}
+// back wires and their cross ties
+for(const g of G){wire(ctx,g.b[0],g.b[1],2.6,1);const L=Math.hypot(g.f[1][0]-g.f[0][0],g.f[1][1]-g.f[0][1]);for(let t=18;t<L-8;t+=46){const f=t/L,p=[g.f[0][0]+(g.f[1][0]-g.f[0][0])*f,g.f[0][1]+(g.f[1][1]-g.f[0][1])*f];wire(ctx,p,add(p,D),1.6,1)}}
+// lift: steel lead screw with a brass helix turning around it
+const cx=LIFT.x,turn=now*2.4,hel=y=>y*.085-turn;
+rod(ctx,cx,96,562,5);ctx.lineWidth=2.4;ctx.strokeStyle='#6b4e1a';ctx.beginPath();for(let y=98;y<560;y+=2){const a=hel(y);if(Math.cos(a)<0){ctx.moveTo(cx+Math.sin(a)*12,y);ctx.lineTo(cx+Math.sin(hel(y+2))*12,y+2)}}ctx.stroke();
+ball(cx,liftY);
+ctx.lineWidth=2.8;ctx.strokeStyle='#c9a053';ctx.beginPath();for(let y=98;y<560;y+=2){const a=hel(y);if(Math.cos(a)>=0){ctx.moveTo(cx+Math.sin(a)*12,y);ctx.lineTo(cx+Math.sin(hel(y+2))*12,y+2)}}ctx.stroke();
+ctx.lineWidth=.9;ctx.strokeStyle='rgba(255,236,190,.8)';ctx.beginPath();for(let y=98;y<560;y+=2){const a=hel(y);if(Math.cos(a)>.5){ctx.moveTo(cx+Math.sin(a)*12,y-.6);ctx.lineTo(cx+Math.sin(hel(y+2))*12,y+1.4)}}ctx.stroke();
+// top chute from the lift onto the minute rail
+wire(ctx,[cx-4,LIFT.y1+12],[R[0].e[0]+6,R[0].e[1]-2],2.6);wire(ctx,[cx-4+D[0],LIFT.y1+12+D[1]],[R[0].e[0]+6+D[0],R[0].e[1]-2+D[1]],2.2,1);
+// balls at rest and in motion
+for(const b of balls)ball(b[0],b[1]);
+// front wires, end stops and pivots
+for(let i=0;i<4;i++){const g=G[i],r=[...R,RES][i];wire(ctx,g.f[0],g.f[1],3.2);
+const st=g.rot([r.c[0]-r.u[0]*2,r.c[1]-r.u[1]*2]);wire(ctx,st,add(st,r.nrm,18),3);wire(ctx,add(st,D),add(add(st,D),r.nrm,18),2.4,1);
+knob(ctx,r.e[0],r.e[1],4.2);screw(ctx,r.e[0],r.e[1],1.6)}
+// motor gear turning in its window
+ctx.save();ctx.beginPath();ctx.arc(908,572,9,0,7);ctx.clip();ctx.translate(908,572);ctx.rotate(now*1.3);ctx.fillStyle='#b98b3b';ctx.beginPath();for(let i=0;i<24;i++){const a=i/24*Math.PI*2,rr=i%2?7.2:8.6;ctx.lineTo(Math.cos(a)*rr,Math.sin(a)*rr)}ctx.fill();ctx.fillStyle='#3e2a0c';ctx.beginPath();ctx.arc(0,0,2.2,0,7);ctx.fill();
+ctx.strokeStyle='rgba(62,42,12,.8)';ctx.lineWidth=.8;for(let i=0;i<4;i++){ctx.rotate(Math.PI/2);seg2(ctx,[2.5,0],[6,0])}ctx.restore();
+ctx.fillStyle='rgba(255,255,255,.08)';ctx.beginPath();ctx.arc(905,569,6,0,7);ctx.fill();
+// pilot lamp
+const lampOn=.75+.25*Math.sin(now*3);ctx.fillStyle=`rgba(255,90,40,${lampOn})`;ctx.beginPath();ctx.arc(878,572,2.6,0,7);ctx.fill();
+// red enamel marks the current value on each scale
+const vals=shown;ctx.textAlign='center';ctx.textBaseline='middle';
+for(let i=0;i<3;i++){const r=R[i],k=vals[i]-1;if(k<0)continue;const p=slot(r,k,-26);let ang=Math.atan2(r.u[1],r.u[0]);if(Math.abs(ang)>Math.PI/2)ang+=Math.PI;
+ctx.save();ctx.translate(p[0],p[1]);ctx.rotate(ang);ctx.fillStyle='#9e1f17';ctx.beginPath();ctx.roundRect(-11,-7,22,14,3);ctx.fill();ctx.strokeStyle='rgba(60,10,5,.8)';ctx.lineWidth=.7;ctx.stroke();
+ctx.fillStyle='rgba(255,255,255,.18)';ctx.fillRect(-10,-6,20,4);ctx.font='bold 11px Georgia';ctx.fillStyle='#fbefd2';ctx.fillText(String(r.labels[k]),0,.5);ctx.restore()}
+// nameplate text
+const ds=d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+ctx.font='italic 13px Georgia';ctx.fillStyle='rgba(255,240,200,.6)';ctx.fillText(`${P(d.getHours())}:${P(d.getMinutes())} · ${ds}`,605.4,621.4);ctx.fillStyle='#3a2408';ctx.fillText(`${P(d.getHours())}:${P(d.getMinutes())} · ${ds}`,605,620.5);
+document.getElementById('big').innerHTML=`${P(d.getHours())}:${P(d.getMinutes())}<small>${ds}</small>`;
+requestAnimationFrame(frame)}
+requestAnimationFrame(frame);
+</script></body></html>

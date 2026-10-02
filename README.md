@@ -25,12 +25,12 @@ simple/             the original single-file flip clock and its design plan
 
 The designs range across:
 
-- **Analog:** classic, Bauhaus, cuckoo clock, skeleton gears, 24-hour dial, pocket watch, grand complication, stained glass
+- **Analog:** Bauhaus, cuckoo clock, skeleton gears, 24-hour dial, pocket watch, grand complication, stained glass
 - **Digital displays:** seven-segment, dot matrix, nixie tubes, LCD watch, split-flap board, odometer, e-ink
 - **Words and symbols:** word grid, sentence, Roman numerals, binary, BCD, Morse, Braille, tally marks, abacus, Maya numerals, Japanese kanji
 - **Other time systems:** Unix epoch, Mars time, Chinese two-hour periods, sundial, world clocks, world calendars
-- **Objects and scenes:** hourglass, candle, clock tower, lighthouse, Ferris wheel, aquarium, snow globe, metronome, lava lamp, vinyl record, car dashboard, cassette tape, heart monitor, receipt, newspaper, code editor, terminal
-- **Generative:** particles, digital rain, flow field, zen garden, phyllotaxis, isometric blocks
+- **Objects and scenes:** hourglass, candle, clock tower, lighthouse, Ferris wheel, aquarium, snow globe, metronome, lava lamp, vinyl record, car dashboard, rolling ball clock, cassette tape, heart monitor, receipt, newspaper, code editor, terminal
+- **Generative:** neon bonsai, particles, digital rain, flow field, zen garden, phyllotaxis, isometric blocks
 
 Some designs have their own settings (colours, 12/24-hour, city lists, case metal and so on), saved in `localStorage`.
 
