@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Clock of Clocks</title><link rel="icon" href="../favicon.svg" type="image/svg+xml"><link rel="icon" href="../favicon-32.png" sizes="32x32" type="image/png">
+<style>
+:root{--bg:#dedbd4;--panel:#e9e7e2;--face:#f8f7f4;--rim:rgba(0,0,0,.13);--hand:#161616;--ink:#2a2826;--mut:#7a766e}
+body.dark{--bg:#0d0d0e;--panel:#161618;--face:#202023;--rim:rgba(0,0,0,.55);--hand:#f1efe9;--ink:#e6e3dc;--mut:#8a867e}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);font-family:"Helvetica Neue",Arial,sans-serif;color:var(--ink);transition:background .4s}
+.wrap{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2.4vmin}
+#c{display:block;border-radius:1.2vmin;background:var(--panel);box-shadow:0 1.5vmin 5vmin rgba(0,0,0,.18),inset 0 0 0 1px rgba(0,0,0,.05);cursor:pointer}
+.date{font-size:clamp(12px,2.2vmin,22px);letter-spacing:.32em;text-transform:uppercase;color:var(--mut);text-align:center}
+.btns{position:fixed;top:12px;right:12px;display:flex;gap:8px}
+button{background:none;border:1px solid var(--mut);color:var(--mut);border-radius:18px;height:34px;min-width:34px;padding:0 10px;cursor:pointer;font:12px "Helvetica Neue",Arial,sans-serif}
+</style></head><body>
+<div class="btns"><button id="fmt" title="12 / 24 hour">24h</button><button id="thm" title="Toggle theme">◐</button></div>
+<div class="wrap"><canvas id="c" title="Click to replay"></canvas><div class="date" id="d"></div></div>
+<script>
+// A grid of small analog clocks. Each clock has two equal hands; together the hands draw
+// the outlines of the digits. On every minute the hands sweep through a pattern first.
+const NEUTRAL=225, UP=0, RT=90, DN=180, LT=270;
+// Digit outlines on a 4x6 node grid (x right, y down). Every node on a path has exactly
+// two neighbours, so each clock can draw its part with its two hands.
+const G={
+ 0:[[[0,0],[3,0],[3,5],[0,5]],[[1,1],[2,1],[2,4],[1,4]]],
+ 1:[[[0,0],[2,0],[2,5],[1,5],[1,1],[0,1]]],
+ 2:[[[0,0],[3,0],[3,3],[1,3],[1,4],[3,4],[3,5],[0,5],[0,2],[2,2],[2,1],[0,1]]],
+ 3:[[[0,0],[3,0],[3,5],[0,5],[0,4],[2,4],[2,3],[1,3],[1,2],[2,2],[2,1],[0,1]]],
+ 4:[[[0,0],[1,0],[1,2],[2,2],[2,0],[3,0],[3,5],[2,5],[2,3],[0,3]]],
+ 5:[[[3,0],[0,0],[0,3],[2,3],[2,4],[0,4],[0,5],[3,5],[3,2],[1,2],[1,1],[3,1]]],
+ 6:[[[0,0],[3,0],[3,1],[1,1],[1,2],[3,2],[3,5],[0,5]],[[1,3],[2,3],[2,4],[1,4]]],
+ 7:[[[0,0],[3,0],[3,5],[2,5],[2,1],[0,1]]],
+ 8:[[[0,0],[3,0],[3,5],[0,5]],[[1,1],[2,1],[2,2],[1,2]],[[1,3],[2,3],[2,4],[1,4]]],
+ 9:[[[3,5],[0,5],[0,4],[2,4],[2,3],[0,3],[0,0],[3,0]],[[2,2],[1,2],[1,1],[2,1]]],
+ ':':[[[0,1],[1,1],[1,2],[0,2]],[[0,3],[1,3],[1,4],[0,4]]]
+};
+// Turn each glyph into a map "x,y" -> [angleA, angleB]
+const dirAng=(dx,dy)=>dx>0?RT:dx<0?LT:dy>0?DN:UP;
+const GL={};
+for(const k in G){const m={};
+ for(const poly of G[k]){const pts=[];
+  for(let i=0;i<poly.length;i++){const [x0,y0]=poly[i],[x1,y1]=poly[(i+1)%poly.length],sx=Math.sign(x1-x0),sy=Math.sign(y1-y0);
+   for(let x=x0,y=y0;x!==x1||y!==y1;x+=sx,y+=sy)pts.push([x,y])}
+  pts.forEach((p,i)=>{const a=pts[(i+pts.length-1)%pts.length],b=pts[(i+1)%pts.length],key=p+'';
+   if(m[key])console.error('glyph',k,'reuses node',key);
+   m[key]=[dirAng(a[0]-p[0],a[1]-p[1]),dirAng(b[0]-p[0],b[1]-p[1])]})}
+ GL[k]=m}
+
+let h24=true,cols,rows,cells,slots;
+try{h24=localStorage.getItem('coc-24')!=='0';if(localStorage.getItem('coc-dark')==='1')document.body.classList.add('dark')}catch(e){}
+const cv=document.getElementById('c'),cx=cv.getContext('2d'),D=document.getElementById('d');
+let hands=[],cell=40,shown='',wide=true;
+
+// Layout: wide = HH:MM in one row, narrow = HH over MM. slots = glyph positions.
+function layout(){
+ wide=innerWidth>=innerHeight*0.9;
+ if(wide){cols=24;rows=8;slots=[[1,1],[6,1],[11,1,':'],[14,1],[19,1]]}
+ else{cols=11;rows=15;slots=[[1,1],[6,1],[1,8],[6,8]]}
+ const old=hands;hands=[];
+ for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){const o=old[r*cols+c];hands.push(o&&old.length===rows*cols?o:{c,r,a:[seg(NEUTRAL),seg(NEUTRAL)]})}
+ const W=innerWidth*0.94,H=innerHeight*0.82;cell=Math.floor(Math.min(W/cols,H/rows));
+ const dpr=devicePixelRatio||1;cv.width=cols*cell*dpr;cv.height=rows*cell*dpr;cv.style.width=cols*cell+'px';cv.style.height=rows*cell+'px';
+ cx.setTransform(dpr,0,0,dpr,0,0);dirty=true}
+function seg(v){return [{from:v,to:v,t0:0,dur:1}]}
+
+function timeStr(d){let h=d.getHours();if(!h24)h=h%12||12;return (h24||h>9?String(h).padStart(2,'0'):' '+h)+String(d.getMinutes()).padStart(2,'0')}
+// Target angles for the clock at (c,r) showing time string s
+function timeTarget(s){const t={},digs=wide?[s[0],s[1],':',s[2],s[3]]:[...s];
+ slots.forEach((sl,i)=>{const g=GL[sl[2]||digs[i]];if(!g)return;for(const k in g){const [x,y]=k.split(',').map(Number);t[(sl[0]+x)+','+(sl[1]+y)]=g[k]}});
+ return (c,r)=>t[c+','+r]||[NEUTRAL,NEUTRAL]}
+
+const ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+function val(list,now){let v=list[0].from;for(const s of list){if(now<s.t0)return v;const k=Math.min(1,(now-s.t0)/s.dur);v=s.from+(s.to-s.from)*ease(k);if(k<1)return v}return v}
+// Next unwrapped angle reaching target `to` turning in direction dir, plus extra full turns
+function aim(from,to,dir,turns){let d=((to-from)%360+360)%360;if(dir<0&&d)d-=360;return from+d+dir*360*(turns||0)}
+// Append a move for every hand; angles(c,r)->[a,b], delay(c,r) in ms
+function move(start,angles,dur,delay,dirs,turns){let end=start;
+ for(const h of hands){const tg=angles(h.c,h.r),dl=delay(h.c,h.r);
+  for(let i=0;i<2;i++){const L=h.a[i],last=L[L.length-1],f=last.to,t0=Math.max(start+dl,last.t0+last.dur);
+   L.push({from:f,to:aim(f,tg[i],dirs[i],turns),t0,dur});end=Math.max(end,t0+dur)}}
+ return end}
+// Patterns the hands pass through between minutes
+const mid=()=>[(cols-1)/2,(rows-1)/2],deg=(x,y)=>Math.atan2(x,-y)*180/Math.PI;
+const PATTERNS=[
+ {a:(c,r)=>{const [mx,my]=mid(),g=deg(c-mx,r-my);return [g,g]},d:(c,r)=>{const [mx,my]=mid();return Math.hypot(c-mx,r-my)*70}},
+ {a:()=>[RT,LT],d:c=>c*60},
+ {a:()=>[45,225],d:(c,r)=>(c+r)*45},
+ {a:(c,r)=>{const [mx,my]=mid(),g=deg(c-mx,r-my)+90;return [g,g+180]},d:(c,r)=>{const [mx,my]=mid();return Math.hypot(c-mx,r-my)*60}},
+ {a:(c,r)=>(c+r)%2?[UP,DN]:[RT,LT],d:(c,r)=>r*110}
+];
+let pi=Math.floor(Math.random()*PATTERNS.length),busyUntil=0;
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+function play(s,withPattern){const now=performance.now();
+ for(const h of hands)for(const L of h.a){const v=val(L,now);L.length=0;L.push({from:v,to:v,t0:now,dur:1})}
+ let t=now;
+ if(reduce){t=move(now,timeTarget(s),400,()=>0,[1,1],0)}
+ else{
+  if(withPattern){const p=PATTERNS[pi++%PATTERNS.length];t=move(now,p.a,2600,p.d,[1,-1],0)+700}
+  t=move(t,timeTarget(s),3000,c=>c*55,[1,1],0)}
+ shown=s;busyUntil=t+50}
+
+function draw(now){
+ const R=cell*.44,dark=document.body.classList.contains('dark'),st=getComputedStyle(document.body);
+ const face=st.getPropertyValue('--face'),rim=st.getPropertyValue('--rim'),hand=st.getPropertyValue('--hand');
+ cx.clearRect(0,0,cols*cell,rows*cell);
+ for(const h of hands){const x=(h.c+.5)*cell,y=(h.r+.5)*cell;
+  cx.beginPath();cx.arc(x,y+cell*.02,R,0,7);cx.fillStyle=rim;cx.fill();
+  cx.beginPath();cx.arc(x,y,R,0,7);cx.fillStyle=face;cx.fill();
+  cx.lineCap='round';cx.lineWidth=cell*.1;cx.strokeStyle=hand;
+  for(const L of h.a){const a=val(L,now)*Math.PI/180,len=R*.96;
+   cx.beginPath();cx.moveTo(x,y);cx.lineTo(x+Math.sin(a)*len,y-Math.cos(a)*len);cx.stroke()}
+  cx.beginPath();cx.arc(x,y,cell*.035,0,7);cx.fillStyle=dark?'#555':'#999';cx.fill()}}
+
+let dirty=true,first=true,lastDate='';
+function frame(){const now=performance.now(),d=new Date(),s=timeStr(d);
+ if(s!==shown&&now>=busyUntil){play(s,!first);first=false}
+ if(now<busyUntil||dirty){draw(now);dirty=false}
+ const ds=d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'});if(ds!==lastDate){D.textContent=ds;lastDate=ds}
+ requestAnimationFrame(frame)}
+addEventListener('resize',()=>{const w=wide;layout();if(w!==wide){shown='';busyUntil=0}});
+cv.onclick=()=>{if(performance.now()>=busyUntil)play(timeStr(new Date()),true)};
+const fb=document.getElementById('fmt');fb.textContent=h24?'24h':'12h';
+fb.onclick=()=>{h24=!h24;fb.textContent=h24?'24h':'12h';try{localStorage.setItem('coc-24',h24?'1':'0')}catch(e){}};
+document.getElementById('thm').onclick=()=>{document.body.classList.toggle('dark');dirty=true;try{localStorage.setItem('coc-dark',document.body.classList.contains('dark')?'1':'0')}catch(e){}};
+layout();setTimeout(()=>requestAnimationFrame(frame),300);
+</script></body></html>

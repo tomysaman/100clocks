@@ -25,7 +25,7 @@ simple/             the original single-file flip clock and its design plan
 
 The designs range across:
 
-- **Analog:** Bauhaus, cuckoo clock, skeleton gears, 24-hour dial, pocket watch, grand complication, stained glass
+- **Analog:** Bauhaus, clock of clocks, cuckoo clock, skeleton gears, 24-hour dial, pocket watch, grand complication, stained glass
 - **Digital displays:** seven-segment, dot matrix, nixie tubes, LCD watch, split-flap board, odometer, e-ink
 - **Words and symbols:** word grid, sentence, Roman numerals, binary, BCD, Morse, Braille, tally marks, abacus, Maya numerals, Japanese kanji
 - **Other time systems:** Unix epoch, Mars time, Chinese two-hour periods, sundial, world clocks, world calendars
