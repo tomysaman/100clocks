@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cross-Stitch Sampler</title><link rel="icon" href="../favicon.svg" type="image/svg+xml"><link rel="icon" href="../favicon-32.png" sizes="32x32" type="image/png">
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#41504f}
+canvas{display:block;width:100%;height:100%;cursor:pointer}
+button{position:fixed;top:12px;right:12px;background:none;border:1px solid #8a9a95;color:#c9d3cf;border-radius:18px;height:34px;min-width:34px;padding:0 10px;cursor:pointer;font:12px Georgia,serif}
+</style></head><body>
+<canvas id="c" title="Click to stitch the time again"></canvas>
+<button id="fmt" title="12 / 24 hour">24h</button>
+<script>
+// Linen stretched on a wooden frame, with the time, weekday and date in cross-stitch. When the minute
+// changes, stitches that no longer belong are unpicked and the needle stitches the new
+// ones, one X at a time, bottom leg first as a stitcher would.
+const cv=document.getElementById('c'),cx=cv.getContext('2d');
+let h24=true;try{h24=localStorage.getItem('xstitch-24')!=='0'}catch(e){}
+const RED='#b3202f',ROSE='#c4475a',GREEN='#3f6b3a',NAVY='#2d3f73',GOLD='#c9932e';
+const BIG={0:'01110100011001110101110011000101110',1:'00100011000010000100001000010001110',2:'01110100010000100010001000100011111',
+ 3:'11111000100010000010000011000101110',4:'00010001100101010010111110001000010',5:'11111100001111000001000011000101110',
+ 6:'00110010001000011110100011000101110',7:'11111000010001000100010000100001000',8:'01110100011000101110100011000101110',
+ 9:'01110100011000101111000010001001100'};
+const SM={A:'010101111101101',B:'110101110101110',C:'011100100100011',D:'110101101101110',E:'111100110100111',F:'111100110100100',
+ G:'011100101101011',H:'101101111101101',I:'111010010010111',J:'001001001101010',L:'100100100100111',M:['10001','11011','10101','10001','10001'],
+ N:['1001','1101','1011','1001','1001'],O:'010101101101010',P:'110101110100100',R:'110101110101101',S:'011100010001110',T:'111010010010010',
+ U:'101101101101111',V:'101101101101010',W:['10001','10001','10101','11011','10001'],Y:'101101010010010',
+ 0:'111101101101111',1:'010110010010111',2:'110001010100111',3:'110001010001110',4:'101101111001001',5:'111100110001110',
+ 6:'011100111101111',7:'111001010010010',8:'111101111101111',9:'111101111001110'};
+const DAYS=['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY'],MONS=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+// glyph -> rows of '0'/'1'
+const rowsOf=g=>Array.isArray(g)?g:g.length===35?g.match(/.{5}/g):g.match(/.{3}/g);
+function textCells(str,small,scale){const out=[];let x=0;
+ for(const ch of str){if(ch===' '){x+=small?2:3;continue}
+  if(ch===':'){for(const y of[2,4])for(let a=0;a<scale;a++)for(let b=0;b<scale;b++)out.push([x+a,y*scale+b]);x+=scale+scale;continue}
+  const g=small?SM[ch]:BIG[ch];if(!g){x+=4;continue}const R=rowsOf(g);
+  R.forEach((row,y)=>[...row].forEach((v,xx)=>{if(v==='1')for(let a=0;a<scale;a++)for(let b=0;b<scale;b++)out.push([x+xx*scale+a,y*scale+b])}));
+  x+=R[0].length*scale+(small?1:scale)}
+ return {cells:out,w:x-(small?1:scale)}}
+let W,H,S,cols,rows,GX,GY,wide,cur=new Map(),fading=[],animEnd=0,dirty=true,fabric=null,hoop,needleRest,shownKey='';
+const HALF=42,STEP=2*HALF+12;
+function design(d){
+ let hh=d.getHours();if(!h24)hh=hh%12||12;const hs=h24?String(hh).padStart(2,'0'):String(hh),ms=String(d.getMinutes()).padStart(2,'0');
+ const lines=wide?[[hs+':'+ms,0,2,RED]]:[[hs,0,2,RED],[ms,0,2,RED]];
+ const date=[[DAYS[d.getDay()],1,1,GREEN]].concat(wide?[[d.getDate()+' '+MONS[d.getMonth()]+' '+d.getFullYear(),1,1,NAVY]]:[[d.getDate()+' '+MONS[d.getMonth()],1,1,NAVY],[String(d.getFullYear()),1,1,NAVY]]);
+ const m=new Map(),put=(c,r,col)=>m.set(c+','+r,col);
+ let y=4;const place=([s,small,sc,col])=>{const {cells,w}=textCells(s,small,sc);const x0=Math.floor((cols-w)/2);for(const [a,b] of cells)put(x0+a,y+b,col);y+=(small?5:7*sc)};
+ place(lines[0]);if(lines[1]){y+=3;place(lines[1])}
+ y+=2;for(let c=6;c<cols-6;c+=2)put(c,y,c%4?GREEN:GOLD);y+=3;
+ date.forEach((l,i)=>{if(i)y+=2;place(l)});
+ // border: navy line with gold every third stitch, a small flower in each inner corner
+ for(let c=0;c<cols;c++){put(c,0,c%3?NAVY:GOLD);put(c,rows-1,c%3?NAVY:GOLD)}
+ for(let r=0;r<rows;r++){put(0,r,r%3?NAVY:GOLD);put(cols-1,r,r%3?NAVY:GOLD)}
+ for(const [fx,fy] of[[2,2],[cols-5,2],[2,rows-5],[cols-5,rows-5]]){put(fx+1,fy+1,ROSE);put(fx,fy+1,GOLD);put(fx+2,fy+1,GOLD);put(fx+1,fy,GOLD);put(fx+1,fy+2,GOLD)}
+ return m}
+function resize(){const dpr=Math.min(2,devicePixelRatio||1);W=innerWidth;H=innerHeight;cv.width=W*dpr;cv.height=H*dpr;cx.setTransform(dpr,0,0,dpr,0,0);
+ wide=W>=H*.9;
+ const tw=textCells('88:88',0,2).w,dw=textCells('WEDNESDAY',1,1).w,yw=textCells('28 SEP 2026',1,1).w;
+ cols=(wide?Math.max(tw,dw,yw):Math.max(textCells('88',0,2).w,dw))+12;
+ rows=wide?4+14+2+1+3+5+2+5+4:4+14+3+14+2+1+3+5+2+5+2+5+4;
+ // rectangular frame around the stitched area (a, b = half width and height of the fabric)
+ const A=cols/2+4,B=rows/2+3.5;S=Math.min(W*.92/(2*A+4.4),H*.88/(2*B+4.4));
+ hoop={x:W/2,y:H/2,a:A*S,b:B*S};GX=hoop.x-cols*S/2;GY=hoop.y-rows*S/2;
+ needleRest=[GX+cols*S-S*1.5,GY+rows*S+S*1.6];
+ buildFabric(dpr);cur=new Map();fading=[];shownKey='';dirty=true}
+function buildFabric(dpr){fabric=document.createElement('canvas');fabric.width=W*dpr;fabric.height=H*dpr;const f=fabric.getContext('2d');f.setTransform(dpr,0,0,dpr,0,0);
+ f.save();f.beginPath();f.rect(hoop.x-hoop.a,hoop.y-hoop.b,2*hoop.a,2*hoop.b);f.clip();
+ const g=f.createRadialGradient(hoop.x-hoop.a*.3,hoop.y-hoop.b*.4,0,hoop.x,hoop.y,hoop.a*1.1);g.addColorStop(0,'#f6efe0');g.addColorStop(1,'#e2d6bd');f.fillStyle=g;f.fillRect(0,0,W,H);
+ // Aida weave: a slightly raised block per stitch cell, holes at the corners
+ const c0=Math.floor((hoop.x-hoop.a-GX)/S)-1,c1=Math.ceil((hoop.x+hoop.a-GX)/S)+1,r0=Math.floor((hoop.y-hoop.b-GY)/S)-1,r1=Math.ceil((hoop.y+hoop.b-GY)/S)+1;
+ for(let r=r0;r<r1;r++)for(let c=c0;c<c1;c++){const x=GX+c*S,y=GY+r*S;
+  f.fillStyle='rgba(255,252,242,.45)';f.fillRect(x+S*.14,y+S*.14,S*.72,S*.72);
+  f.fillStyle='rgba(140,120,90,.10)';f.fillRect(x+S*.14,y+S*.8,S*.72,S*.08);
+  f.fillStyle='rgba(120,100,70,.38)';f.beginPath();f.arc(x,y,Math.max(.6,S*.08),0,7);f.fill()}
+ f.restore()}
+// Compare the wanted stitches with what is on the fabric; unpick, then stitch the difference
+function update(target,animate,force){const now=performance.now();let t=now;
+ const nRem=[...cur].filter(([k,s])=>force&&s.col===RED||target.get(k)!==s.col).length,rs=Math.min(22,1200/Math.max(1,nRem));
+ for(const [k,s] of cur){if(force&&s.col===RED||target.get(k)!==s.col){fading.push({k,col:s.col,t:animate?t:now-1e4});cur.delete(k);if(animate)t+=rs}}
+ if(t>now)t+=350;
+ const adds=[...target].filter(([k])=>!cur.has(k)).map(([k,col])=>{const [c,r]=k.split(',').map(Number);return {k,c,r,col}});
+ // the time first, then anything else; within each, row by row like a stitcher
+ const st=Math.min(STEP,6500/Math.max(1,adds.length));
+ adds.sort((p,q)=>(p.col!==RED)-(q.col!==RED)||p.r-q.r||p.c-q.c);
+ for(const a of adds){cur.set(a.k,{c:a.c,r:a.r,col:a.col,t0:animate?t:now-1e4});if(animate)t+=st}
+ animEnd=t+300;dirty=true}
+function shade(hex,k){const n=parseInt(hex.slice(1),16),f=v=>Math.max(0,Math.min(255,Math.round(v*k)));return `rgb(${f(n>>16)},${f(n>>8&255)},${f(n&255)})`}
+function leg(x0,y0,x1,y1,p,col){if(p<=0)return;const ex=x0+(x1-x0)*p,ey=y0+(y1-y0)*p;
+ cx.lineCap='round';cx.setLineDash([]);
+ cx.strokeStyle='rgba(60,40,20,.28)';cx.lineWidth=S*.34;cx.beginPath();cx.moveTo(x0+S*.05,y0+S*.08);cx.lineTo(ex+S*.05,ey+S*.08);cx.stroke();
+ cx.strokeStyle=col;cx.lineWidth=S*.3;cx.beginPath();cx.moveTo(x0,y0);cx.lineTo(ex,ey);cx.stroke();
+ // twisted strands
+ cx.strokeStyle='rgba(255,255,255,.3)';cx.lineWidth=S*.09;cx.setLineDash([S*.11,S*.09]);cx.beginPath();cx.moveTo(x0-S*.04,y0-S*.04);cx.lineTo(ex-S*.04,ey-S*.04);cx.stroke();cx.setLineDash([])}
+// returns the head of the leg being stitched, for the needle
+function stitch(c,r,col,p,alpha=1,sc=1){const x=GX+c*S,y=GY+r*S,i=S*.13,m=S/2,q=(m-i)*sc;
+ cx.globalAlpha=alpha;
+ leg(x+m-q,y+m+q,x+m+q,y+m-q,Math.min(1,p),shade(col,.88));   // bottom leg  /
+ leg(x+m-q,y+m-q,x+m+q,y+m+q,Math.max(0,p-1),col);             // top leg     \
+ cx.globalAlpha=1;
+ return p<1?[x+m-q+(2*q)*p,y+m+q-(2*q)*p]:[x+m-q+(2*q)*(p-1),y+m-q+(2*q)*(p-1)]}
+function needle(tx,ty,col,parked){const ang=-.75,L=S*7,dx=Math.cos(ang),dy=Math.sin(ang),ex=tx+dx*L*.92,ey=ty+dy*L*.92;
+ // thread from the eye out past the frame
+ cx.strokeStyle=col;cx.lineWidth=Math.max(1,S*.2);cx.lineCap='round';cx.beginPath();cx.moveTo(ex,ey);
+ cx.bezierCurveTo(ex+S*6,ey-S*2,hoop.x+hoop.a*1.05,hoop.y-hoop.b*1.2,W+20,hoop.y-hoop.b*.7);cx.stroke();
+ const sx=parked?tx+dx*L*.35:tx,sy=parked?ty+dy*L*.35:ty;
+ if(parked){cx.fillStyle='rgba(60,40,20,.35)';cx.beginPath();cx.arc(sx,sy,S*.12,0,7);cx.fill()}
+ cx.save();cx.translate(sx,sy);cx.rotate(ang);const l=parked?L*.65:L;
+ cx.fillStyle='rgba(40,30,20,.25)';cx.fillRect(S*.1,S*.1,l,S*.16);
+ const g=cx.createLinearGradient(0,-S*.1,0,S*.1);g.addColorStop(0,'#f4f6f8');g.addColorStop(.5,'#9aa3ab');g.addColorStop(1,'#5b6269');
+ cx.fillStyle=g;cx.beginPath();cx.moveTo(parked?0:-S*.05,0);cx.lineTo(l*.25,-S*.09);cx.lineTo(l,-S*.08);cx.arc(l,0,S*.08,-Math.PI/2,Math.PI/2);cx.lineTo(l*.25,S*.09);cx.closePath();cx.fill();
+ cx.fillStyle='#41504f';cx.beginPath();cx.ellipse(l*.9,0,S*.32,S*.035,0,0,7);cx.fill();cx.restore()}
+function draw(now){
+ const bg=cx.createRadialGradient(W/2,H/2,0,W/2,H/2,Math.max(W,H)*.75);bg.addColorStop(0,'#566866');bg.addColorStop(1,'#2c3736');cx.fillStyle=bg;cx.fillRect(0,0,W,H);
+ const {x,y,a,b}=hoop,rw=S*2.2;
+ cx.fillStyle='rgba(0,0,0,.35)';cx.fillRect(x-a-rw+S*.8,y-b-rw+S*1.6,2*(a+rw),2*(b+rw));
+ cx.drawImage(fabric,0,0,W,H);
+ // stitches
+ for(const f of fading){const k=(now-f.t)/180;if(k>=1)continue;const [c,r]=f.k.split(',').map(Number);if(k<0)stitch(c,r,f.col,2);else stitch(c,r,f.col,2,1-k,1+k*.4)}
+ fading=fading.filter(f=>now-f.t<200);
+ let head=null,hcol=RED;
+ for(const s of cur.values()){const p=(now-s.t0)/HALF;if(p<=0)continue;const h=stitch(s.c,s.r,s.col,Math.min(2,p));if(p<2){head=h;hcol=s.col}}
+ // wooden stretcher frame: four mitred bars, lit from the top left, brass screw at each corner
+ const L=x-a,R=x+a,T=y-b,B=y+b,o=rw;
+ const bar=(pts,c1,c2,gx0,gy0,gx1,gy1)=>{const g=cx.createLinearGradient(gx0,gy0,gx1,gy1);g.addColorStop(0,c1);g.addColorStop(1,c2);cx.fillStyle=g;cx.beginPath();pts.forEach(([px,py],i)=>i?cx.lineTo(px,py):cx.moveTo(px,py));cx.closePath();cx.fill()};
+ bar([[L-o,T-o],[R+o,T-o],[R,T],[L,T]],'#dcb37c','#b88650',0,T-o,0,T);
+ bar([[L-o,B+o],[R+o,B+o],[R,B],[L,B]],'#8f5f30','#a8743f',0,B+o,0,B);
+ bar([[L-o,T-o],[L,T],[L,B],[L-o,B+o]],'#d2a56c','#ae7b45',L-o,0,L,0);
+ bar([[R+o,T-o],[R,T],[R,B],[R+o,B+o]],'#9a6835','#b4824b',R+o,0,R,0);
+ cx.strokeStyle='rgba(70,40,15,.45)';cx.lineWidth=1;cx.strokeRect(L,T,2*a,2*b);cx.strokeRect(L-o,T-o,2*a+2*o,2*b+2*o);
+ cx.beginPath();for(const [px,py,qx,qy] of[[L-o,T-o,L,T],[R+o,T-o,R,T],[L-o,B+o,L,B],[R+o,B+o,R,B]]){cx.moveTo(px,py);cx.lineTo(qx,qy)}cx.stroke();
+ for(const [px,py] of[[L-o/2,T-o/2],[R+o/2,T-o/2],[L-o/2,B+o/2],[R+o/2,B+o/2]]){const g=cx.createRadialGradient(px-o*.08,py-o*.08,0,px,py,o*.22);g.addColorStop(0,'#f6dc98');g.addColorStop(1,'#8c6524');
+  cx.fillStyle=g;cx.beginPath();cx.arc(px,py,o*.2,0,7);cx.fill();cx.strokeStyle='rgba(70,45,10,.7)';cx.beginPath();cx.moveTo(px-o*.13,py);cx.lineTo(px+o*.13,py);cx.stroke()}
+ // needle: at work, or resting in the margin
+ if(head)needle(head[0],head[1],hcol,false);else needle(needleRest[0],needleRest[1],RED,true)}
+function frame(){const now=performance.now(),d=new Date();
+ const k=[h24,d.getHours(),d.getMinutes(),d.getDate()].join();
+ if(k!==shownKey){update(design(d),shownKey!=='',false);shownKey=k}
+ if(dirty||now<animEnd){draw(now);dirty=now<animEnd}
+ requestAnimationFrame(frame)}
+cv.onclick=()=>{if(performance.now()>animEnd)update(design(new Date()),true,true)};
+const fb=document.getElementById('fmt');fb.textContent=h24?'24h':'12h';
+fb.onclick=e=>{e.stopPropagation();h24=!h24;fb.textContent=h24?'24h':'12h';try{localStorage.setItem('xstitch-24',h24?'1':'0')}catch(e){}};
+addEventListener('resize',resize);resize();requestAnimationFrame(frame);
+</script></body></html>
